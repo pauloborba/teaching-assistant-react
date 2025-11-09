@@ -14,35 +14,6 @@ app.use(express.json());
 // In-memory student storage (in production, use a database)
 const studentSet = new StudentSet();
 
-// Add some sample data for testing
-const initializeSampleData = () => {
-  try {
-    // Sample student 1 with evaluations
-    const student1 = new Student('João Silva', '123.456.789-01', 'joao@email.com', [
-      new Evaluation('Requirements', 'MA'),
-      new Evaluation('Design', 'MPA'),
-      new Evaluation('Tests', 'MANA')
-    ]);
-    
-    // Sample student 2 with evaluations  
-    const student2 = new Student('Maria Santos', '987.654.321-09', 'maria@email.com', [
-      new Evaluation('Requirements', 'MPA'),
-      new Evaluation('Configuration Management', 'MA'),
-      new Evaluation('Project Management', 'MA')
-    ]);
-    
-    studentSet.addStudent(student1);
-    studentSet.addStudent(student2);
-    
-    console.log('Sample data initialized');
-  } catch (error) {
-    console.log('Sample data already exists or error:', (error as Error).message);
-  }
-};
-
-// Initialize sample data on server start
-initializeSampleData();
-
 // Helper function to clean CPF
 const cleanCPF = (cpf: string): string => {
   return cpf.replace(/[.-]/g, '');
