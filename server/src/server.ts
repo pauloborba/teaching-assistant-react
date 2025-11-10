@@ -2,11 +2,13 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { StudentSet } from './models/StudentSet';
 import { Student } from './models/Student';
-import { Evaluation } from './models/Evaluation';
+import { Evaluation, EVALUATION_GOALS } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { CSVReader, SpreadsheetReader, XLSLReader } from './services/SpreeadsheetReader';
 
 const multer = require('multer');
 const upload = multer({ dest: 'temp_data/' });
@@ -439,7 +441,41 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 });
 
 // PUT /api/classes/:classId/enrollments, used for import grades
-app.post('/api/classes/evaluationImport/:classId', upload.single('file'), (req: Request, res: Response) => {
+app.post('/api/classes/evaluationImport/:classId', upload.single('file'), async (req: express.Request, res: express.Response) => {
+  // arquivo, seja de .csv ou .xlsl
+  const classId = req.params.classId;
+  
+  const fileP = req.file?.path ?? ""; 
+  if (!fileP) {
+    return res.status(400).json({ error: "Arquivo não enviado" });
+  }
+  
+  // pega as trocas de colunas do front de cara
+  const newCols_Name = req.body.mapping ? JSON.parse(req.body.mapping) : null;
+  
+  // TODO: Pegar as metas para a classe, esperando alguem implementar a modificacao de EVALUATION_GOALS por turma
+  const default_fields: string[] = [...EVALUATION_GOALS]; ;
+  
+  const ext = path.extname(fileP).toLowerCase();
+  var reader: SpreadsheetReader<any>;
+  
+  switch (ext) {
+    case ".csv":
+      reader = new CSVReader(fileP, newCols_Name, default_fields);
+      break;
+    case ".xlsx":
+      reader = new XLSLReader(fileP, newCols_Name, default_fields)
+      break;
+    default:
+      return res.status(415).json({ error: "Arquivo não suportado" });
+  }
+  try {
+    const lines = await reader.process(); 
+    // TODO: cria alunos e faz update dos grades aqui
+    return res.json(lines);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
 })
 
 app.listen(PORT, () => {
