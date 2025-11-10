@@ -4,10 +4,12 @@ import { Evaluation } from './Evaluation';
 export class Enrollment {
   private student: Student;
   private evaluations: Evaluation[];
+  private average: GLfloat;
 
-  constructor(student: Student, evaluations: Evaluation[] = []) {
+  constructor(student: Student, evaluations: Evaluation[] = [], average: GLfloat = 0) {
     this.student = student;
     this.evaluations = evaluations;
+    this.average = average;
   }
 
   // Get student
@@ -18,6 +20,10 @@ export class Enrollment {
   // Get evaluations
   getEvaluations(): Evaluation[] {
     return [...this.evaluations]; // Return copy to prevent external modification
+  }
+
+  getAverage(): GLfloat{
+    return this.average;
   }
 
   // Add or update an evaluation
