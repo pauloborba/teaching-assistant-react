@@ -13,7 +13,7 @@ const TARGET_FIELDS = [
 ];
 
 // componente especifico de de importacao de arquivos
-
+// ele tem 2 estados, o de selecionar o arquivo e o outro de fazer o mapping das colunas
 export const ImportComponent: React.FC = () => {
   // Estado do passo atual
   const [step, setStep] = useState<number>(2);
@@ -30,6 +30,7 @@ export const ImportComponent: React.FC = () => {
   // Mapeamento colunas → TARGET_FIELDS
   const [mapping, setMapping] = useState<{ [key: string]: string }>({});
   
+  const [session, setSession] = useState<number>(0);
   // -----------------------------
   // Funções a implementar
   // -----------------------------
@@ -41,10 +42,20 @@ export const ImportComponent: React.FC = () => {
     
   };
 
-  const processFile = () => {
-    // Aqui você vai processar o arquivo, extrair as colunas
-    // e atualizar 'columns' e 'mapping'
-    // Depois mudar o passo: setStep(2)
+  // Vai mandar para o back para ele processar e retorna as colunas e os nomes das metas para fazer o mapeamento
+  const processFileInBack = async () => {
+      const formData = new FormData();
+      formData.append('file', fileName);
+    console.log(fileName);
+      
+      // TODO: tem de pegar o classesID do back quando selecionar no front
+      // Nesse codigo nao ta mandando o arquivo, apenas nada aprentemente
+      const response = await fetch('http://localhost:3005/api/classes/evaluationImport/1', {
+        method: 'POST',
+        body: formData,
+      });
+      const { sessionID } = await response.json();
+    setSession(session as number);
     setStep(2);
   };
 
@@ -52,8 +63,9 @@ export const ImportComponent: React.FC = () => {
     setStep(1);
   };
 
-  const sendToBackend = () => {
-    // Aqui você envia 'selectedFile' + 'mapping' para o backend
+  // Vai mandar para o back o mapeamento
+  const sendToBackendMapping = () => {
+    
     console.log("Send to back")
   };
 
@@ -74,7 +86,7 @@ export const ImportComponent: React.FC = () => {
           <h2>Importar Arquivo</h2>
           <CustomFileInput backColor="#078d64" accept=".csv,.xlsl,.xls" onChange={onFileSelected}/>
           <button 
-            onClick={processFile} 
+            onClick={processFileInBack} 
             disabled={!selectedFile}
             style={{
               background: "#078d64",
@@ -92,7 +104,15 @@ export const ImportComponent: React.FC = () => {
           </button>
         </div>
       )}
-
+      {/*
+       TODO: Mandar para o back, ele vai processar as colunas do arquivo inicialmente e Depois
+       vai retornar as colunas da turma e as colunas do arquivo e salvar, ai na segunda parte, ele vai ler tudo isso e mandar para o back
+       uma segunda parte com o mapping e a ref ao arquivo nessa parte
+       TODO: Separar em 2 rotas no back ou 1, de ler as colunas e salvar o arquivo:
+       [Front] Upload → [Back] lê só o cabeçalho → retorna colunas
+       [Front] Mapeia colunas → [Back] faz parse completo (stream)
+       Para isso devo moficiar o comportamento da classe de spreadsheetreader, para ele ler pacialmente
+        */}
       {/* Passo 2: Mapping */}
       {step === 2 && (
         <div>
@@ -126,7 +146,7 @@ export const ImportComponent: React.FC = () => {
             ))}
           </div>
           <button style={{background: "#078d64", color: "white", margin: "3px"}} onClick={previousStep}>Voltar</button>
-          <button style={{background: "#078d64", color: "white", margin: "3px"}} onClick={sendToBackend}>Enviar</button>
+          <button style={{background: "#078d64", color: "white", margin: "3px"}} onClick={sendToBackendMapping}>Enviar</button>
         </div>
       )}
     </div>
