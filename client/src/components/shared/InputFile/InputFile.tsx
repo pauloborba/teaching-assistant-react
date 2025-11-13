@@ -1,4 +1,4 @@
-import React, { useRef, useState, ChangeEvent } from 'react';
+import React, { useRef, useState, ChangeEvent, useEffect } from 'react';
 import './InputFile.css';
 
 interface CustomFileInputProps {
@@ -8,6 +8,7 @@ interface CustomFileInputProps {
   label?: string;
   className?: string;
   backColor?: string;
+  resetState: any;
 }
 
 const CustomFileInput: React.FC<CustomFileInputProps> = ({
@@ -16,7 +17,8 @@ const CustomFileInput: React.FC<CustomFileInputProps> = ({
   onChange,
   label = 'Escolher arquivo',
   className = '',
-  backColor = '#FFFFFF'
+  backColor = '#FFFFFF',
+  resetState = null,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string>('');
@@ -37,7 +39,15 @@ const CustomFileInput: React.FC<CustomFileInputProps> = ({
     }
     return `${files.length} arquivos selecionados`;
   };
-
+  // quando muda algum state do elemento e fora, pode ser qualquer variavel
+  useEffect(() => { 
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "" as any;
+      // console.log("a", fileInputRef.current.value)
+      setFileName('');
+    }
+  }, [resetState]);
+  
   return (
     <div className={`custom-file-input ${className}`}>
       <input
@@ -51,6 +61,7 @@ const CustomFileInput: React.FC<CustomFileInputProps> = ({
       
       <button
         type="button"
+        key={resetState}
         className={`file-button ${fileName ? 'has-file' : ''}`}
         onClick={handleButtonClick}
         style={{

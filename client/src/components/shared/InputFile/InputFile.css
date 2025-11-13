@@ -40,7 +40,6 @@
   left: 100%;
 }
 
-
 /* TODO trocar esse style de has-file para ficar mais condizente com o resto*/
 /* Estado quando há arquivo selecionado */
 .file-button.has-file {
@@ -62,10 +61,6 @@
   opacity: 0.8;
 }
 
-/*.file-button.has-file:hover .file-icon.small {
-  transform: scale(1.05);
-}*/
-
 /* Texto do botão */
 .button-label {
   transition: all 0.3s ease;
@@ -74,16 +69,13 @@
 
 /* Nome do arquivo */
 .file-name-text {
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
-  text-align: left;
-  transition: all 0.3s ease;
+  display: inline-block;
+  max-width: 300px;        /* limite máximo */
+  white-space: nowrap;     /* não quebra linha */
+  overflow: hidden;        /* esconde o excesso */
+  text-overflow: ellipsis; /* adiciona "..." no final */
+  vertical-align: middle;  /* centraliza verticalmente se estiver com outros inline elements */
 }
-
 
 /* Versão com ícone de check quando há arquivo */
 .file-button.has-file .file-icon::after {

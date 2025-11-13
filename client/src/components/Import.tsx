@@ -10,7 +10,7 @@ interface ImportComponentProps {
 // componente especifico de de importacao de arquivos
 // ele tem 2 estados, o de selecionar o arquivo e o outro de fazer o mapping das colunas
 export const ImportComponent: React.FC<ImportComponentProps> = (
-{classID = ""}  
+{classID = ""}
 ) => {
   // Estado do passo atual
   const [step, setStep] = useState<number>(1);
@@ -30,7 +30,7 @@ export const ImportComponent: React.FC<ImportComponentProps> = (
   const [mapping, setMapping] = useState<{ [key: string]: string }>({});
 
   const [session, setSession] = useState<string>("");
-  
+
   // sempre que classID mudar ele vai resetar tudo
   useEffect(() => {
     setStep(1);
@@ -120,11 +120,11 @@ export const ImportComponent: React.FC<ImportComponentProps> = (
   // Vai mandar para o back o mapeamento
   const sendToBackendMapping = () => {
     // usando o session manda de volta para passar o mapping
-  
+
     const cleanedMapping = Object.fromEntries(
         Object.entries(mapping).filter(([_, value]) => value !== '')
       );
-      
+
     setMapping(cleanedMapping);
     console.log(cleanedMapping); // pois o useState e async, assim mais atualizado usar o clean
     console.log("Send to back")
@@ -144,8 +144,8 @@ export const ImportComponent: React.FC<ImportComponentProps> = (
       {/* Passo 1: Upload */}
       {step === 1 && (
         <div>
-          <h2>Importar Arquivo</h2>
-          <CustomFileInput backColor="#078d64" accept=".csv,.xlsl,.xls" onChange={onFileSelected}/>
+          <h2>Importar de Planilha de Notas</h2>
+          <CustomFileInput backColor="#078d64" accept=".csv,.xlsl,.xls" onChange={onFileSelected} resetState={classID} />
           <button
             onClick={processFileInBack}
             disabled={!selectedFile}
