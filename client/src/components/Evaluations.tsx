@@ -3,6 +3,8 @@ import { Class } from '../types/Class';
 import ClassService from '../services/ClassService';
 import EnrollmentService from '../services/EnrollmentService';
 
+import { ImportGradeComponent } from './ImportGrade';
+
 interface EvaluationsProps {
   onError: (errorMessage: string) => void;
 }
@@ -142,6 +144,10 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
 
       {selectedClass && selectedClass.enrollments.length > 0 && (
         <div className="evaluation-table-container">
+          {/*Componente de importacao de notas de uma planilha, vai reagir as mudacas do classId */}
+          <div>
+            <ImportGradeComponent classID={selectedClassId} />
+          </div>
           <h4>{selectedClass.topic} ({selectedClass.year}/{selectedClass.semester})</h4>
           
           <div className="evaluation-matrix">
