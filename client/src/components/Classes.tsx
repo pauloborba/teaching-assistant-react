@@ -270,10 +270,7 @@ const Classes: React.FC<ClassesProps> = ({
       </div>
 
       {/* Classes List */}
-        <div className='mt-4 bg-blue-100 flex justify-center items-center'>
-          pedro
-        </div>
-      <div className={"classes-list" + " bg-red-100"}>
+      <div className={"classes-list"}>
         <h3>Existing Classes ({classes.length})</h3>
 
         {classes.length === 0 ? (
