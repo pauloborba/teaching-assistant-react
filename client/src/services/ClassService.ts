@@ -6,15 +6,31 @@ class ClassService {
   static async getAllClasses(): Promise<Class[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/api/classes`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch classes');
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
       console.error('Error fetching classes:', error);
+      throw error;
+    }
+  }
+
+  static async getClassByTopic(classTopic: string): Promise<Class[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/classes/${encodeURIComponent(classTopic)}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch class by topic');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching class by topic:', error);
       throw error;
     }
   }
@@ -28,12 +44,12 @@ class ClassService {
         },
         body: JSON.stringify(classData),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to add class');
       }
-      
+
       return response.json();
     } catch (error) {
       console.error('Error adding class:', error);
@@ -50,12 +66,12 @@ class ClassService {
         },
         body: JSON.stringify(classData),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to update class');
       }
-      
+
       return response.json();
     } catch (error) {
       console.error('Error updating class:', error);
@@ -68,7 +84,7 @@ class ClassService {
       const response = await fetch(`${API_BASE_URL}/api/classes/${classId}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to delete class');

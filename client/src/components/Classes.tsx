@@ -13,12 +13,12 @@ interface ClassesProps {
   onError: (errorMessage: string) => void;
 }
 
-const Classes: React.FC<ClassesProps> = ({ 
-  classes, 
-  onClassAdded, 
-  onClassUpdated, 
-  onClassDeleted, 
-  onError 
+const Classes: React.FC<ClassesProps> = ({
+  classes,
+  onClassAdded,
+  onClassUpdated,
+  onClassDeleted,
+  onError
 }) => {
   const [formData, setFormData] = useState<CreateClassRequest>({
     topic: '',
@@ -27,10 +27,11 @@ const Classes: React.FC<ClassesProps> = ({
   });
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Student enrollment state
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [enrollmentPanelClass, setEnrollmentPanelClass] = useState<Class | null>(null);
+  const [analysePanelClass, setAnalysePanelClass] = useState<Class[] | null>(null);
   const [selectedStudentsForEnrollment, setSelectedStudentsForEnrollment] = useState<Set<string>>(new Set());
   const [isEnrolling, setIsEnrolling] = useState(false);
 
@@ -56,22 +57,23 @@ const Classes: React.FC<ClassesProps> = ({
     }
 
     setIsEnrolling(true);
-    
+
     try {
       // Enroll each selected student
       const enrollmentPromises = Array.from(selectedStudentsForEnrollment).map(studentCPF =>
         EnrollmentService.enrollStudent(enrollmentPanelClass.id, studentCPF)
       );
-      
+
       await Promise.all(enrollmentPromises);
-      
+
       // Reset enrollment panel
       setSelectedStudentsForEnrollment(new Set());
       setEnrollmentPanelClass(null);
-      
+      setAnalysePanelClass(null);
+
       // Refresh class data
       onClassUpdated();
-      
+
       onError(''); // Clear any previous errors
     } catch (error) {
       onError((error as Error).message);
@@ -79,6 +81,15 @@ const Classes: React.FC<ClassesProps> = ({
       setIsEnrolling(false);
     }
   };
+
+  //handle opening class analysis panel for a class
+  const handleOpenAnalysisPanel = (classObj: Class[]) => {
+    setAnalysePanelClass(classes);
+  };
+
+  const handleCloseAnalysisPanel = () => {
+    setAnalysePanelClass(null);
+  }
 
   // Handle opening enrollment panel for a specific class
   const handleOpenEnrollmentPanel = (classObj: Class) => {
@@ -106,7 +117,7 @@ const Classes: React.FC<ClassesProps> = ({
   // Handle select all/none
   const handleSelectAll = () => {
     if (!enrollmentPanelClass) return;
-    
+
     const availableStudents = getAvailableStudentsForClass(enrollmentPanelClass);
     setSelectedStudentsForEnrollment(new Set(availableStudents.map(s => s.cpf)));
   };
@@ -133,14 +144,14 @@ const Classes: React.FC<ClassesProps> = ({
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.topic.trim()) {
       onError('Topic is required');
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       if (editingClass) {
         // Update existing class
@@ -152,7 +163,7 @@ const Classes: React.FC<ClassesProps> = ({
         await ClassService.addClass(formData);
         onClassAdded();
       }
-      
+
       // Reset form
       setFormData({
         topic: '',
@@ -205,7 +216,6 @@ const Classes: React.FC<ClassesProps> = ({
   return (
     <div className="classes-container">
       <h2>Class Management</h2>
-      
       {/* Class Form */}
       <div className="class-form-container">
         <h3>{editingClass ? 'Edit Class' : 'Add New Class'}</h3>
@@ -271,8 +281,17 @@ const Classes: React.FC<ClassesProps> = ({
 
       {/* Classes List */}
       <div className="classes-list">
-        <h3>Existing Classes ({classes.length})</h3>
-        
+        <div className="classes-list-header">
+          <h3>Existing Classes ({classes.length})</h3>
+          <button
+            className="analyse-btn"
+            onClick={() => handleOpenAnalysisPanel(classes)}
+            title="Analyse class"
+          >
+            Analyse
+          </button>
+        </div>
+
         {classes.length === 0 ? (
           <div className="no-classes">
             No classes created yet. Add your first class using the form above.
@@ -333,7 +352,7 @@ const Classes: React.FC<ClassesProps> = ({
           <div className="enrollment-modal">
             <div className="enrollment-modal-header">
               <h3>Enroll Students in {enrollmentPanelClass.topic}</h3>
-              <button 
+              <button
                 className="close-modal-btn"
                 onClick={handleCloseEnrollmentPanel}
                 title="Close"
@@ -364,7 +383,7 @@ const Classes: React.FC<ClassesProps> = ({
                 <div className="available-students-header">
                   <h4>Available Students ({getAvailableStudentsForClass(enrollmentPanelClass).length}):</h4>
                   <div className="selection-controls">
-                    <button 
+                    <button
                       type="button"
                       className="select-all-btn"
                       onClick={handleSelectAll}
@@ -372,7 +391,7 @@ const Classes: React.FC<ClassesProps> = ({
                     >
                       Select All
                     </button>
-                    <button 
+                    <button
                       type="button"
                       className="select-none-btn"
                       onClick={handleSelectNone}
@@ -387,12 +406,12 @@ const Classes: React.FC<ClassesProps> = ({
                 ) : (
                   <div className="students-grid">
                     {getAvailableStudentsForClass(enrollmentPanelClass).map(student => (
-                      <div 
-                        key={student.cpf} 
+                      <div
+                        key={student.cpf}
                         className={`student-card ${selectedStudentsForEnrollment.has(student.cpf) ? 'selected' : ''}`}
                         onClick={() => handleStudentToggle(student.cpf)}
                       >
-                        <input 
+                        <input
                           type="checkbox"
                           checked={selectedStudentsForEnrollment.has(student.cpf)}
                           onChange={() => handleStudentToggle(student.cpf)}
@@ -411,24 +430,42 @@ const Classes: React.FC<ClassesProps> = ({
 
               {/* Action Buttons */}
               <div className="enrollment-actions">
-                <button 
+                <button
                   className="cancel-btn"
                   onClick={handleCloseEnrollmentPanel}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   className="enroll-selected-btn"
                   onClick={handleBulkEnrollStudents}
                   disabled={isEnrolling || selectedStudentsForEnrollment.size === 0}
                 >
-                  {isEnrolling 
-                    ? 'Enrolling...' 
+                  {isEnrolling
+                    ? 'Enrolling...'
                     : `Enroll ${selectedStudentsForEnrollment.size} Student${selectedStudentsForEnrollment.size !== 1 ? 's' : ''}`
                   }
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {analysePanelClass && (
+        <div className='enrollment-overlay'>
+          <div className='enrollment-modal'>
+            <div className='enrollment-modal-header'>
+              <h3>Analyse Classes</h3>
+              <button
+                className="close-modal-btn"
+                onClick={handleCloseAnalysisPanel}
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+            
           </div>
         </div>
       )}
