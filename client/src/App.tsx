@@ -7,7 +7,7 @@ import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
-import './App.css';
+import './index.css';
 
 type TabType = 'students' | 'evaluations' | 'classes';
 
@@ -50,9 +50,9 @@ const App: React.FC = () => {
   const updateSelectedClass = useCallback((classesData: Class[]) => {
     // Update selectedClass if it exists to reflect new enrollments
     if (selectedClass) {
-      const updatedSelectedClass = classesData.find(c => 
-        c.topic === selectedClass.topic && 
-        c.year === selectedClass.year && 
+      const updatedSelectedClass = classesData.find(c =>
+        c.topic === selectedClass.topic &&
+        c.year === selectedClass.year &&
         c.semester === selectedClass.semester
       );
       if (updatedSelectedClass) {
@@ -171,7 +171,7 @@ const App: React.FC = () => {
                 >
                   <option value="">All Students</option>
                   {classes.map((classObj) => (
-                    <option 
+                    <option
                       key={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
                       value={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
                     >
@@ -201,7 +201,7 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'evaluations' && (
-            <Evaluations 
+            <Evaluations
               onError={handleError}
             />
           )}

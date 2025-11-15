@@ -1,30 +1,244 @@
-/* Global Styles */
-@import 'tailwindcss';
-
+/*! tailwindcss v4.1.17 | MIT License | https://tailwindcss.com */
+@layer properties;
+@layer theme, base, components, utilities;
+@layer theme {
+  :root, :host {
+    --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+      "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
+    --color-red-100: oklch(93.6% 0.032 17.717);
+    --color-blue-100: oklch(93.2% 0.032 255.585);
+    --spacing: 0.25rem;
+    --default-transition-duration: 150ms;
+    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    --default-font-family: var(--font-sans);
+    --default-mono-font-family: var(--font-mono);
+  }
+}
+@layer base {
+  *, ::after, ::before, ::backdrop, ::file-selector-button {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0 solid;
+  }
+  html, :host {
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+    font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");
+    font-feature-settings: var(--default-font-feature-settings, normal);
+    font-variation-settings: var(--default-font-variation-settings, normal);
+    -webkit-tap-highlight-color: transparent;
+  }
+  hr {
+    height: 0;
+    color: inherit;
+    border-top-width: 1px;
+  }
+  abbr:where([title]) {
+    -webkit-text-decoration: underline dotted;
+    text-decoration: underline dotted;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-size: inherit;
+    font-weight: inherit;
+  }
+  a {
+    color: inherit;
+    -webkit-text-decoration: inherit;
+    text-decoration: inherit;
+  }
+  b, strong {
+    font-weight: bolder;
+  }
+  code, kbd, samp, pre {
+    font-family: var(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+    font-feature-settings: var(--default-mono-font-feature-settings, normal);
+    font-variation-settings: var(--default-mono-font-variation-settings, normal);
+    font-size: 1em;
+  }
+  small {
+    font-size: 80%;
+  }
+  sub, sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+  }
+  sub {
+    bottom: -0.25em;
+  }
+  sup {
+    top: -0.5em;
+  }
+  table {
+    text-indent: 0;
+    border-color: inherit;
+    border-collapse: collapse;
+  }
+  :-moz-focusring {
+    outline: auto;
+  }
+  progress {
+    vertical-align: baseline;
+  }
+  summary {
+    display: list-item;
+  }
+  ol, ul, menu {
+    list-style: none;
+  }
+  img, svg, video, canvas, audio, iframe, embed, object {
+    display: block;
+    vertical-align: middle;
+  }
+  img, video {
+    max-width: 100%;
+    height: auto;
+  }
+  button, input, select, optgroup, textarea, ::file-selector-button {
+    font: inherit;
+    font-feature-settings: inherit;
+    font-variation-settings: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    border-radius: 0;
+    background-color: transparent;
+    opacity: 1;
+  }
+  :where(select:is([multiple], [size])) optgroup {
+    font-weight: bolder;
+  }
+  :where(select:is([multiple], [size])) optgroup option {
+    padding-inline-start: 20px;
+  }
+  ::file-selector-button {
+    margin-inline-end: 4px;
+  }
+  ::placeholder {
+    opacity: 1;
+  }
+  @supports (not (-webkit-appearance: -apple-pay-button))  or (contain-intrinsic-size: 1px) {
+    ::placeholder {
+      color: currentcolor;
+      @supports (color: color-mix(in lab, red, red)) {
+        color: color-mix(in oklab, currentcolor 50%, transparent);
+      }
+    }
+  }
+  textarea {
+    resize: vertical;
+  }
+  ::-webkit-search-decoration {
+    -webkit-appearance: none;
+  }
+  ::-webkit-date-and-time-value {
+    min-height: 1lh;
+    text-align: inherit;
+  }
+  ::-webkit-datetime-edit {
+    display: inline-flex;
+  }
+  ::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+  }
+  ::-webkit-datetime-edit, ::-webkit-datetime-edit-year-field, ::-webkit-datetime-edit-month-field, ::-webkit-datetime-edit-day-field, ::-webkit-datetime-edit-hour-field, ::-webkit-datetime-edit-minute-field, ::-webkit-datetime-edit-second-field, ::-webkit-datetime-edit-millisecond-field, ::-webkit-datetime-edit-meridiem-field {
+    padding-block: 0;
+  }
+  ::-webkit-calendar-picker-indicator {
+    line-height: 1;
+  }
+  :-moz-ui-invalid {
+    box-shadow: none;
+  }
+  button, input:where([type="button"], [type="reset"], [type="submit"]), ::file-selector-button {
+    appearance: button;
+  }
+  ::-webkit-inner-spin-button, ::-webkit-outer-spin-button {
+    height: auto;
+  }
+  [hidden]:where(:not([hidden="until-found"])) {
+    display: none !important;
+  }
+}
+@layer utilities {
+  .static {
+    position: static;
+  }
+  .mt-4 {
+    margin-top: calc(var(--spacing) * 4);
+  }
+  .block {
+    display: block;
+  }
+  .flex {
+    display: flex;
+  }
+  .table {
+    display: table;
+  }
+  .border-collapse {
+    border-collapse: collapse;
+  }
+  .transform {
+    transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
+  }
+  .resize {
+    resize: both;
+  }
+  .flex-wrap {
+    flex-wrap: wrap;
+  }
+  .items-center {
+    align-items: center;
+  }
+  .justify-center {
+    justify-content: center;
+  }
+  .border {
+    border-style: var(--tw-border-style);
+    border-width: 1px;
+  }
+  .bg-blue-100 {
+    background-color: var(--color-blue-100);
+  }
+  .bg-red-100 {
+    background-color: var(--color-red-100);
+  }
+  .underline {
+    text-decoration-line: underline;
+  }
+  .outline {
+    outline-style: var(--tw-outline-style);
+    outline-width: 1px;
+  }
+  .transition {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+}
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f5f7fa;
   color: #333;
   line-height: 1.6;
 }
-
-/* App Container */
 .App {
   max-width: 1200px;
   margin: 0 auto;
   min-height: 100vh;
 }
-
 .App-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -32,23 +246,18 @@ body {
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
 .App-header h1 {
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
-
 .App-header p {
   font-size: 1.1rem;
   opacity: 0.9;
 }
-
 .App-main {
   padding: 2rem;
 }
-
-/* Error Message */
 .error-message {
   background-color: #fee;
   color: #c53030;
@@ -60,8 +269,6 @@ body {
   align-items: center;
   gap: 0.5rem;
 }
-
-/* Student Form */
 .student-form {
   background: white;
   padding: 2rem;
@@ -70,18 +277,15 @@ body {
   margin-bottom: 2rem;
   border: 1px solid #e2e8f0;
 }
-
 .student-form h2 {
   color: #2d3748;
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
   font-weight: 600;
 }
-
 .form-group {
   margin-bottom: 1.5rem;
 }
-
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
@@ -89,7 +293,6 @@ body {
   font-weight: 500;
   font-size: 0.9rem;
 }
-
 .form-group input {
   width: 100%;
   padding: 0.75rem;
@@ -99,26 +302,21 @@ body {
   transition: all 0.2s ease;
   background-color: #fff;
 }
-
 .form-group input:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
-
 .form-group input:disabled {
   background-color: #f7fafc;
   color: #718096;
   cursor: not-allowed;
 }
-
 .form-buttons {
   display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
 }
-
-/* Buttons */
 button {
   padding: 0.75rem 1.5rem;
   border: none;
@@ -132,34 +330,25 @@ button {
   justify-content: center;
   min-width: 100px;
 }
-
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-
-/* Primary Button */
 button[type="submit"] {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
-
 button[type="submit"]:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
-
-/* Secondary Button */
 button[type="button"] {
   background-color: #e2e8f0;
   color: #4a5568;
 }
-
 button[type="button"]:hover:not(:disabled) {
   background-color: #cbd5e0;
 }
-
-/* Students List */
 .students-list {
   background: white;
   border-radius: 12px;
@@ -167,7 +356,6 @@ button[type="button"]:hover:not(:disabled) {
   border: 1px solid #e2e8f0;
   overflow: hidden;
 }
-
 .students-list h2 {
   background-color: #f8fafc;
   padding: 1.5rem 2rem;
@@ -177,31 +365,25 @@ button[type="button"]:hover:not(:disabled) {
   font-weight: 600;
   border-bottom: 1px solid #e2e8f0;
 }
-
 .loading {
   padding: 3rem;
   text-align: center;
   color: #718096;
   font-size: 1.1rem;
 }
-
 .no-students {
   padding: 3rem 2rem;
   text-align: center;
   color: #718096;
   font-size: 1.1rem;
 }
-
-/* Table */
 .table-container {
   overflow-x: auto;
 }
-
 table {
   width: 100%;
   border-collapse: collapse;
 }
-
 th {
   background-color: #f8fafc;
   padding: 1rem;
@@ -213,21 +395,16 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
-
 td {
   padding: 1rem;
   border-bottom: 1px solid #e2e8f0;
 }
-
 tbody tr:hover {
   background-color: #f8fafc;
 }
-
 tbody tr:last-child td {
   border-bottom: none;
 }
-
-/* Action Buttons */
 .edit-btn {
   background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
   color: white;
@@ -236,12 +413,10 @@ tbody tr:last-child td {
   margin-right: 0.5rem;
   min-width: auto;
 }
-
 .edit-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
 }
-
 .delete-btn {
   background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
   color: white;
@@ -249,61 +424,44 @@ tbody tr:last-child td {
   font-size: 0.8rem;
   min-width: auto;
 }
-
 .delete-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
 }
-
-/* Responsive Design */
 @media (max-width: 768px) {
   .App-main {
     padding: 1rem;
   }
-
   .student-form {
     padding: 1.5rem;
   }
-
   .form-buttons {
     flex-direction: column;
   }
-
   .table-container {
     font-size: 0.9rem;
   }
-
-  th,
-  td {
+  th, td {
     padding: 0.75rem 0.5rem;
   }
-
   .App-header h1 {
     font-size: 2rem;
   }
-
-  /* Responsive evaluations table */
   .evaluations-table {
     font-size: 0.8rem;
   }
-
   .evaluations-table th:first-child {
-    width: 150px; /* Smaller width for student names on mobile */
+    width: 150px;
   }
-
-  .evaluations-table th:not(:first-child),
-  .evaluations-table td:not(:first-child) {
+  .evaluations-table th:not(:first-child), .evaluations-table td:not(:first-child) {
     width: calc((100% - 150px) / 6);
-    min-width: 80px; /* Smaller minimum width on mobile */
+    min-width: 80px;
   }
-
   .grade-select {
     font-size: 0.75rem;
     padding: 0.2rem;
   }
 }
-
-/* Tab Navigation */
 .tab-navigation {
   display: flex;
   background: white;
@@ -311,7 +469,6 @@ tbody tr:last-child td {
   margin-bottom: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 .tab-button {
   flex: 1;
   padding: 1rem 2rem;
@@ -324,18 +481,15 @@ tbody tr:last-child td {
   border-bottom: 3px solid transparent;
   transition: all 0.2s ease-in-out;
 }
-
 .tab-button:hover {
   background-color: #f8fafc;
   color: #374151;
 }
-
 .tab-button.active {
   color: #667eea;
   border-bottom-color: #667eea;
   background-color: #f8fafc;
 }
-
 .tab-content {
   background: white;
   border-radius: 0 0 8px 8px;
@@ -343,8 +497,6 @@ tbody tr:last-child td {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   min-height: 400px;
 }
-
-/* Class Selection */
 .class-selection {
   margin-bottom: 2rem;
   padding: 1rem;
@@ -352,14 +504,12 @@ tbody tr:last-child td {
   border-radius: 8px;
   border: 1px solid #e5e7eb;
 }
-
 .class-selection label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
   color: #374151;
 }
-
 .class-selector {
   width: 100%;
   max-width: 400px;
@@ -370,18 +520,14 @@ tbody tr:last-child td {
   background-color: white;
   cursor: pointer;
 }
-
 .class-selector:focus {
   outline: 2px solid #667eea;
   outline-offset: 2px;
   border-color: #667eea;
 }
-
-/* Classes Form */
 .classes-container {
   max-width: 1000px;
 }
-
 .class-form-container {
   margin-bottom: 2rem;
   padding: 1.5rem;
@@ -389,27 +535,22 @@ tbody tr:last-child td {
   border-radius: 8px;
   border: 1px solid #e5e7eb;
 }
-
 .class-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
-
 .form-row {
   display: flex;
   gap: 1rem;
   align-items: end;
 }
-
 .topic-row {
   flex-direction: column;
 }
-
 .topic-row .form-group {
   width: 100%;
 }
-
 .topic-row .form-group input {
   font-size: 1.1rem;
   padding: 0.875rem;
@@ -417,30 +558,25 @@ tbody tr:last-child td {
   border: 2px solid #d1d5db;
   border-radius: 6px;
 }
-
 .topic-row .form-group input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
-
 .topic-row .form-group label {
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
   color: #1f2937;
 }
-
 .year-semester-row {
   max-width: 400px;
   gap: 1.5rem;
 }
-
 .year-semester-row .form-group {
   flex: 1;
   min-width: 140px;
   max-width: 180px;
 }
-
 .year-semester-row .form-group select {
   font-size: 1.1rem;
   padding: 0.875rem;
@@ -448,34 +584,28 @@ tbody tr:last-child td {
   border: 2px solid #d1d5db;
   border-radius: 6px;
 }
-
 .year-semester-row .form-group select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
-
 .year-semester-row .form-group label {
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: #374151;
 }
-
 .class-form .form-group {
   display: flex;
   flex-direction: column;
 }
-
 .class-form .form-buttons {
   display: flex;
   gap: 0.5rem;
 }
-
 .classes-list {
   margin-top: 2rem;
 }
-
 .no-classes {
   text-align: center;
   padding: 2rem;
@@ -484,30 +614,22 @@ tbody tr:last-child td {
   border-radius: 8px;
   border: 1px solid #e5e7eb;
 }
-
-/* Classes table specific styling */
-.classes-list table th:nth-child(2),
-.classes-list table th:nth-child(3) {
+.classes-list table th:nth-child(2), .classes-list table th:nth-child(3) {
   font-size: 1rem;
   text-align: center;
   width: 120px;
 }
-
-.classes-list table td:nth-child(2),
-.classes-list table td:nth-child(3) {
+.classes-list table td:nth-child(2), .classes-list table td:nth-child(3) {
   font-size: 1rem;
   text-align: center;
   font-weight: 600;
   color: #374151;
 }
-
 .classes-list table td:nth-child(4) {
   text-align: center;
   font-weight: 500;
   color: #059669;
 }
-
-/* Modern Enrollment Panel */
 .enrollment-overlay {
   position: fixed;
   top: 0;
@@ -520,7 +642,6 @@ tbody tr:last-child td {
   align-items: center;
   z-index: 1000;
 }
-
 .enrollment-modal {
   background-color: white;
   border-radius: 12px;
@@ -532,7 +653,6 @@ tbody tr:last-child td {
   display: flex;
   flex-direction: column;
 }
-
 .enrollment-modal-header {
   padding: 1.5rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -541,13 +661,11 @@ tbody tr:last-child td {
   justify-content: space-between;
   align-items: center;
 }
-
 .enrollment-modal-header h3 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
 }
-
 .close-modal-btn {
   background: none;
   border: none;
@@ -562,11 +680,9 @@ tbody tr:last-child td {
   justify-content: center;
   transition: background-color 0.2s;
 }
-
 .close-modal-btn:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
-
 .enrollment-modal-content {
   padding: 1.5rem;
   overflow-y: auto;
@@ -575,21 +691,17 @@ tbody tr:last-child td {
   flex-direction: column;
   gap: 1.5rem;
 }
-
-.current-enrollments h4,
-.available-students-header h4 {
+.current-enrollments h4, .available-students-header h4 {
   margin: 0 0 1rem 0;
   color: #374151;
   font-size: 1.1rem;
   font-weight: 600;
 }
-
 .enrolled-students-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
-
 .enrolled-badge {
   background-color: #10b981;
   color: white;
@@ -598,20 +710,16 @@ tbody tr:last-child td {
   font-size: 0.875rem;
   font-weight: 500;
 }
-
 .available-students-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .selection-controls {
   display: flex;
   gap: 0.5rem;
 }
-
-.select-all-btn,
-.select-none-btn {
+.select-all-btn, .select-none-btn {
   padding: 0.5rem 1rem;
   border: 1px solid #d1d5db;
   background-color: white;
@@ -621,27 +729,22 @@ tbody tr:last-child td {
   font-weight: 500;
   transition: all 0.2s;
 }
-
 .select-all-btn:hover:not(:disabled) {
   background-color: #3b82f6;
   color: white;
   border-color: #3b82f6;
 }
-
 .select-none-btn:hover {
   background-color: #ef4444;
   color: white;
   border-color: #ef4444;
 }
-
 .select-all-btn:disabled {
   background-color: #f9fafb;
   color: #9ca3af;
   cursor: not-allowed;
 }
-
-.no-enrollments,
-.no-available-students {
+.no-enrollments, .no-available-students {
   color: #6b7280;
   font-style: italic;
   margin: 0;
@@ -650,7 +753,6 @@ tbody tr:last-child td {
   background-color: #f9fafb;
   border-radius: 6px;
 }
-
 .students-grid {
   display: flex;
   flex-direction: column;
@@ -659,7 +761,6 @@ tbody tr:last-child td {
   overflow-y: auto;
   padding: 0.5rem;
 }
-
 .student-card {
   display: flex;
   align-items: center;
@@ -672,44 +773,36 @@ tbody tr:last-child td {
   background-color: white;
   width: 100%;
 }
-
 .student-card:hover {
   border-color: #3b82f6;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
-
 .student-card.selected {
   border-color: #10b981;
   background-color: #f0fdf4;
 }
-
 .student-card input[type="checkbox"] {
   width: 18px;
   height: 18px;
   accent-color: #10b981;
 }
-
 .student-info {
   flex: 1;
 }
-
 .student-name {
   font-weight: 600;
   color: #111827;
   margin-bottom: 0.25rem;
 }
-
 .student-cpf {
   font-size: 0.875rem;
   color: #6b7280;
   margin-bottom: 0.125rem;
 }
-
 .student-email {
   font-size: 0.875rem;
   color: #6b7280;
 }
-
 .enrollment-actions {
   display: flex;
   justify-content: flex-end;
@@ -718,7 +811,6 @@ tbody tr:last-child td {
   border-top: 1px solid #e5e7eb;
   margin-top: auto;
 }
-
 .cancel-btn {
   padding: 0.75rem 1.5rem;
   background-color: white;
@@ -729,11 +821,9 @@ tbody tr:last-child td {
   font-weight: 500;
   transition: all 0.2s;
 }
-
 .cancel-btn:hover {
   background-color: #f9fafb;
 }
-
 .enroll-selected-btn {
   padding: 0.75rem 1.5rem;
   background-color: #10b981;
@@ -744,17 +834,13 @@ tbody tr:last-child td {
   font-weight: 500;
   transition: background-color 0.2s;
 }
-
 .enroll-selected-btn:hover:not(:disabled) {
   background-color: #059669;
 }
-
 .enroll-selected-btn:disabled {
   background-color: #9ca3af;
   cursor: not-allowed;
 }
-
-/* Update enroll button in table */
 .enroll-btn {
   background-color: #3b82f6;
   color: white;
@@ -768,52 +854,40 @@ tbody tr:last-child td {
   transition: background-color 0.2s;
   min-width: auto;
 }
-
 .enroll-btn:hover {
   background-color: #2563eb;
 }
-
-/* Evaluations Table */
 .evaluations-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
-  table-layout: fixed; /* Force uniform column widths */
+  table-layout: fixed;
 }
-
-.evaluations-table th,
-.evaluations-table td {
+.evaluations-table th, .evaluations-table td {
   border: 1px solid #e5e7eb;
   padding: 0.75rem;
   text-align: center;
 }
-
 .evaluations-table th {
   background-color: #f9fafb;
   font-weight: 600;
   color: #374151;
 }
-
 .evaluations-table th:first-child {
   text-align: left;
   background-color: #667eea;
   color: white;
-  width: 200px; /* Fixed width for student name column */
+  width: 200px;
 }
-
-/* Goal columns - uniform width */
-.evaluations-table th:not(:first-child),
-.evaluations-table td:not(:first-child) {
-  width: calc((100% - 200px) / 6); /* Distribute remaining width equally among 6 goal columns */
-  min-width: 120px; /* Minimum width to ensure readability */
+.evaluations-table th:not(:first-child), .evaluations-table td:not(:first-child) {
+  width: calc((100% - 200px) / 6);
+  min-width: 120px;
 }
-
 .grade-cell {
   font-weight: 500;
   padding: 0.5rem;
   position: relative;
 }
-
 .grade-select {
   width: 100%;
   border: none;
@@ -826,69 +900,52 @@ tbody tr:last-child td {
   transition: all 0.2s ease-in-out;
   text-align: center;
 }
-
 .grade-select:focus {
   outline: 2px solid #667eea;
   outline-offset: 2px;
 }
-
 .grade-select:disabled {
   cursor: wait;
   opacity: 0.6;
 }
-
 .grade-select.updating {
   background-color: #f3f4f6;
 }
-
 .grade-MANA {
   background-color: #fef3c7;
   color: #92400e;
 }
-
-.grade-MANA .grade-select,
-.grade-select.grade-MANA {
+.grade-MANA .grade-select, .grade-select.grade-MANA {
   background-color: #fef3c7;
   color: #92400e;
 }
-
 .grade-MPA {
   background-color: #dbeafe;
   color: #1e40af;
 }
-
-.grade-MPA .grade-select,
-.grade-select.grade-MPA {
+.grade-MPA .grade-select, .grade-select.grade-MPA {
   background-color: #dbeafe;
   color: #1e40af;
 }
-
 .grade-MA {
   background-color: #dcfce7;
   color: #166534;
 }
-
-.grade-MA .grade-select,
-.grade-select.grade-MA {
+.grade-MA .grade-select, .grade-select.grade-MA {
   background-color: #dcfce7;
   color: #166534;
 }
-
 .no-grade {
   color: #9ca3af;
   font-style: italic;
 }
-
 .grade-select.no-grade {
   color: #9ca3af;
   background-color: #f9fafb;
 }
-
-/* Evaluation table styles */
 .evaluation-table {
   margin-top: 1rem;
 }
-
 .evaluation-table table {
   width: 100%;
   border-collapse: collapse;
@@ -897,7 +954,6 @@ tbody tr:last-child td {
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 .evaluation-table th {
   background-color: #f8fafc;
   padding: 12px 8px;
@@ -907,13 +963,11 @@ tbody tr:last-child td {
   border-bottom: 2px solid #e5e7eb;
   font-size: 0.9rem;
 }
-
 .evaluation-table td {
   padding: 8px;
   border-bottom: 1px solid #e5e7eb;
   vertical-align: middle;
 }
-
 .evaluation-table select {
   width: 80px;
   padding: 4px 6px;
@@ -921,12 +975,10 @@ tbody tr:last-child td {
   border-radius: 4px;
   font-size: 0.85rem;
 }
-
 .evaluation-table select.editing {
   border-color: #3b82f6;
   background-color: #eff6ff;
 }
-
 .save-btn {
   margin-left: 4px;
   padding: 2px 6px;
@@ -938,11 +990,9 @@ tbody tr:last-child td {
   cursor: pointer;
   line-height: 1;
 }
-
 .save-btn:hover {
   background-color: #059669;
 }
-
 .add-evaluation-btn {
   padding: 4px 8px;
   background-color: #3b82f6;
@@ -952,12 +1002,9 @@ tbody tr:last-child td {
   font-size: 0.8rem;
   cursor: pointer;
 }
-
 .add-evaluation-btn:hover {
   background-color: #2563eb;
 }
-
-/* Enhanced Evaluation Matrix Styles */
 .class-selection-container {
   margin-bottom: 2rem;
   padding: 1.5rem;
@@ -966,7 +1013,6 @@ tbody tr:last-child td {
   border: 2px solid #0ea5e9;
   box-shadow: 0 2px 4px rgba(14, 165, 233, 0.1);
 }
-
 .class-selection-container label {
   display: block;
   margin-bottom: 0.75rem;
@@ -974,7 +1020,6 @@ tbody tr:last-child td {
   color: #0c4a6e;
   font-size: 1.1rem;
 }
-
 .class-select {
   width: 100%;
   max-width: 400px;
@@ -986,38 +1031,32 @@ tbody tr:last-child td {
   color: #0c4a6e;
   font-weight: 500;
 }
-
 .class-select:focus {
   outline: none;
   border-color: #0284c7;
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
 }
-
 .evaluation-table-container {
   margin-top: 2rem;
 }
-
 .evaluation-table-container h4 {
   margin-bottom: 1rem;
   color: #374151;
   font-size: 1.1rem;
 }
-
 .evaluation-matrix {
   overflow-x: auto;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 1px solid #cbd5e1;
 }
-
 .evaluation-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
   min-width: 800px;
-  table-layout: fixed; /* Fixed layout for uniform column widths */
+  table-layout: fixed;
 }
-
 .student-name-header {
   background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
   color: white;
@@ -1028,12 +1067,11 @@ tbody tr:last-child td {
   position: sticky;
   left: 0;
   z-index: 10;
-  width: 200px; /* Fixed width for student column */
+  width: 200px;
   font-size: 1rem;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
 }
-
 .goal-header {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: white;
@@ -1042,27 +1080,23 @@ tbody tr:last-child td {
   font-weight: 700;
   font-size: 0.9rem;
   border: 1px solid #047857;
-  width: calc((100% - 200px) / 6); /* Equal width for all 6 goal columns */
+  width: calc((100% - 200px) / 6);
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
   vertical-align: middle;
   line-height: 1.2;
 }
-
 .student-row:nth-child(even) {
   background-color: #f0f9ff;
 }
-
 .student-row:nth-child(odd) {
   background-color: #ffffff;
 }
-
 .student-row:hover {
   background-color: #e0f2fe;
   transform: scale(1.001);
   transition: all 0.2s ease;
 }
-
 .student-name-cell {
   background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
   padding: 16px;
@@ -1076,37 +1110,30 @@ tbody tr:last-child td {
   color: #0c4a6e;
   box-shadow: 2px 0 4px rgba(14, 165, 233, 0.1);
 }
-
 .student-row:nth-child(even) .student-name-cell {
   background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%);
   color: #0c4a6e;
 }
-
 .student-row:hover .student-name-cell {
   background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%);
   color: #0c4a6e;
 }
-
 .evaluation-cell {
   padding: 12px 8px;
   text-align: center;
   border: 1px solid #cbd5e1;
-  width: calc((100% - 200px) / 6); /* Equal width for all goal columns */
+  width: calc((100% - 200px) / 6);
   vertical-align: middle;
 }
-
 .student-row:nth-child(even) .evaluation-cell {
   background-color: #f0f9ff;
 }
-
 .student-row:nth-child(odd) .evaluation-cell {
   background-color: #ffffff;
 }
-
 .student-row:hover .evaluation-cell {
   background-color: #e0f2fe;
 }
-
 .evaluation-select {
   width: 90%;
   max-width: 90px;
@@ -1119,79 +1146,109 @@ tbody tr:last-child td {
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
-  text-align-last: center; /* Center text in select for all browsers */
+  text-align-last: center;
 }
-
 .evaluation-select:hover {
   border-color: #3b82f6;
   transform: scale(1.05);
 }
-
 .evaluation-select:focus {
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
   transform: scale(1.05);
 }
-
-/* Grade-specific colors */
 .evaluation-select.grade-ma {
   background: linear-gradient(135deg, #10b981 0%, #047857 100%);
   color: white;
   border-color: #059669;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-
 .evaluation-select.grade-mpa {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
   border-color: #f59e0b;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-
 .evaluation-select.grade-mana {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   border-color: #ef4444;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-
 .evaluation-select[value="MA"] {
   background: linear-gradient(135deg, #10b981 0%, #047857 100%);
   color: white;
   border-color: #059669;
 }
-
 .evaluation-select[value="MPA"] {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
   border-color: #f59e0b;
 }
-
 .evaluation-select[value="MANA"] {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   border-color: #ef4444;
 }
-
 .evaluation-select option {
   background-color: white;
   color: #374151;
   font-weight: 600;
   text-align: center;
 }
-
 .evaluation-select option[value="MA"] {
   background-color: #d1fae5;
   color: #065f46;
 }
-
 .evaluation-select option[value="MPA"] {
   background-color: #fef3c7;
   color: #92400e;
 }
-
 .evaluation-select option[value="MANA"] {
   background-color: #fecaca;
   color: #991b1b;
+}
+@property --tw-rotate-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-z {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-border-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
+@property --tw-outline-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
+@layer properties {
+  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
+    *, ::before, ::after, ::backdrop {
+      --tw-rotate-x: initial;
+      --tw-rotate-y: initial;
+      --tw-rotate-z: initial;
+      --tw-skew-x: initial;
+      --tw-skew-y: initial;
+      --tw-border-style: solid;
+      --tw-outline-style: solid;
+    }
+  }
 }
