@@ -7,6 +7,7 @@ import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import * as fs from 'fs';
 import * as path from 'path';
+import routes from './routes';
 
 const app = express();
 const PORT = 3005;
@@ -434,6 +435,9 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
     res.status(400).json({ error: (error as Error).message });
   }
 });
+
+// Import modular routes
+app.use('/api', routes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
