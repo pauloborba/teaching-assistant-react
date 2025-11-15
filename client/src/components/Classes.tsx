@@ -13,6 +13,7 @@ interface ClassesProps {
   onError: (errorMessage: string) => void;
 }
 
+
 const Classes: React.FC<ClassesProps> = ({
   classes,
   onClassAdded,
@@ -270,7 +271,10 @@ const Classes: React.FC<ClassesProps> = ({
       </div>
 
       {/* Classes List */}
-      <div className={"classes-list"}>
+        <div className='mt-4 bg-blue-100 flex justify-center items-center'>
+          pedro
+        </div>
+      <div className={{"classes-list" + " bg-red-100"}}>
         <h3>Existing Classes ({classes.length})</h3>
 
         {classes.length === 0 ? (
