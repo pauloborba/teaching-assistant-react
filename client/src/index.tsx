@@ -23,7 +23,7 @@ root.render(
 
         {/* Adicione mais rotas aqui conforme necessário */}
         <Route path='/correction' element={<Correction />} />
-        <Route path="/exam" element={<ExamPage />} />
+        <Route path="/exam/:id" element={<ExamPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
