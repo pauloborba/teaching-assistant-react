@@ -99,51 +99,61 @@ const Scripts: React.FC<Props> = ({ onError }) => {
     <div className="scripts-container">
       <h3>Scripts</h3>
 
-      <section className="create-script">
-        <h4>Create New Script</h4>
+      <div className="student-form">
+        <h4 style={{ marginBottom: '1rem' }}>Create New Script</h4>
         <form onSubmit={handleCreate}>
-          <div>
+          <div className="form-group">
             <label>Title</label>
             <input value={createTitle} onChange={e => setCreateTitle(e.target.value)} />
           </div>
-          <div>
+
+          <div className="form-group">
             <label>Content (JSON or text)</label>
             <textarea rows={6} value={createContentText} onChange={e => setCreateContentText(e.target.value)} />
           </div>
-          <div>
+
+          <div className="form-buttons">
             <button type="submit" disabled={loading}>{loading ? 'Creating...' : 'Create Script'}</button>
           </div>
         </form>
-      </section>
+      </div>
 
-      <hr />
+      <hr style={{ margin: '1.5rem 0' }} />
 
-      <section className="load-script">
-        <h4>Load / Edit Script</h4>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <input placeholder="Script ID" value={scriptIdToLoad} onChange={e => setScriptIdToLoad(e.target.value)} />
-          <button onClick={handleLoad} disabled={loading}>{loading ? 'Loading...' : 'Load'}</button>
-          {loadedScript && <span style={{ marginLeft: '8px' }}>Loaded id: <strong>{loadedScript.id}</strong></span>}
+      <div className="student-form">
+        <h4 style={{ marginBottom: '1rem' }}>Load / Edit Script</h4>
+
+        <div className="form-row" style={{ alignItems: 'center' }}>
+          <div style={{ flex: 1 }} className="form-group">
+            <label>Script ID</label>
+            <input placeholder="Script ID" value={scriptIdToLoad} onChange={e => setScriptIdToLoad(e.target.value)} />
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+            <button type="button" onClick={handleLoad} disabled={loading}>{loading ? 'Loading...' : 'Load'}</button>
+          </div>
         </div>
 
         {loadedScript && (
           <div style={{ marginTop: '12px' }}>
-            <div>
+            <div className="form-group">
               <label>Title</label>
               <input value={editTitle} onChange={e => setEditTitle(e.target.value)} />
             </div>
-            <div>
+
+            <div className="form-group">
               <label>Content (JSON or text)</label>
               <textarea rows={8} value={editContentText} onChange={e => setEditContentText(e.target.value)} />
             </div>
-            <div>
-              <button onClick={handleUpdate} disabled={loading}>{loading ? 'Saving...' : 'Update Script'}</button>
+
+            <div className="form-buttons">
+              <button type="button" onClick={handleUpdate} disabled={loading}>{loading ? 'Saving...' : 'Update Script'}</button>
+              <div style={{ alignSelf: 'center', marginLeft: '8px', color: '#4a5568' }}>Loaded id: <strong>{loadedScript.id}</strong></div>
             </div>
           </div>
         )}
-      </section>
+      </div>
 
-      {message && <div className="info-message">{message}</div>}
+      {message && <div className="info-message" style={{ marginTop: '1rem' }}>{message}</div>}
     </div>
   );
 };
