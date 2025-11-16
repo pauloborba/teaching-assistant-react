@@ -1,0 +1,16 @@
+{
+    "exams": [
+        {
+            "id": 1,
+            "classId": "Engenharia de Software e Sistemas-2025-1",
+            "title": "Exame de Requisitos",
+            "isValid": true,
+            "openQuestions": 1,
+            "closedQuestions": 1,
+            "questions": [
+                1,
+                2
+            ]
+        }
+    ]
+}

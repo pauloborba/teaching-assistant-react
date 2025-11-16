@@ -1,0 +1,19 @@
+{
+    "studentsExams": [
+        {
+            "id": 1,
+            "studentCPF": "11111111111",
+            "examId": 1,
+            "answers": [
+                {
+                    "questionId": 1,
+                    "answer": ""
+                },
+                {
+                    "questionId": 2,
+                    "answer": "Brasília"
+                }
+            ]
+        }
+    ]
+}
