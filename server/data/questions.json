@@ -1,0 +1,29 @@
+{
+    "questions": [
+        {
+            "id": 1,
+            "question": "Qual é a capital do Brasil?",
+            "topic": "Geografia",
+            "type": "closed",
+            "options": [
+                {
+                    "id": 1,
+                    "option": "Brasília",
+                    "isCorrect": true
+                },
+                {
+                    "id": 2,
+                    "option": "São Paulo",
+                    "isCorrect": false
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "question": "Qual é a capital do Brasil?",
+            "topic": "Geografia",
+            "type": "open",
+            "answer": "Brasília"
+        }
+    ]
+}
