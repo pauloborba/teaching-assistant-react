@@ -21,8 +21,8 @@ const ExamList: React.FC<StudentListProps> = ({
   if (loading) {
     return (
       <div className="students-list">
-        <h2>Students ({students.length})</h2>
-        <div className="loading">Loading students...</div>
+        <h2>Alunos ({students.length})</h2>
+        <div className="loading">Carregando alunos...</div>
       </div>
     );
   }
@@ -30,9 +30,9 @@ const ExamList: React.FC<StudentListProps> = ({
   if (students.length === 0) {
     return (
       <div className="students-list">
-        <h2>Students (0)</h2>
+        <h2>Alunos (0)</h2>
         <div className="no-students">
-          No students registered yet. Add your first student using the form above.
+          Nenhum aluno registrado nessa prova.
         </div>
       </div>
     );
@@ -45,10 +45,10 @@ const ExamList: React.FC<StudentListProps> = ({
         <table>
           <thead>
             <tr>
-              <th>Name</th>
+              <th>Nome</th>
               <th>CPF</th>
               <th>Email</th>
-              <th>Correction</th>
+              <th>Nota</th>
             </tr>
           </thead>
           <tbody>
@@ -58,7 +58,20 @@ const ExamList: React.FC<StudentListProps> = ({
                 <td>{student.cpf}</td>
                 <td>{student.email}</td>
                 <td>
-                  <button className="edit-btn" onClick={() => handleEdit(student, "examId123")}>Correct Exam</button>
+                  <div
+                    style={{
+                        padding: "12px 16px",
+                        backgroundColor: "#f44336",
+                        color: "white",
+                        borderRadius: "8px",
+                        display: "inline-block",
+                        fontWeight: "bold",
+                        cursor: "default", // não é clicável
+                        opacity: 0.9
+                    }}
+                    >
+                    {"Não corrigido"}
+                </div>
                 </td>
               </tr>
             ))}

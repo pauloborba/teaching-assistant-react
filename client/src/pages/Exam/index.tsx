@@ -26,6 +26,7 @@ const Exam: React.FC = () => {
 
     return (
         <div style={{display: 'flex', flexDirection: 'column', gap: '10px', padding: '20px'}}>
+            <Header/>
             <tr>
                 <td><DropdownExams subjects={["Teste1","Teste2"]} onSelect={(materia) => console.log("Selecionou:", materia)}/></td>
                 <td><button onClick={() => console.log("Filtrar clicado")}>Corrigir</button></td>
