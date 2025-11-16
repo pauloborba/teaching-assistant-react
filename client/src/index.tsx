@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './styles/variables.css';
 import App from './App';
 import ExamplePage from './pages/ExamplePage';
+import Exam from './pages/Exam';
 import ExamPage from './pages/ExamPage';
 
 const root = ReactDOM.createRoot(
@@ -21,7 +22,8 @@ root.render(
         <Route path="/example" element={<ExamplePage />} />
 
         {/* Adicione mais rotas aqui conforme necessário */}
-        <Route path="/exam" element={<ExamPage />} />
+        <Route path='/exam1' element={<Exam />} />
+        <Route path="/exam/:id" element={<ExamPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

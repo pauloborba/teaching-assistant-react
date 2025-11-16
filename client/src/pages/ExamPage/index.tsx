@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useParams } from "react-router-dom"; // 🔥 IMPORTANTE
 import Header from "../../components/Header";
 import CustomButton from "../../components/CustomButton";
 import CollapsibleTable, {
@@ -7,9 +8,8 @@ import CollapsibleTable, {
 } from "../../components/CollapsibleTable";
 import Dropdown from "../../components/DropDown";
 
-import "./ExamPage.css"; 
+import "./ExamPage.css";
 import ExamCreatePopup from "./ExamPagePopup";
-
 
 const columns: Column[] = [
   { id: "studentName", label: "Aluno", align: "left" },
@@ -95,9 +95,12 @@ const rows = [
   },
 ];
 
-
 export default function ExamPage() {
   const [popupOpen, setPopupOpen] = useState(false);
+
+  const { id } = useParams();
+
+  const classID = id;
 
   const subjects = [
     "Requirements",
@@ -110,23 +113,43 @@ export default function ExamPage() {
     <div className="exam-page">
       <Header />
 
-      {/* Linha com botão e dropdown */}
+      {/* Linha com caixa de texto + dropdown + botão */}
       <div
         className="top-controls"
         style={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-start",
           alignItems: "center",
+          gap: "15px",
         }}
       >
+        {/* 🔥 CAIXA DE TEXTO COM classID */}
+        <input
+          type="text"
+          value={classID || ""}
+          readOnly
+          style={{
+            padding: "8px",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+            width: "150px",
+            fontSize: "14px",
+            backgroundColor: "#f5f5f5",
+          }}
+        />
+
         <Dropdown
           subjects={subjects}
           onSelect={(s) => alert(s)}
           initialText={"Selecione uma prova:"}
         />
 
-        {/* BOTÃO QUE ABRE O POPUP */}
-        <CustomButton label="Criar Prova" onClick={() => setPopupOpen(true)} />
+        <div style={{ marginLeft: "auto" }}>
+          <CustomButton
+            label="Criar Prova"
+            onClick={() => setPopupOpen(true)}
+          />
+        </div>
       </div>
 
       {/* TABELA */}
@@ -141,12 +164,12 @@ export default function ExamPage() {
         })}
       />
 
-      {/* POPUP DE CRIAÇÃO DA PROVA */}
+      {/* POPUP */}
       <ExamCreatePopup
         isOpen={popupOpen}
         onClose={() => setPopupOpen(false)}
         onSubmit={(data) => {
-          console.log("Prova criada:", data);
+          console.log("Prova criada:", data, "Turma:", classID);
           setPopupOpen(false);
         }}
       />
