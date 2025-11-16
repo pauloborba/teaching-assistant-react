@@ -21,12 +21,17 @@ class ClassService {
 
   static async addClass(classData: Omit<Class, 'id' | 'enrollments'>): Promise<Class> {
     try {
+      const prepareClassForServer = (classData: Omit<Class, 'id' | 'enrollments'>) => ({
+        ...classData,
+        conceitoPeso: Array.from(classData.defMedia.conceitoPeso.entries()),
+        metaPeso: Array.from(classData.defMedia.metaPeso.entries())
+      });
       const response = await fetch(`${API_BASE_URL}/api/classes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(classData),
+        body: JSON.stringify(prepareClassForServer(classData)),
       });
       
       if (!response.ok) {
