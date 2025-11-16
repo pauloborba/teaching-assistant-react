@@ -1,10 +1,10 @@
 import React from 'react';
+import Header from '../../components/Header';
 
 const ExamplePage: React.FC = () => {
     return (
-        <div>
-            <h1>Example Page</h1>
-            {/* Seu conteúdo aqui */}
+        <div className="App">
+            <Header />
         </div>
     );
 };
