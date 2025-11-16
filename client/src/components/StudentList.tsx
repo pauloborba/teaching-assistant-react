@@ -1,6 +1,7 @@
 import React from 'react';
 import { Student } from '../types/Student';
 import { studentService } from '../services/StudentService';
+import StatusActionBadge from './StatusColor';
 
 interface StudentListProps {
   students: Student[];
@@ -59,7 +60,7 @@ const StudentList: React.FC<StudentListProps> = ({
         <table>
           <thead>
             <tr>
-              <th>Name</th>
+              <th>Name / Status</th>
               <th>CPF</th>
               <th>Email</th>
               <th>Actions</th>
@@ -68,9 +69,19 @@ const StudentList: React.FC<StudentListProps> = ({
           <tbody>
             {students.map((student) => (
               <tr key={student.cpf}>
-                <td>{student.name}</td>
+                <td>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span>{student.name}</span>
+
+                    {student.statusDetail && (
+                      <StatusActionBadge statusData={student.statusDetail} />
+                    )}
+                  </div>
+                </td>
+
                 <td>{student.cpf}</td>
                 <td>{student.email}</td>
+
                 <td>
                   <button
                     className="edit-btn"
@@ -87,6 +98,7 @@ const StudentList: React.FC<StudentListProps> = ({
                     Delete
                   </button>
                 </td>
+
               </tr>
             ))}
           </tbody>
