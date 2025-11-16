@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Student } from './types/Student';
-import { Class } from './types/Class';
-import { studentService } from './services/StudentService';
-import ClassService from './services/ClassService';
-import StudentList from './components/StudentList';
-import StudentForm from './components/StudentForm';
-import Evaluations from './components/Evaluations';
-import Classes from './components/Classes';
+import React, { useCallback, useEffect, useState } from 'react';
 import './App.css';
+import Classes from './components/Classes';
+import Evaluations from './components/Evaluations';
+import Scripts from './components/Scripts';
+import StudentForm from './components/StudentForm';
+import StudentList from './components/StudentList';
+import ClassService from './services/ClassService';
+import { studentService } from './services/StudentService';
+import { Class } from './types/Class';
+import { Student } from './types/Student';
 
-type TabType = 'students' | 'evaluations' | 'classes';
+type TabType = 'students' | 'evaluations' | 'classes' | 'scripts';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -143,6 +144,12 @@ const App: React.FC = () => {
           >
             Classes
           </button>
+          <button
+            className={`tab-button ${activeTab === 'scripts' ? 'active' : ''}`}
+            onClick={() => setActiveTab('scripts')}
+          >
+            Scripts
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -211,6 +218,10 @@ const App: React.FC = () => {
               onClassDeleted={handleClassDeleted}
               onError={handleError}
             />
+          )}
+
+          {activeTab === 'scripts' && (
+            <Scripts onError={handleError} />
           )}
         </div>
       </main>

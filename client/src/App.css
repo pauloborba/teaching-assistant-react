@@ -98,6 +98,17 @@ body {
   background-color: #fff;
 }
 
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: #fff;
+  resize: vertical;
+}
+
 .form-group input:focus {
   outline: none;
   border-color: #667eea;

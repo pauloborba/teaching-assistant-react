@@ -5,6 +5,7 @@ import { Student } from './models/Student';
 import { Evaluation } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
+import { Scripts } from './models/Scritps';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -25,6 +26,7 @@ app.use(express.json());
 const studentSet = new StudentSet();
 const classes = new Classes();
 const dataFile = path.resolve('./data/app-data.json');
+const scripts = new Scripts();
 
 // Persistence functions
 const ensureDataDirectory = (): void => {
@@ -451,4 +453,30 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+
+//POST /api/scripts - Create a new script
+app.post('/api/scripts', (req: Request, res: Response) => {
+  const script = scripts.addScript(req.body);
+  res.status(201).json(script);
+});
+
+//GET /api/scripts/:id - Get one script by ID
+app.get('/api/scripts/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const script = scripts.findById(id);
+  if (!script) {
+    return res.status(404).json({ error: 'Script not found' });
+  }
+  res.json(script.toJSON());
+});
+
+//PUT /api/scripts/:id - Update a script
+app.put('/api/scripts/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const script = scripts.updateScript(id, req.body);
+
+  if (!script) return res.status(404).json({ error: 'Script not found' });
+  res.json(script.toJSON());
 });
