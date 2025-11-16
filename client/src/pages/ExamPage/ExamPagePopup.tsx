@@ -7,12 +7,14 @@ interface ExamCreatePopupProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
+  loading?: boolean;
 }
 
 export default function ExamCreatePopup({
   isOpen,
   onClose,
   onSubmit,
+  loading = false,
 }: ExamCreatePopupProps) {
   const [form, setForm] = useState({
     codProva: "",
@@ -90,7 +92,11 @@ export default function ExamCreatePopup({
           </label>
         </div>
 
-        <CustomButton label="CRIAR PROVA" onClick={handleSubmit} />
+        <CustomButton 
+          label={loading ? "Gerando..." : "CRIAR PROVA"} 
+          onClick={handleSubmit}
+          disabled={loading}
+        />
       </div>
     </Modal>
   );
