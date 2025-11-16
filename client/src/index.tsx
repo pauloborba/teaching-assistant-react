@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import ExamplePage from './pages/ExamplePage';
+import ExamPage from './pages/ExamPage';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -19,6 +20,7 @@ root.render(
         <Route path="/example" element={<ExamplePage />} />
 
         {/* Adicione mais rotas aqui conforme necessário */}
+        <Route path="/exam" element={<ExamPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
