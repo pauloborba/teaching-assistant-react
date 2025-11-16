@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { CSVReader, SpreadsheetReader, XLSLReader } from './services/SpreeadsheetReader';
-import { AcademicMetrics, Grade,getClassificacaoAcademica, getActualPreviousFailuresCount,getApprovalThresholds } from './services/AcademicStatusColor'; 
+import { getStudentMediaParcial ,getClassificacaoAcademica, isStudentReprovadoPorFalta, getActualPreviousFailuresCount, getStudentFrequencyPercentage} from './services/AcademicStatusColor'; 
 const multer = require('multer');
 const upload = multer({ dest: 'temp_data/' });
 
@@ -492,38 +492,32 @@ app.get('/api/classes/:classId/status/alunos', (req: Request, res: Response) => 
     
     const studentsWithStatus = enrollments.map(enrollment => {
       const student = enrollment.getStudent();
-      
-      // Coleta todas as métricas necessárias do modelo Enrollment e do serviço
       const studentCpf = student.getCPF();
       
-      // A chamada a getActualPreviousFailuresCount é simulada
-      const reprovacoesAnteriores = getActualPreviousFailuresCount(studentCpf, classId);
-      
-      const metrics: AcademicMetrics = { 
-          studentCpf: studentCpf,
-          studentName: student.name,
-          classId: classId,
-          // getPartialGradeAverage retorna a média calculada dinamicamente
-          mediaParcial: enrollment.getPartialGradeAverage(), 
-          reprovadoPorFalta: enrollment.getReprovadoPorFalta() as boolean,
-          reprovacoesAnteriores: reprovacoesAnteriores,
-          frequenciaPercentual: enrollment.getFrequencyPercentage()
+      const statusColor = getClassificacaoAcademica(studentCpf, classId);
+
+      const currentMetrics = {
+        studentCpf: studentCpf,
+        studentName: student.name,
+        classId: classId,
+        mediaParcial: getStudentMediaParcial(studentCpf, classId) ?? 0,
+        reprovadoPorFalta: isStudentReprovadoPorFalta(studentCpf, classId) ?? false,
+        reprovacoesAnteriores: getActualPreviousFailuresCount(studentCpf, classId) ?? 0,
+        frequenciaPercentual: getStudentFrequencyPercentage(studentCpf, classId) ?? 0.0,
       };
       
-      const statusColor = getClassificacaoAcademica(metrics);
-
       return {
         cpf: studentCpf,
         name: student.name,
         ...statusColor,
-        currentMetrics: metrics, 
+        currentMetrics: currentMetrics, 
       };
     });
     
     res.json(studentsWithStatus);
   } catch (error) {
     console.error('Erro ao listar status dos alunos:', error);
-    res.status(500).json({ error: 'Erro interno do servidor ao listar status acadêmico.' });
+    res.status(500).json({ error: 'Erro interno do servidor ao listar status acadêmico. Verifique a implementação das funções do service.' });
   }
 });
 
@@ -546,21 +540,18 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/metrics', (req: Request, 
     
     let updated = false;
 
-    // 1 Atualiza Média (se fornecida)
     if (newMediaPreFinal !== undefined && typeof newMediaPreFinal === 'number') {
-        enrollment.setMediaPreFinal(newMediaPreFinal);
-        updated = true;
-    }
-    
-    // 2 Atualiza Status de Reprovação por Falta (se fornecido)
-    if (newReprovadoPorFalta !== undefined && typeof newReprovadoPorFalta === 'boolean') {
-        enrollment.setReprovadoPorFalta(newReprovadoPorFalta);
+        enrollment.setMediaPreFinal(newMediaPreFinal); //substituir por interface quando implementada
         updated = true;
     }
 
-    // 3 Atualiza Contagem de Faltas (se fornecida)
+    if (newReprovadoPorFalta !== undefined && typeof newReprovadoPorFalta === 'boolean') {
+        enrollment.setReprovadoPorFalta(newReprovadoPorFalta); //substituir pela interface quando implementada
+        updated = true;
+    }
+
     if (newAbsenceCount !== undefined && typeof newAbsenceCount === 'number') {
-        enrollment.setAbsences(newAbsenceCount);
+        enrollment.setAbsences(newAbsenceCount); //substituir pela interface quando implementada
         updated = true;
     }
 
@@ -568,29 +559,23 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/metrics', (req: Request, 
          return res.status(400).json({ error: 'Nenhuma métrica válida fornecida para atualização.' });
     }
 
-    // Coleta as métricas após a atualização
-    const reprovacoesAnteriores = getActualPreviousFailuresCount(cleanedCPF, classId);
+    const statusColor = getClassificacaoAcademica(cleanedCPF, classId);
 
-    const currentMetrics: AcademicMetrics = { 
+    const currentMetrics = { 
         studentCpf: cleanedCPF,
         studentName: enrollment.getStudent().name,
         classId: classId,
-        mediaParcial: enrollment.getMediaPreFinal(), 
-        reprovadoPorFalta: enrollment.getReprovadoPorFalta() as boolean,
-        reprovacoesAnteriores: reprovacoesAnteriores,
-        frequenciaPercentual: enrollment.getFrequencyPercentage()
+        mediaParcial: getStudentMediaParcial(cleanedCPF, classId) ?? 0,
+        reprovadoPorFalta: isStudentReprovadoPorFalta(cleanedCPF, classId) ?? false,
+        reprovacoesAnteriores: getActualPreviousFailuresCount(cleanedCPF, classId) ?? 0,
+        frequenciaPercentual: getStudentFrequencyPercentage(cleanedCPF, classId) ?? 0.0,
     };
-
-    // Gera a nova classificação
-    const novaClassificacao = getClassificacaoAcademica(currentMetrics);
-
-    // triggerSave(); // Ativar sua função de persistência aqui
 
     res.json({
         message: 'Métricas e classificação atualizadas com sucesso.',
         cpf: cleanedCPF,
         name: currentMetrics.studentName,
-        novaClassificacao: novaClassificacao,
+        novaClassificacao: statusColor,
         currentMetrics: currentMetrics
     });
   } catch (error) {
