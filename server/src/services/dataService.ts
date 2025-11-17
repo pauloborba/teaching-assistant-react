@@ -3,53 +3,21 @@ import { Classes } from '../models/Classes';
 import { Student } from '../models/Student';
 import { Class } from '../models/Class';
 import { Evaluation } from '../models/Evaluation';
+import { Question } from '../models/Question';
+import { Exam } from '../models/Exam';
+import { StudentExam } from '../models/StudentExam';
+import { QuestionSet } from '../models/QuestionSet';
+import { ExamSet } from '../models/ExamSet';
+import { StudentExamSet } from '../models/StudentExamSet';
 import * as fs from 'fs';
 import * as path from 'path';
-
-// Type definitions for new data structures
-export interface Exam {
-  id: number;
-  classId: string;
-  title: string;
-  isValid: boolean;
-  openQuestions: number;
-  closedQuestions: number;
-  questions: number[];
-}
-
-export interface QuestionOption {
-  id: number;
-  option: string;
-  isCorrect: boolean;
-}
-
-export interface Question {
-  id: number;
-  question: string;
-  topic: string;
-  type: 'open' | 'closed';
-  options?: QuestionOption[];
-  answer?: string;
-}
-
-export interface StudentAnswer {
-  questionId: number;
-  answer: string;
-}
-
-export interface StudentExam {
-  id: number;
-  studentCPF: string;
-  examId: number;
-  answers: StudentAnswer[];
-}
 
 // In-memory storage with file persistence
 export const studentSet = new StudentSet();
 export const classes = new Classes();
-export const exams: Exam[] = [];
-export const questions: Question[] = [];
-export const studentsExams: StudentExam[] = [];
+export const questionSet = new QuestionSet();
+export const examSet = new ExamSet();
+export const studentExamSet = new StudentExamSet();
 
 // File paths
 export const dataFile = path.resolve('./data/app-data.json');
@@ -94,7 +62,7 @@ export const saveDataToFile = (): void => {
 export const saveExamsToFile = (): void => {
   try {
     const data = {
-      exams: exams
+      exams: examSet.getAllExams().map(exam => exam.toJSON())
     };
     
     ensureDataDirectory(examsFile);
@@ -107,7 +75,7 @@ export const saveExamsToFile = (): void => {
 export const saveQuestionsToFile = (): void => {
   try {
     const data = {
-      questions: questions
+      questions: questionSet.getAllQuestions().map(question => question.toJSON())
     };
     
     ensureDataDirectory(questionsFile);
@@ -120,7 +88,7 @@ export const saveQuestionsToFile = (): void => {
 export const saveStudentsExamsToFile = (): void => {
   try {
     const data = {
-      studentsExams: studentsExams
+      studentsExams: studentExamSet.getAllStudentExams().map(studentExam => studentExam.toJSON())
     };
     
     ensureDataDirectory(studentsExamsFile);
@@ -199,8 +167,14 @@ export const loadExamsFromFile = (): void => {
       const data = JSON.parse(fileContent);
       
       if (data.exams && Array.isArray(data.exams)) {
-        exams.length = 0; // Clear existing exams
-        exams.push(...data.exams);
+        data.exams.forEach((examData: any) => {
+          try {
+            const exam = Exam.fromJSON(examData);
+            examSet.addExam(exam);
+          } catch (error) {
+            console.error(`Error adding exam ${examData.id}:`, error);
+          }
+        });
       }
     }
   } catch (error) {
@@ -215,8 +189,14 @@ export const loadQuestionsFromFile = (): void => {
       const data = JSON.parse(fileContent);
       
       if (data.questions && Array.isArray(data.questions)) {
-        questions.length = 0; // Clear existing questions
-        questions.push(...data.questions);
+        data.questions.forEach((questionData: any) => {
+          try {
+            const question = Question.fromJSON(questionData);
+            questionSet.addQuestion(question);
+          } catch (error) {
+            console.error(`Error adding question ${questionData.id}:`, error);
+          }
+        });
       }
     }
   } catch (error) {
@@ -231,8 +211,14 @@ export const loadStudentsExamsFromFile = (): void => {
       const data = JSON.parse(fileContent);
       
       if (data.studentsExams && Array.isArray(data.studentsExams)) {
-        studentsExams.length = 0; // Clear existing students exams
-        studentsExams.push(...data.studentsExams);
+        data.studentsExams.forEach((studentExamData: any) => {
+          try {
+            const studentExam = StudentExam.fromJSON(studentExamData);
+            studentExamSet.addStudentExam(studentExam);
+          } catch (error) {
+            console.error(`Error adding student exam ${studentExamData.id}:`, error);
+          }
+        });
       }
     }
   } catch (error) {
