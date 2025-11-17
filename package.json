@@ -4,7 +4,6 @@
   "description": "Full-stack student management system with React frontend and Node.js backend",
   "private": true,
   "scripts": {
-    "install": "npm install --prefix server && npm install --prefix client",
     "install:server": "npm install --prefix server",
     "install:client": "npm install --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
