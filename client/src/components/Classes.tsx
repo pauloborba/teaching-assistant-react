@@ -5,6 +5,7 @@ import ClassService from '../services/ClassService';
 import { studentService } from '../services/StudentService';
 import EnrollmentService from '../services/EnrollmentService';
 import { DEFAULT_DEFMEDIA } from '../types/DefMedia';
+import DefMediaModal from "./DefMediaModal"
 
 interface ClassesProps {
   classes: Class[];
@@ -27,6 +28,8 @@ const Classes: React.FC<ClassesProps> = ({
     year: new Date().getFullYear(),
     defMedia: DEFAULT_DEFMEDIA
   });
+  const [isDefMediaOpen, setIsDefMediaOpen] = useState(false);
+  const [mediaType, setMediaType] = useState<'arithmetic' | 'weighted'>('arithmetic');
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -49,6 +52,16 @@ const Classes: React.FC<ClassesProps> = ({
   useEffect(() => {
     loadAllStudents();
   }, [loadAllStudents]);
+
+  // Abrir modal de DefMedia
+  const handleOpenDefMediaModal = () => {
+    setIsDefMediaOpen(true);
+  };
+
+  // Fechar modal
+  const handleCloseDefMediaModal = () => {
+    setIsDefMediaOpen(false);
+  };
 
   // Handle enrollment form submission
   const handleBulkEnrollStudents = async () => {
@@ -261,7 +274,7 @@ const Classes: React.FC<ClassesProps> = ({
             </div>
           </div>
 
-          <div className="form-buttons">
+          <div className="form-buttons flex items-center gap-2">
             <button type="submit" disabled={isSubmitting} className="submit-btn">
               {isSubmitting ? 'Saving...' : editingClass ? 'Update Class' : 'Add Class'}
             </button>
@@ -270,9 +283,30 @@ const Classes: React.FC<ClassesProps> = ({
                 Cancel
               </button>
             )}
+            {/* Botão para abrir o DefMediaModal */}
+            <button
+              type="button"
+              onClick={() => setIsDefMediaOpen(true)}
+              className="configure-weights-btn"
+            >
+              Configure Weights
+            </button>
           </div>
         </form>
       </div>
+
+      {/* Modal DefMedia */}
+      {isDefMediaOpen && (
+        <DefMediaModal
+          defMedia={formData.defMedia}
+          onChange={(newDefMedia) =>
+            setFormData((prev) => ({ ...prev, defMedia: newDefMedia }))
+          }
+          onClose={handleCloseDefMediaModal}
+          mediaType={mediaType}
+          setMediaType={setMediaType}
+        />
+      )}
 
       {/* Classes List */}
       <div className="classes-list">
