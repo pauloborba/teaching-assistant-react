@@ -6,6 +6,7 @@ import App from './App';
 import ExamplePage from './pages/ExamplePage';
 import Exam from './pages/Exam';
 import ExamPage from './pages/ExamPage';
+import Exam from './pages/Exam';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
