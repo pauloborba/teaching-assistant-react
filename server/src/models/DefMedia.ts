@@ -9,8 +9,8 @@ export class DefMedia {
     constructor(conceitoPesoInicial: Map<Grade, number>, metaPesoInicial: Map<Meta, number>) 
     {
         // congela os maps depois de criados
-        this.conceito_peso = new Map(Object.entries(conceitoPesoInicial) as [Grade, number][]);
-        this.meta_peso = new Map(Object.entries(metaPesoInicial) as [Meta, number][]);
+        this.conceito_peso = new Map(conceitoPesoInicial);
+        this.meta_peso = new Map(metaPesoInicial);
 
         // pré-computa a soma dos pesos das metas (denominador)
         this.somaPesosMeta = Array.from(metaPesoInicial).reduce((acc, v) => acc + v[1], 0);
@@ -41,23 +41,39 @@ export class DefMedia {
     // Exporta dados apenas em formato serializável
     toJSON() 
     {
-        const serializeMap = <K>(map: Map<K, number>) =>
-            Array.from(map, ([key, value]) => ({ key, value }));
+        const mapToObject = <K>(map: Map<K, number>) =>
+            Object.fromEntries(Array.from(map.entries()) as [any, number][]);
 
         return {
-            conceitoPeso: serializeMap(this.conceito_peso),
-            metaPeso: serializeMap(this.meta_peso)
+            conceitoPeso: mapToObject(this.conceito_peso),
+            metaPeso: mapToObject(this.meta_peso)
         };
     }
 
-    // Reconstrói uma instância a partir de dados serializados
+    // Reconstrói uma instância a partir de dados serializados (suporta variantes)
     static fromJSON(data: any): DefMedia {
-        const deserializeMap = (arr: { key: string; value: number }[]) =>
-            new Map(arr.map(entry => [entry.key, entry.value]));
+    const normalize = (x: any): Map<string, number> => {
+        if (!x) return new Map();
+        // já é objeto { key: value, ... }
+        if (!Array.isArray(x) && typeof x === 'object') {
+        return new Map(Object.entries(x).map(([k, v]) => [k, Number(v)]));
+        }
+        // formato antigo: array de { key, value }  ou array de [key, value]
+        if (Array.isArray(x)) {
+        // array de objetos {key, value}
+        if (x.length > 0 && typeof x[0] === 'object' && 'key' in x[0]) {
+            return new Map(x.map((entry: any) => [entry.key, Number(entry.value)]));
+        }
+        // array de pares [key, value]
+        return new Map(x.map((entry: any) => [entry[0], Number(entry[1])]));
+        }
+        // fallback
+        return new Map();
+    };
 
-        return new DefMedia(
-            deserializeMap(data.conceitoPeso) as Map<Grade, number>,
-            deserializeMap(data.metaPeso) as Map<Meta, number>
-        );
+    const conceitoMap = normalize(data.conceitoPeso);
+    const metaMap = normalize(data.metaPeso);
+
+    return new DefMedia(conceitoMap as Map<any, number>, metaMap as Map<any, number>);
     }
 }
