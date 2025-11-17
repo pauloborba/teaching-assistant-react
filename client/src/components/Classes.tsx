@@ -306,10 +306,22 @@ const Classes: React.FC<ClassesProps> = ({
 
       {/* Classes List */}
       <div className="classes-list">
-        <div className="classes-list-header">
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '16px'
+        }}>
           <h3>Existing Classes ({classes.length})</h3>
           <button
-            className="analyse-btn"
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
             onClick={() => handleOpenClassListPanel(classes)}
             title="Analyse class"
           >
@@ -531,7 +543,7 @@ const Classes: React.FC<ClassesProps> = ({
           </div>
         </div>
       )}
-      <AnalysisPanel classTopic={analyseClassPanel} onClose={handleCloseAnalysisPanel} />
+        <AnalysisPanel classTopic={analyseClassPanel} onClose={handleCloseAnalysisPanel} />
     </div>
   );
 };

@@ -8,25 +8,23 @@ import {
  CardContent,
  CardHeader,
  CardTitle,
-} from "@/components/ui/card";
+} from "../ui/card";
 
 // 1. Tipo dos dados que o gráfico espera receber
 export type ChartData = {
- name: string; // Ex: "2025-1"
- failures: number; // Número de reprovações (reatrículas)
+ name: string; // Nome do aluno
+ failures: number; // Número de reprovações do aluno
 };
 
 interface ClassFailureChartProps {
  data: ChartData[];
 }
 
-// 2. O componente do gráfico
 export const ClassFailureChart: React.FC<ClassFailureChartProps> = ({ data }) => {
  return (
-  <Card className="w-full">
-   <CardHeader>
-    {/* Você pode mudar o título se quiser */}
-    <CardTitle>Alunos Rematriculados (Reprovações) por Turma</CardTitle>
+  <Card style={{ width: '100%' }}>
+   <CardHeader style={{ display: 'flex', justifyContent: 'center' }}>
+    <CardTitle>Número de Reprovações por Aluno</CardTitle>
    </CardHeader>
    <CardContent>
     <ResponsiveContainer width="100%" height={300}>
@@ -41,20 +39,23 @@ export const ClassFailureChart: React.FC<ClassFailureChartProps> = ({ data }) =>
        fontSize={12}
        tickLine={false}
        axisLine={false}
-       allowDecimals={false} // Garante que o eixo Y mostre 1, 2, 3...
+       allowDecimals={false}
+       label={{ value: 'Reprovações', angle: -90, position: 'insideLeft' }}
       />
       <Tooltip
-       // Estilos para se adaptar ao tema do shadcn
-       cursor={{ fill: "hsl(var(--muted))" }}
+       cursor={{ fill: "rgba(255, 255, 255, 0.1)" }}
        contentStyle={{
-        backgroundColor: "hsl(var(--background))",
-        border: "1px solid hsl(var(--border))"
+        backgroundColor: "white",
+        border: "1px solid #e5e7eb",
+        borderRadius: "6px",
+        padding: "8px 12px"
        }}
+       labelFormatter={(value) => `Aluno: ${value}`}
+       formatter={(value: number) => [`${value} reprovação${value !== 1 ? 'ões' : ''}`, 'Total']}
       />
       <Bar
        dataKey="failures"
-       // Cor primária do tema (pode ser "hsl(var(--primary))")
-       fill="#8884d8"
+       fill="#ef4444"
        radius={[4, 4, 0, 0]}
       />
      </BarChart>
