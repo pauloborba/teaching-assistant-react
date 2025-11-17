@@ -1,5 +1,5 @@
 class ResponseService {
-  private readonly baseUrl = 'http://localhost:5000/api/v1/exams';
+  private readonly baseUrl = 'http://localhost:3005/api/v1/exams';
 
   /**
    * Submit student responses for an exam.
