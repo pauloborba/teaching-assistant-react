@@ -402,6 +402,35 @@ app.get('/api/classes/:classId/enrollments', (req: Request, res: Response) => {
   }
 });
 
+// GET /api/classes/:classId/enrollments/:studentCPF/evaluation - Get the student's average and final average for a class
+app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
+  try {
+    const { classId, studentCPF } = req.params;
+
+    const classObj = classes.findClassById(classId);
+    if (!classObj) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    const cleanedCPF = cleanCPF(studentCPF);
+    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
+    if (!enrollment) {
+      return res.status(404).json({ error: 'Student not enrolled in this class' });
+    }
+
+    const mediaPreFinal = enrollment.getMediaPreFinal();
+    const mediaPosFinal = enrollment.getMediaPosFinal();
+
+    res.json({
+      student: enrollment.getStudent().toJSON(),
+      average: mediaPreFinal,
+      final_average: mediaPosFinal
+    });
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
 // PUT /api/classes/:classId/enrollments/:studentCPF/evaluation - Update evaluation for an enrolled student
 app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
   try {
