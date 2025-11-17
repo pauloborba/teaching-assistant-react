@@ -4,13 +4,25 @@ import { Student } from './models/Student';
 import { Class } from './models/Class';
 import routes from './routes';
 import { studentSet, classes, triggerSave, cleanCPF, loadAllData } from './services/dataService';
+import { serverConfig, validateConfig } from './config';
 
 const app = express();
-const PORT = 3005;
+const PORT = serverConfig.port;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Valida configurações na inicialização
+const configErrors = validateConfig();
+if (configErrors.length > 0) {
+  console.error('❌ Erros de configuração encontrados:');
+  configErrors.forEach(error => console.error(`  - ${error}`));
+  if (serverConfig.nodeEnv === 'production') {
+    console.error('Encerrando aplicação devido a erros de configuração em produção.');
+    process.exit(1);
+  }
+}
 
 // Load existing data on startup
 loadAllData();
