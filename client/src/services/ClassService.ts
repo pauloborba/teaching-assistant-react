@@ -23,8 +23,8 @@ class ClassService {
     try {
       const prepareClassForServer = (classData: Omit<Class, 'id' | 'enrollments'>) => ({
         ...classData,
-        conceitoPeso: Array.from(classData.defMedia.conceitoPeso.entries()),
-        metaPeso: Array.from(classData.defMedia.metaPeso.entries())
+        conceitoPeso: Object.fromEntries(classData.defMedia.conceitoPeso.entries()),
+        metaPeso: Object.fromEntries(classData.defMedia.metaPeso.entries())
       });
       const response = await fetch(`${API_BASE_URL}/api/classes`, {
         method: 'POST',
