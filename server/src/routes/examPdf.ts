@@ -3,8 +3,8 @@ import PDFDocument from 'pdfkit';
 const router = Router();
 
 const mockExams = [
-  { id: 'exam-id-123', title: 'Prova1_ESS', questions: ['Q1: O que é Engenharia de Software?', 'Q2: O que é um Requisito?'] },
-  { id: 'exam-id-456', title: 'Prova de Teste (Aluno)', questions: ['Q1: ...'] },
+  { id: 'exam-id-123', title: 'Prova1_ESS', questions: ['O que é Engenharia de Software?', 'O que é um Requisito?'] },
+  { id: 'exam-id-456', title: 'Prova de Teste (Aluno)', questions: ['...'] },
   { id: 'exam-final-vazia', title: 'Prova_final_vazia', questions: [] },
 ];
 
@@ -23,7 +23,7 @@ const handleGetExamPDF = async (req: Request, res: Response) => {
     }
     
     if (exam.questions.length === 0) {
-       return res.status(400).json({ error: 'Cannot export an empty exam' });
+       return res.status(400).json({ error: 'Não pode exportar prova vazia.' });
     }
 
     const doc = new PDFDocument();
@@ -35,7 +35,7 @@ const handleGetExamPDF = async (req: Request, res: Response) => {
 
     doc.fontSize(20).text(exam.title, { align: 'center' });
     doc.moveDown();
-    doc.fontSize(12).text('Nome: _________________________________________');
+    doc.fontSize(12).text('Aluno: _________________________________________');
     doc.moveDown(2);
 
     exam.questions.forEach((q, index) => {
