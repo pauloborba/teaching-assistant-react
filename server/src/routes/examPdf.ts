@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import PDFDocument from 'pdfkit';
 import archiver from 'archiver'
+import { Readable } from 'stream';
 
 const router = Router();
 
@@ -14,7 +15,7 @@ const findExamById = async (id: string) => {
   return mockExams.find(exam => exam.id === id);
 };
 
-const generateExamPDF = (exam: any, copyNumber: number): typeof PDFDocument => {
+const generateExamPDF = (exam: any, copyNumber: number): InstanceType<typeof PDFDocument> => {
   const doc = new PDFDocument();
   doc.fontSize(20).text(`${exam.title} - Cópia ${copyNumber}`, { align: 'center' });
   doc.moveDown();
@@ -61,9 +62,54 @@ const handleGetExamPDF = async (req: Request, res: Response) => {
   }
 };
 
+const handleGetExamZIP = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const quantity = parseInt(req.query.quantity as string, 10)
+
+    if (isNaN(quantity) || quantity <= 0) {
+      return res.status(400).json({ error: 'Quantidade inválida.' });
+    }
+    
+    const exam = await findExamById(id);
+    if (!exam) {
+      return res.status(404).json({ error: 'Prova não encontrada.' });
+    }
+    
+    if (exam.questions.length === 0) {
+       return res.status(400).json({ error: 'Não pode exportar prova vazia.' });
+    }
+    
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${exam.title}_${quantity}_versions.zip"`);
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    archive.on('error', (err) => {
+      throw err;
+    });
+
+    archive.pipe(res);
+
+    for (let i = 1; i <= quantity; i++) {
+      const doc = generateExamPDF(exam, i);
+      archive.append(doc as unknown as Readable, { name: `${exam.title}_Versao_${i}.pdf` });
+      doc.end();
+    }
+    archive.finalize();
+  } catch (error: any) {
+    console.error('Erro ao gerar ZIP de PDFs da prova:', error.message);
+    res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+}
 router.get(
   '/:id/pdf',
   handleGetExamPDF
+);
+
+router.get(
+  '/:id/zip',
+  handleGetExamZIP
 );
 
 export default router;
