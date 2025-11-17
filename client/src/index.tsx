@@ -22,7 +22,7 @@ root.render(
         <Route path="/example" element={<ExamplePage />} />
 
         {/* Adicione mais rotas aqui conforme necessário */}
-        <Route path='/correction' element={<Correction />} />
+        <Route path='/correction/:id' element={<Correction />} />
         <Route path="/exam/:id" element={<ExamPage />} />
       </Routes>
     </BrowserRouter>

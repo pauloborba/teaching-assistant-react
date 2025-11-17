@@ -1,7 +1,10 @@
+import { Exam } from "./Exam";
+
 export interface Student {
   name: string;
   cpf: string;
   email: string;
+  exam ?: Exam;
 }
 
 export interface CreateStudentRequest {

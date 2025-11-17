@@ -1,41 +1,85 @@
-import React from "react";
+import React, { useEffect } from "react";
 import CorrectionService from "../../services/CorrectionService";
 import { Student } from "../../types/Student";
 import ExamList from "../../components/ExamList";
 import Dropdown from "../../components/DropDown";
 import Header from "../../components/Header";
 import CustomButton from "../../components/CustomButton";
-import { Exam } from "../../types/Exams";
+import { Exam } from "../../types/Exam";
+import { useParams } from "react-router-dom";
+import ExamsService from "../../services/ExamsService";
+import { studentService } from "../../services/StudentService";
 
 const Correction: React.FC = () => {
+    const classId = useParams().id || "";
     const [students, setStudents] = React.useState<Student[]>([]);
     const [exams, setExams] = React.useState<Exam[]>([]);
-    const className = "Turma Exemplo";
+    const [loading, setLoading] = React.useState<boolean>(false);
+    const [selectedSubject, setSelectedSubject] = React.useState<string>("");
 
-    const testStudent: Student = {
-        name: "Aluno Teste",
-        cpf: "123.456.789-00",
-        email: "aluno.teste@example.com"
-    }
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const studentsResponse = await studentService.findExams( exams.filter(exam => exam.subject === selectedSubject));
+                setStudents(studentsResponse || []);
+            } catch (error) {
+                console.error("Erro ao carregar alunos:", error);
+                setStudents([]);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    //const fetchStudents = async () => {
-    //    try {
-    //        const response = await CorrectionService.correctExam(className, );
-    //        console.log("Exam corrected:", response);
-    //        // Here you would typically update the students state with the fetched data
-    //    } catch (error) {
-    //        console.error("Error correcting exam:", error);
-    //    }
-    //}
+        fetchData();
+    }, [selectedSubject]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const examsResponse = await ExamsService.getExamsForClass(classId);
+                setExams(examsResponse.data || []);
+            } catch (error) {
+                console.error("Erro ao carregar provas:", error);
+                setExams([]);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const handleCorrection = async () => {
+        if (!classId && !exams) return;
+
+        try {
+            const grades = await CorrectionService.correctAllExams(students, exams.find(exam => exam.subject === selectedSubject)!);
+
+            const updatedStudents = students.map(student => {
+            const updated = grades.find((g: any) => g.cpf === student.cpf);
+            if (!updated) return student;
+
+            return {
+                ...student,
+                exam: student.exam
+                    ? { ...student.exam, grade: updated.grade } 
+                    : { ...exams.find(exam => exam.subject === selectedSubject)!, grade: updated.grade } // cria um exam completo
+            };
+        });
+
+            setStudents(updatedStudents);
+        } catch (error) {
+            console.error("Erro ao corrigir prova:", error);
+        }
+    };
 
     return (
         <div style={{display: 'flex', flexDirection: 'column', gap: '10px', padding: '20px'}}>
             <Header/>
             <tr>
-                <td><Dropdown subjects={["Teste1","Teste2"]} initialText="Selecione uma matéria" onSelect={(materia) => console.log("Selecionou:", materia)}/></td>
-                <td><CustomButton label="Corrigir" onClick={() => {}}/></td>
+                <td><Dropdown subjects={exams.map(exam => exam.subject)} initialText="Selecione uma matéria" onSelect={setSelectedSubject}/></td>
+                <td><CustomButton label="Corrigir" onClick={handleCorrection}/></td>
             </tr>
-            <ExamList students={[testStudent]} onCorrection={(student, examId) => console.log("Correcting", student, "for exam", examId)} loading={false} />
+            <ExamList students={students} loading={loading}/>
         </div>
     );
 };

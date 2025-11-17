@@ -3,4 +3,5 @@ export interface Exam {
   subject: string;
   date: string;
   durationMinutes: number;
+  grade ?: number;
 }

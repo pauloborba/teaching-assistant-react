@@ -1,3 +1,4 @@
+import { Exam } from '../types/Exam';
 import { Student, CreateStudentRequest, UpdateStudentRequest } from '../types/Student';
 
 export class StudentService {
@@ -75,6 +76,14 @@ export class StudentService {
       console.error('Error updating student:', error);
       throw error;
     }
+  }
+
+  async findExams(exams: Exam[]): Promise<Student[]> {
+    const students = await this.getAllStudents();
+    const studentsWithExams: Student[] = students.filter(student =>
+      exams.some(exam => exam.id === student.exam?.id)
+    );
+    return studentsWithExams;
   }
 
   // Delete student by CPF
