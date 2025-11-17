@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import PDFDocument from 'pdfkit';
+import archiver from 'archiver'
+
 const router = Router();
 
 const mockExams = [
@@ -12,12 +14,31 @@ const findExamById = async (id: string) => {
   return mockExams.find(exam => exam.id === id);
 };
 
+const generateExamPDF = (exam: any, copyNumber: number): typeof PDFDocument => {
+  const doc = new PDFDocument();
+  doc.fontSize(20).text(`${exam.title} - Cópia ${copyNumber}`, { align: 'center' });
+  doc.moveDown();
+
+  if (copyNumber > 0) {
+      doc.fontSize(12).text(`Versão: ${copyNumber}`, { align: 'right' });
+  }
+
+  doc.fontSize(12).text('Aluno: _________________________________________');
+  doc.moveDown(2);
+
+  exam.questions.forEach((q: string, index: number) => {
+    doc.fontSize(14).text(`${index + 1}. ${q}`);
+    doc.moveDown();
+  });
+
+  return doc;
+}
+
 const handleGetExamPDF = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
     const exam = await findExamById(id);
-    console.log(exam);
+    
     if (!exam) {
       return res.status(404).json({ error: 'Prova não encontrada.' });
     }
@@ -26,23 +47,12 @@ const handleGetExamPDF = async (req: Request, res: Response) => {
        return res.status(400).json({ error: 'Não pode exportar prova vazia.' });
     }
 
-    const doc = new PDFDocument();
-
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${exam.title}.pdf"`);
 
+    const doc = generateExamPDF(exam, 0);
+
     doc.pipe(res);
-
-    doc.fontSize(20).text(exam.title, { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(12).text('Aluno: _________________________________________');
-    doc.moveDown(2);
-
-    exam.questions.forEach((q, index) => {
-      doc.fontSize(14).text(`${index + 1}. ${q}`);
-      doc.moveDown();
-    });
-
     doc.end();
 
   } catch (error: any) {
