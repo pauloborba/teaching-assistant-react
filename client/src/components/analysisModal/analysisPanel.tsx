@@ -2,6 +2,7 @@ import { Class } from "../../types/Class";
 import ClassService from "../../services/ClassService";
 import React, { useEffect, useState, useMemo } from "react";
 import { ClassFailureChart, ChartData } from "./classFailuresChart";
+import ClassSummary from "./classSumary";
 
 type SemesterInfo = {
   year: number;
@@ -102,7 +103,7 @@ const AnalysisPanel: React.FC<{ classTopic: string; onClose: () => void }> = ({
                 <p>Loading class data...</p>
               ) : chartData.length > 0 ? (
                 // Renderiza o componente de gráfico separado!
-                <ClassFailureChart data={chartData} />
+                <ClassSummary data={chartData} />
               ) : (
                 <p>No data found for this class.</p>
               )}
