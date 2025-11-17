@@ -7,7 +7,7 @@ class CorrectionService {
     private apiUrl: string;
 
     constructor() {
-        this.apiUrl = "http://localhost:5000/api/correction";
+        this.apiUrl = "http://localhost:3005/api/correction";
     }
 
     private async correctExam(examId: string, student: Student): Promise<any> {

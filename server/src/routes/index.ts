@@ -2,6 +2,7 @@ import { Router } from 'express';
 import healthRoutes from './health';
 import statsRoutes from './stats';
 import examsRoutes from "./exams";
+import correctionRoutes from "./correction";
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.use(statsRoutes);
 
 // Exams routes
 router.use('/exams', examsRoutes);
+router.use(correctionRoutes);
 
 export default router;
 

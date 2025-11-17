@@ -7,7 +7,8 @@
       "answers": [
         {
           "questionId": 1,
-          "answer": ""
+          "answer": "",
+          "grade": 0
         },
         {
           "questionId": 2,
