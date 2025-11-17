@@ -1,14 +1,14 @@
 import { Router } from "express";
-import { CorrectionService } from "../services/correctionService";
+import { Correction } from "../models/Correction";
 
 
 const router = Router();
 
-router.post("/student-exams/:studentCPF/:examId/correct", (req, res) => {
+router.post("/correct/:studentCPF/:examId", (req, res) => {
   try {
     const { studentCPF, examId } = req.params;
 
-    const result = CorrectionService.correctExam(
+    const result = Correction.correctExam(
       studentCPF,
       Number(examId)
     );

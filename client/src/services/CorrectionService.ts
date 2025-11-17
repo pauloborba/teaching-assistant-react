@@ -7,11 +7,11 @@ class CorrectionService {
     private apiUrl: string;
 
     constructor() {
-        this.apiUrl = "http://localhost:3005/api/correction";
+        this.apiUrl = "http://localhost:3005/api/correct";
     }
 
     private async correctExam(examId: string, student: Student): Promise<any> {
-        return fetch(`${this.apiUrl}/exam/${examId}/student/${student.cpf}/correct`, {
+        return fetch(`${this.apiUrl}/${student.cpf}/${examId}`, {
             method: 'POST',
         })
         .then(response => response.json())

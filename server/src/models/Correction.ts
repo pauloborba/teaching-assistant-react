@@ -31,7 +31,7 @@ type StudentExam = {
   answers: Answer[];
 };
 
-export class CorrectionService {
+export class Correction {
   private static examsPath = path.join(__dirname, "../../data/exams.json");
   private static questionsPath = path.join(__dirname, "../../data/questions.json");
   private static studentsExamsPath = path.join(__dirname, "../../data/students-exams.json");
