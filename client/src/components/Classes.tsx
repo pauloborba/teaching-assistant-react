@@ -5,7 +5,7 @@ import ClassService from '../services/ClassService';
 import { studentService } from '../services/StudentService';
 import EnrollmentService from '../services/EnrollmentService';
 import { ChevronRight } from 'lucide-react';
-import AnalysisPanel from './analysisPanel';
+import AnalysisPanel from './analysisModal/analysisPanel';
 
 interface ClassesProps {
   classes: Class[];
