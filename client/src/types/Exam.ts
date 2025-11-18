@@ -1,6 +1,6 @@
 export interface Exam {
   id: string;
-  subject: string;
+  title: string;
   date: string;
   durationMinutes: number;
   grade ?: number;

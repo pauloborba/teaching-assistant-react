@@ -21,7 +21,7 @@ const Correction: React.FC = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const studentsResponse = await studentService.findExams( exams.filter(exam => exam.subject === selectedSubject));
+                const studentsResponse = await studentService.findExams( exams.filter(exam => exam.title === selectedSubject));
                 setStudents(studentsResponse || []);
             } catch (error) {
                 console.error("Erro ao carregar alunos:", error);
@@ -52,7 +52,7 @@ const Correction: React.FC = () => {
         if (!classId && !exams) return;
 
         try {
-            const grades = await CorrectionService.correctAllExams(students, exams.find(exam => exam.subject === selectedSubject)!);
+            const grades = await CorrectionService.correctAllExams(students, exams.find(exam => exam.title === selectedSubject)!);
 
             const updatedStudents = students.map(student => {
             const updated = grades.find((g: any) => g.cpf === student.cpf);
@@ -62,7 +62,7 @@ const Correction: React.FC = () => {
                 ...student,
                 exam: student.exam
                     ? { ...student.exam, grade: updated.grade } 
-                    : { ...exams.find(exam => exam.subject === selectedSubject)!, grade: updated.grade } // cria um exam completo
+                    : { ...exams.find(exam => exam.title === selectedSubject)!, grade: updated.grade } // cria um exam completo
             };
         });
 
@@ -73,12 +73,16 @@ const Correction: React.FC = () => {
     };
 
     return (
-        <div style={{display: 'flex', flexDirection: 'column', gap: '10px', padding: '20px'}}>
+        <div style={{display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px'}}>
             <Header/>
-            <tr>
-                <td><Dropdown subjects={exams.map(exam => exam.subject)} initialText="Selecione uma matéria" onSelect={setSelectedSubject}/></td>
-                <td><CustomButton label="Corrigir" onClick={handleCorrection}/></td>
-            </tr>
+            <div style={{ display: "flex", gap: "10px" }}>
+                <Dropdown
+                    subjects={exams.map(exam => exam.title)}
+                    initialText="Selecione uma matéria"
+                    onSelect={setSelectedSubject}
+                />
+                <CustomButton label="Corrigir" onClick={handleCorrection} />
+            </div>
             <ExamList students={students} loading={loading}/>
         </div>
     );
