@@ -105,11 +105,21 @@ export class Enrollment {
   }
 
   // Create Enrollment from JSON object
-  static fromJSON(data: { student: any; evaluations: any[] }, student: Student): Enrollment {
+  static fromJSON(data: { 
+    student: any; 
+    evaluations: any[];
+    mediaPreFinal?: number;
+    mediaPosFinal?: number;
+    reprovadoPorFalta?: boolean;
+  }, student: Student): Enrollment {
     const evaluations = data.evaluations
       ? data.evaluations.map((evalData: any) => Evaluation.fromJSON(evalData))
       : [];
     
-    return new Enrollment(student, evaluations);
+    const mediaPreFinal = data.mediaPreFinal ?? 0;
+    const mediaPosFinal = data.mediaPosFinal ?? 0;
+    const reprovadoPorFalta = data.reprovadoPorFalta ?? false;
+    
+    return new Enrollment(student, evaluations, mediaPreFinal, mediaPosFinal, reprovadoPorFalta);
   }
 }

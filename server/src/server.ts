@@ -106,6 +106,17 @@ const loadDataFromFile = (): void => {
                       enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
                     });
                   }
+                    
+                    // Load medias and attendance status if provided in the data file
+                    if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
+                      enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
+                    }
+                    if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
+                      enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
+                    }
+                    if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
+                      enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
+                    }
                 } else {
                   console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
                 }
