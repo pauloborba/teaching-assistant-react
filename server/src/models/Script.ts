@@ -65,7 +65,9 @@ toJSON() {
 
   update(data: Partial<{ title: any; tasks: any }>) {
     if (data.title !== undefined) this.title = data.title;
-    if (data.tasks !== undefined) this.tasks = data.tasks;
+    if (data.tasks !== undefined){
+      this.tasks = data.tasks.map((t: any) => Task.fromJSON(t));
+    };
   }
 
 }
