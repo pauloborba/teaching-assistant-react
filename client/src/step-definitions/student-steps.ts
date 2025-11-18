@@ -22,7 +22,7 @@ const serverUrl = 'http://localhost:3005';
 // Test data to clean up
 let testStudentCPF: string;
 
-Before(async function () {
+Before({ tags: '@gui' }, async function () {
   browser = await launch({ 
     headless: false, // Set to true for CI/CD
     slowMo: 50 // Slow down actions for visibility
@@ -31,7 +31,7 @@ Before(async function () {
   await page.setViewport({ width: 1280, height: 720 });
 });
 
-After(async function () {
+After({ tags: '@gui' }, async function () {
   // Clean up test student if it exists by using the GUI delete function
   if (testStudentCPF) {
     try {
