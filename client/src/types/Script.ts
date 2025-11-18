@@ -1,17 +1,18 @@
+import { Task } from "./Task";
 export interface Script {
   id: string;
   title?: string;
-  content?: any;
+  tasks?: Task[]
 }
 
 export interface CreateScriptRequest {
   title?: string;
-  content?: any;
+  tasks?: Task[];
 }
 
 export interface UpdateScriptRequest {
   title?: string;
-  content?: any;
+  tasks?: Task[];
 }
 
 export const isValidJSON = (text: string): boolean => {
