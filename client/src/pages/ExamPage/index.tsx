@@ -2,10 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import CustomButton from "../../components/CustomButton";
-import CollapsibleTable, {
-  Column,
-  DetailColumn,
-} from "../../components/CollapsibleTable";
+import CollapsibleTable, {Column, DetailColumn} from "../../components/CollapsibleTable";
+import Alert from "../../components/Alert";
 import Dropdown from "../../components/DropDown";
 import ExamsService from "../../services/ExamsService";
 
@@ -38,6 +36,17 @@ export default function ExamPage() {
   const [exams, setExams] = useState<any[]>([]);
 
   const [selectedExam, setSelectedExam] = useState("Todas as provas");
+
+  const [alertConfig, setAlertConfig] = useState({
+    open: false,
+    message: "",
+    severity: "info" as "success" | "error" | "warning" | "info",
+  });
+
+  //Função que fecha o alerta
+  const handleCloseAlert = () => {
+    setAlertConfig((prev) => ({ ...prev, open: false }));
+  };
 
   // -------------------------------
   // Carrega provas + tabela (todas)
@@ -127,14 +136,22 @@ const loadAllData = useCallback(async () => {
 
       const result = await ExamsService.createAndGenerateExams(data, classID);
 
-      alert(`Provas geradas com sucesso! Total: ${result.totalGenerated}`);
+      setAlertConfig({
+        open: true,
+        message: `Provas geradas com sucesso! Total: ${result.totalGenerated}`,
+        severity: "success",
+      });
+
       setPopupOpen(false);
 
-      await loadAllData(); // recarrega tudo
+      await loadAllData();
     } catch (err) {
-      alert(
-        `Erro: ${err instanceof Error ? err.message : "Erro desconhecido"}`
-      );
+      setAlertConfig({
+        open: true,
+        message:
+          err instanceof Error ? err.message : "Erro desconhecido ao criar prova",
+        severity: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -210,6 +227,14 @@ const loadAllData = useCallback(async () => {
         onClose={() => setPopupOpen(false)}
         onSubmit={handleCreateExam}
         loading={loading}
+      />
+
+      <Alert //Alerta para criação da prova com exito ou não
+        message={alertConfig.message}
+        severity={alertConfig.severity}
+        autoHideDuration={3000}
+        open={alertConfig.open}
+        onClose={handleCloseAlert}
       />
     </div>
   );
