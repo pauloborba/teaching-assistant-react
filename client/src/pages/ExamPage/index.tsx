@@ -134,11 +134,11 @@ const loadAllData = useCallback(async () => {
       if (isNaN(parseInt(data.abertas)) || isNaN(parseInt(data.fechadas)))
         throw new Error("Quantidades inválidas");
 
-      const result = await ExamsService.createAndGenerateExams(data, classID);
+      await ExamsService.createExams(data, classID);
 
       setAlertConfig({
         open: true,
-        message: `Provas geradas com sucesso! Total: ${result.totalGenerated}`,
+        message: `Provas geradas com sucesso!`,
         severity: "success",
       });
 
