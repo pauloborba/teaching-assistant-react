@@ -28,7 +28,7 @@ class ExamsService {
      * @returns Promise with generated exams data
      */
     public async generateStudentExams(examId: number, classId: string): Promise<any> {
-        const response = await fetch(`${this.apiUrl}/${examId}/generate?classId=${encodeURIComponent(classId)}`, {
+        const response = await fetch(`${this.apiUrl}/exams/${examId}/generate?classId=${encodeURIComponent(classId)}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -51,7 +51,7 @@ class ExamsService {
      */
     public async createAndGenerateExams(examData: any, classId: string): Promise<any> {
         // First, create the exam
-        const createResponse = await fetch(`${this.apiUrl}`, {
+        const createResponse = await fetch(`${this.apiUrl}/exams`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -84,7 +84,7 @@ class ExamsService {
      * @returns Promise with array of exams
      */
     public async getExamsForClass(classId: string): Promise<any> {
-        const response = await fetch(`http://localhost:3005/api/exams/class/${encodeURIComponent(classId)}`, {
+        const response = await fetch(`${this.apiUrl}/exams/class/${encodeURIComponent(classId)}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -124,6 +124,8 @@ class ExamsService {
         }
 
         return response.json();
+    }
+
     public async downloadExamPDF(examId: string): Promise<void> {
         try {
 
@@ -143,7 +145,6 @@ class ExamsService {
                     errorMessage = errorData.error || errorMessage;
                 } catch (e) {
                 }
-                console.log(response);
                 if (status === 404) {
                     throw new Error('Prova não encontrada.');
                 }
@@ -190,7 +191,6 @@ class ExamsService {
                     errorMessage = errorData.error || errorMessage;
                 } catch (e) {
                 }
-                console.log(response);
                 if (status === 404) {
                     throw new Error('Prova não encontrada.');
                 }

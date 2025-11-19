@@ -6,7 +6,6 @@ import App from './App';
 import ExamplePage from './pages/ExamplePage';
 import Exam from './pages/Exam';
 import ExamPage from './pages/ExamPage';
-import Exam from './pages/Exam';
 import PdfExamplePage from './pages/PdfExamplePage';
 
 const root = ReactDOM.createRoot(
