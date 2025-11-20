@@ -6,6 +6,9 @@ export class Scripts {
 
 addScript(data: any): Script {
   const id = data.id ?? Date.now().toString();
+  if (data.title === undefined || data.title.trim() === '') {
+    throw new Error('Script title is required');
+  }
   const equalScripts = this.findByName(data.title);
   if (equalScripts) {
     throw new Error('Script with this title already exists');
