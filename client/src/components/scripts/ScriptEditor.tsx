@@ -20,6 +20,10 @@ export default function ScriptEditor({ script, onSave, onCancel }: ScriptEditorP
   }, [script]);
 
   const handleSubmit = () => {
+    if (title.trim() === "") {
+      alert("Title cannot be empty");
+      return;
+    }
     onSave({ title, tasks });
   };
 
