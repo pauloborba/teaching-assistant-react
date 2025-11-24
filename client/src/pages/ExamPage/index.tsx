@@ -163,7 +163,7 @@ export default function ExamPage() {
             padding: "8px",
             borderRadius: "6px",
             border: "1px solid #ccc",
-            width: "150px",
+            width: `${(classID?.length || 10) + 2}ch`,
             backgroundColor: "#f5f5f5",
           }}
         />
