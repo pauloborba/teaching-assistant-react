@@ -1,3 +1,7 @@
 node_modules
 server/dist
 client/build
+
+# Cucumber test reports
+client/reports/
+cucumber-report.*

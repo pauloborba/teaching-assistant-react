@@ -9,6 +9,12 @@ import { Report } from './models/Report';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// usado para ler arquivos em POST
+const multer = require('multer');
+
+// pasta usada para salvar os upload's feitos
+const upload_dir = multer({dest: 'tmp_data/'})
+
 const app = express();
 const PORT = 3005;
 
@@ -101,6 +107,17 @@ const loadDataFromFile = (): void => {
                       enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
                     });
                   }
+                    
+                    // Load medias and attendance status if provided in the data file
+                    if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
+                      enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
+                    }
+                    if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
+                      enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
+                    }
+                    if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
+                      enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
+                    }
                 } else {
                   console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
                 }
@@ -117,15 +134,22 @@ const loadDataFromFile = (): void => {
   }
 };
 
+// Test mode flag to disable file persistence
+const isTestMode = process.env.NODE_ENV === 'test';
+
 // Trigger save after any modification (async to not block operations)
 const triggerSave = (): void => {
-  setImmediate(() => {
-    saveDataToFile();
-  });
+  if (!isTestMode) {
+    setImmediate(() => {
+      saveDataToFile();
+    });
+  }
 };
 
-// Load existing data on startup
-loadDataFromFile();
+// Load existing data on startup (only in non-test mode)
+if (!isTestMode) {
+  loadDataFromFile();
+}
 
 // Helper function to clean CPF
 const cleanCPF = (cpf: string): string => {
@@ -397,6 +421,35 @@ app.get('/api/classes/:classId/enrollments', (req: Request, res: Response) => {
   }
 });
 
+// GET /api/classes/:classId/enrollments/:studentCPF/evaluation - Get the student's average and final average for a class
+app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
+  try {
+    const { classId, studentCPF } = req.params;
+
+    const classObj = classes.findClassById(classId);
+    if (!classObj) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    const cleanedCPF = cleanCPF(studentCPF);
+    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
+    if (!enrollment) {
+      return res.status(404).json({ error: 'Student not enrolled in this class' });
+    }
+
+    const mediaPreFinal = enrollment.getMediaPreFinal();
+    const mediaPosFinal = enrollment.getMediaPosFinal();
+
+    res.json({
+      student: enrollment.getStudent().toJSON(),
+      average: mediaPreFinal,
+      final_average: mediaPosFinal
+    });
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
 // PUT /api/classes/:classId/enrollments/:studentCPF/evaluation - Update evaluation for an enrolled student
 app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
   try {
@@ -453,6 +506,20 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// POST api/classes/gradeImport/:classId, usado na feature de importacao de grades
+// Vai ser usado em 2 fluxos(poderia ter divido em 2 endpoints mas preferi deixar em apenas 1)
+// [Front] Upload → [Back] lê só o cabeçalho e retorna colunas da planilha e os goals da 'classId'
+// [Front] Mapeia colunas da planilha para os goals → [Back] faz parse completo (stream)
+app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (req: express.Request, res: express.Response) => {
+  res.status(501).json({ error: "Endpoint ainda não implementado." });
 });
+
+// Export the app for testing
+export { app, studentSet, classes };
+
+// Only start the server if this file is run directly (not imported for testing)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
