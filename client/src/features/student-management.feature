@@ -1,3 +1,4 @@
+@gui
 Feature: Student Management
   As a professor
   I want to add students to the system

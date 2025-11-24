@@ -579,6 +579,15 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
 
 });
 
+<<<<<<< HEAD
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+||||||| 66885d7
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+=======
 // Export the app for testing
 export { app, studentSet, classes };
 
@@ -588,3 +597,4 @@ if (require.main === module) {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
+>>>>>>> main
