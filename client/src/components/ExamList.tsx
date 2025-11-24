@@ -1,22 +1,15 @@
 import React from 'react';
 import { Student } from '../types/Student';
-import { studentService } from '../services/StudentService';
-import '../services/ExamsService'
 
 interface StudentListProps {
   students: Student[];
-  onCorrection: (student: Student, examId: String) => void;
   loading: boolean;
 }
 
 const ExamList: React.FC<StudentListProps> = ({ 
   students, 
-  onCorrection, 
   loading 
 }) => {
-  const handleEdit = (student: Student, examId: String) => {
-    onCorrection(student, examId);
-  };
 
   if (loading) {
     return (
@@ -61,7 +54,7 @@ const ExamList: React.FC<StudentListProps> = ({
                   <div
                     style={{
                         padding: "12px 16px",
-                        backgroundColor: "#f44336",
+                        backgroundColor: student.exam?.grade !== undefined ? "#4caf50" : "#f44336",
                         color: "white",
                         borderRadius: "8px",
                         display: "inline-block",
@@ -70,7 +63,7 @@ const ExamList: React.FC<StudentListProps> = ({
                         opacity: 0.9
                     }}
                     >
-                    {"Não corrigido"}
+                    {student.exam?.grade !== undefined ? student.exam.grade : "Não corrigido"}
                 </div>
                 </td>
               </tr>

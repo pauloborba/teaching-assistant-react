@@ -28,6 +28,72 @@
           "score": 0
         }
       ]
+    },
+    {
+      "id": 1763335095690.867,
+      "studentCPF": "11111111111",
+      "examId": 2,
+      "answers": [
+        {
+          "questionId": 14,
+          "answer": "",
+          "score": 0
+        },
+        {
+          "questionId": 11,
+          "answer": "",
+          "score": 0
+        },
+        {
+          "questionId": 15,
+          "answer": "",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "id": 1763335095690.2686,
+      "studentCPF": "55555555555",
+      "examId": 2,
+      "answers": [
+        {
+          "questionId": 14,
+          "answer": "",
+          "score": 0
+        },
+        {
+          "questionId": 15,
+          "answer": "",
+          "score": 0
+        },
+        {
+          "questionId": 13,
+          "answer": "",
+          "score": 0
+        }
+      ]
+    },
+    {
+      "id": 1763335095690.9746,
+      "studentCPF": "22222222222",
+      "examId": 2,
+      "answers": [
+        {
+          "questionId": 12,
+          "answer": "",
+          "score": 0
+        },
+        {
+          "questionId": 11,
+          "answer": "",
+          "score": 0
+        },
+        {
+          "questionId": 13,
+          "answer": "",
+          "score": 0
+        }
+      ]
     }
   ]
 }

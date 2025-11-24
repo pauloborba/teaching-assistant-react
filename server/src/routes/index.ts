@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import healthRoutes from './health';
 import statsRoutes from './stats';
+import examsRoutes from "./exams";
+import correctionRoutes from "./correction";
+import examPdfRoutes from './examPdf'
 import triggerAICorrectionRoutes from './trigger-ai-correction';
 import questionAICorrectionRoutes from './question-ai-correction';
 
@@ -11,6 +14,12 @@ router.use(healthRoutes);
 
 // Stats routes (example of accessing persistent data)
 router.use(statsRoutes);
+
+
+// Exams routes
+router.use('/exams', examsRoutes);
+router.use(correctionRoutes);
+router.use('/exams', examPdfRoutes);
 
 // AI Correction routes
 router.use(triggerAICorrectionRoutes);

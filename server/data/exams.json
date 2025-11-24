@@ -1,16 +1,31 @@
 {
-    "exams": [
-        {
-            "id": 1,
-            "classId": "Engenharia de Software e Sistemas-2025-1",
-            "title": "Exame de Requisitos",
-            "isValid": true,
-            "openQuestions": 1,
-            "closedQuestions": 1,
-            "questions": [
-                1,
-                2
-            ]
-        }
-    ]
+  "exams": [
+    {
+      "id": 1,
+      "classId": "Engenharia de Software e Sistemas-2025-1",
+      "title": "Exame de Requisitos",
+      "isValid": true,
+      "openQuestions": 1,
+      "closedQuestions": 1,
+      "questions": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": 2,
+      "classId": "Engenharia de Software e Sistemas-2025-1",
+      "title": "Gerência de Configuração",
+      "isValid": true,
+      "openQuestions": 1,
+      "closedQuestions": 2,
+      "questions": [
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    }
+  ]
 }
