@@ -27,4 +27,4 @@ Feature: Clone Goals
   Scenario: Edit a cloned goal and verify independence
     Given the destination has cloned goals
     When I edit one cloned goal in destination
-    Then the source's corresponding goal should remain unchanged
+      Then the source's corresponding goal should remain unchanged and the cloned goal keeps independent weight values
