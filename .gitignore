@@ -35,5 +35,10 @@ test-*.csv
 test-*.xlsx
 test-*.js
 
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
 # Notes
 notes/
