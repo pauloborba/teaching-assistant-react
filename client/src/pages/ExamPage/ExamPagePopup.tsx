@@ -76,6 +76,7 @@ export default function ExamCreatePopup({
             <input
               type="number"
               name="abertas"
+              min={0}
               value={form.abertas}
               onChange={handleChange}
             />
@@ -86,14 +87,15 @@ export default function ExamCreatePopup({
             <input
               type="number"
               name="fechadas"
+              min={0}
               value={form.fechadas}
               onChange={handleChange}
             />
           </label>
         </div>
 
-        <CustomButton 
-          label={loading ? "Gerando..." : "CRIAR PROVA"} 
+        <CustomButton
+          label={loading ? "Gerando..." : "CRIAR PROVA"}
           onClick={handleSubmit}
           disabled={loading}
         />
