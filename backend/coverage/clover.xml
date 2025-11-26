@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1764128981490" clover="3.2.0">
-  <project timestamp="1764128981490" name="All files">
+<coverage generated="1764188645405" clover="3.2.0">
+  <project timestamp="1764188645406" name="All files">
     <metrics statements="461" coveredstatements="140" conditionals="105" coveredconditionals="19" methods="140" coveredmethods="38" elements="706" coveredelements="197" complexity="0" loc="461" ncloc="461" packages="2" files="8" classes="8"/>
     <package name="src">
       <metrics statements="267" coveredstatements="95" conditionals="63" coveredconditionals="13" methods="38" coveredmethods="13"/>
-      <file name="server.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\server\src\server.ts">
+      <file name="server.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\backend\src\server.ts">
         <metrics statements="267" coveredstatements="95" conditionals="63" coveredconditionals="13" methods="38" coveredmethods="13"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
@@ -277,7 +277,7 @@
     </package>
     <package name="src.models">
       <metrics statements="194" coveredstatements="45" conditionals="42" coveredconditionals="6" methods="102" coveredmethods="25"/>
-      <file name="Class.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\server\src\models\Class.ts">
+      <file name="Class.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\backend\src\models\Class.ts">
         <metrics statements="56" coveredstatements="18" conditionals="13" coveredconditionals="2" methods="32" coveredmethods="11"/>
         <line num="2" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
@@ -336,7 +336,7 @@
         <line num="166" count="0" type="stmt"/>
         <line num="169" count="0" type="stmt"/>
       </file>
-      <file name="Classes.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\server\src\models\Classes.ts">
+      <file name="Classes.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\backend\src\models\Classes.ts">
         <metrics statements="48" coveredstatements="7" conditionals="7" coveredconditionals="0" methods="19" coveredmethods="5"/>
         <line num="4" count="1" type="stmt"/>
         <line num="5" count="1" type="stmt"/>
@@ -387,7 +387,7 @@
         <line num="118" count="0" type="stmt"/>
         <line num="123" count="0" type="stmt"/>
       </file>
-      <file name="Enrollment.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\server\src\models\Enrollment.ts">
+      <file name="Enrollment.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\backend\src\models\Enrollment.ts">
         <metrics statements="30" coveredstatements="2" conditionals="9" coveredconditionals="0" methods="19" coveredmethods="0"/>
         <line num="2" count="1" type="stmt"/>
         <line num="4" count="1" type="stmt"/>
@@ -420,7 +420,7 @@
         <line num="97" count="0" type="stmt"/>
         <line num="100" count="0" type="stmt"/>
       </file>
-      <file name="Evaluation.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\server\src\models\Evaluation.ts">
+      <file name="Evaluation.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\backend\src\models\Evaluation.ts">
         <metrics statements="9" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="6" coveredmethods="0"/>
         <line num="3" count="1" type="stmt"/>
         <line num="8" count="0" type="stmt"/>
@@ -432,7 +432,7 @@
         <line num="33" count="0" type="stmt"/>
         <line num="38" count="1" type="stmt"/>
       </file>
-      <file name="Goal.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\server\src\models\Goal.ts">
+      <file name="Goal.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\backend\src\models\Goal.ts">
         <metrics statements="15" coveredstatements="12" conditionals="6" coveredconditionals="4" methods="10" coveredmethods="7"/>
         <line num="1" count="2" type="stmt"/>
         <line num="3" count="2" type="stmt"/>
@@ -450,7 +450,7 @@
         <line num="48" count="21" type="stmt"/>
         <line num="57" count="0" type="stmt"/>
       </file>
-      <file name="Student.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\server\src\models\Student.ts">
+      <file name="Student.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\backend\src\models\Student.ts">
         <metrics statements="16" coveredstatements="1" conditionals="4" coveredconditionals="0" methods="7" coveredmethods="0"/>
         <line num="3" count="1" type="stmt"/>
         <line num="5" count="0" type="stmt"/>
@@ -469,7 +469,7 @@
         <line num="38" count="0" type="stmt"/>
         <line num="43" count="0" type="stmt"/>
       </file>
-      <file name="StudentSet.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\server\src\models\StudentSet.ts">
+      <file name="StudentSet.ts" path="C:\Users\felip\OneDrive\Documents\faculdade\ESS\ESS 2025.2\projeto\teaching-assistant-react\backend\src\models\StudentSet.ts">
         <metrics statements="20" coveredstatements="3" conditionals="3" coveredconditionals="0" methods="9" coveredmethods="2"/>
         <line num="3" count="1" type="stmt"/>
         <line num="4" count="1" type="stmt"/>

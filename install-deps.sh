@@ -4,7 +4,7 @@ echo "🚀 Installing Student Management System Dependencies..."
 echo ""
 
 # Install backend dependencies
-echo "📦 Installing backend dependencies..."
+echo "📦 Installing backend dependencies (backend/)..."
 cd backend
 npm install
 if [ $? -ne 0 ]; then
@@ -15,11 +15,11 @@ echo "✅ Server dependencies installed successfully"
 echo ""
 
 # Install frontend dependencies
-echo "📦 Installing frontend dependencies..."
+echo "📦 Installing frontend dependencies (frontend/)..."
 cd ../frontend
 npm install
 if [ $? -ne 0 ]; then
-    echo "❌ Client installation failed"
+    echo "❌ Frontend installation failed"
     exit 1
 fi
 echo "✅ Client dependencies installed successfully"
@@ -40,3 +40,9 @@ echo ""
 echo "URLs:"
 echo "Frontend: http://localhost:3004"
 echo "Backend: http://localhost:3005"
+
+cat <<'NOTE'
+⚠️ Windows / OneDrive notes:
+ - If you run into 'EPERM' or permission errors during npm install under a OneDrive path, try moving this repository outside OneDrive (e.g. C:\projects) or disable OneDrive sync for the project folder.
+ - On Windows PowerShell the start script might need a different env syntax (use a separate terminal or set PORT before running).
+NOTE

@@ -57,13 +57,22 @@ teaching-assistant-react/
 ```
 
 #### Option 2: Manual installation
-1. **Install server dependencies:**
+1. **Install backend dependencies:**
    ```bash
    cd backend
    npm install
    ```
 
-2. **Install client dependencies:**
+2. **Install frontend dependencies:**
+   #### Windows / OneDrive ⚠️
+
+   On Windows machines OneDrive can sometimes lock files inside node_modules and cause npm operations to fail (EPERM errors). If you see permission problems during npm install or npm ci, follow one of these options:
+
+   - Move the repository outside of OneDrive, for example: `C:\projects\teaching-assistant-react`
+   - Or exclude the project folder from OneDrive syncing (recommended when developing node apps inside synced folders)
+
+   These workarounds will avoid permission and rmdir issues when npm tries to remove and write node_modules contents.
+
    ```bash
    cd frontend
    npm install
@@ -82,7 +91,7 @@ teaching-assistant-react/
 3. Select "Launch Full Stack" from the dropdown
 4. Press F5 or click the play button
 
-This will start both the server and client simultaneously.
+This will start both the backend and frontend simultaneously.
 
 #### Option 2: Manual Start
 
@@ -91,7 +100,7 @@ This will start both the server and client simultaneously.
    cd backend
    npm run dev
    ```
-   Server runs on http://localhost:3005
+   Backend runs on http://localhost:3005
 
 2. **Start the frontend (in a new terminal):**
    ```bash
@@ -112,7 +121,7 @@ This will start both the server and client simultaneously.
 
 ## API Endpoints
 
-The server provides a REST API:
+The backend provides a REST API:
 
 - `GET /api/students` - Get all students
 - `POST /api/students` - Create a new student
@@ -155,7 +164,7 @@ The server provides a REST API:
 - VS Code with debug configurations
 - ESLint
 - TypeScript compiler
-- Hot reloading for both client and server
+- Hot reloading for both frontend and backend
 
 
 ### Port Configuration
