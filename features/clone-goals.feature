@@ -27,4 +27,16 @@ Feature: Clone Goals
   Scenario: Edit a cloned goal and verify independence
     Given the destination has cloned goals
     When I edit one cloned goal in destination
-      Then the source's corresponding goal should remain unchanged and the cloned goal keeps independent weight values
+    Then the source's corresponding goal should remain unchanged and the cloned goal keeps independent weight values and also preserves the original createdAt timestamp
+
+  # Work in dev: Add additional scenarios for edge cases (added in dev branch)
+  Scenario: Clone fails when source has no goals
+    Given a source class has no goals
+    When I attempt to clone goals to a destination class
+    Then the server responds with an error indicating there are no goals to clone
+
+  Scenario: Clone should not overwrite existing destination goals
+    Given a destination class already has goals
+    When I attempt to clone goals from another class
+    Then the server should return a 409 or appropriate error indicating the destination already has goals
+>>>>>>> dev
