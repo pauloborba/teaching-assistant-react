@@ -27,7 +27,7 @@ Feature: Clone Goals
   Scenario: Edit a cloned goal and verify independence
     Given the destination has cloned goals
     When I edit one cloned goal in destination
-    Then the source's corresponding goal should remain unchanged
+    Then the source's corresponding goal should remain unchanged and the cloned goal keeps the original createdAt timestamp
 
   # Work in dev: Add additional scenarios for edge cases (added in dev branch)
   Scenario: Clone fails when source has no goals
