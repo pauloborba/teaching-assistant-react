@@ -1,0 +1,125 @@
+# EditorConfig - Configurações de estilo de código para desenvolvimento em equipe
+# Documentação oficial: https://EditorConfig.org
+
+# Indica que este é o arquivo raiz de configuração
+# Impite que editores procurem por arquivos .editorconfig em diretórios superiores
+root = true
+
+# Configurações aplicadas para TODOS os tipos de arquivo
+[*]
+# Codificação de caracteres - UTF-8 é o padrão universal para suportar acentos e caracteres especiais
+charset = utf-8
+
+# Tipo de quebra de linha - LF (Line Feed) é o padrão Unix/Linux/Mac
+# Recomendado para projetos cross-platform e evitar conflitos no Git
+end_of_line = lf
+
+# Insere uma linha nova vazia no final de cada arquivo
+# Importante para conformidade com padrões POSIX e evitar warnings em ferramentas
+insert_final_newline = true
+
+# Remove automaticamente espaços em branco no final das linhas
+# Reduz "ruído" em commits do Git e mantém o código limpo
+trim_trailing_whitespace = true
+
+# Define que a indentação será feita com ESPAÇOS (ao invés de tabs)
+# Espaços garantem visualização consistente em todos os editores e sistemas
+indent_style = space
+
+# Define 4 ESPAÇOS por nível de indentação (padrão comum em TypeScript empresarial)
+indent_size = 4
+
+# =============================================================================
+# CONFIGURAÇÕES ESPECÍFICAS POR TIPO DE ARQUIVO
+# =============================================================================
+
+# Arquivos Markdown (documentação, README, etc.)
+[*.md]
+# Desabilita a remoção de espaços trailing em markdown
+# Espaços duplos no final da linha são usados para quebras de linha em Markdown
+trim_trailing_whitespace = false
+
+# Desabilita limite de linha para markdown
+# Texto em markdown frequentemente excede 80/100 caracteres
+max_line_length = off
+
+# =============================================================================
+# ARQUIVOS DE CÓDIGO FRONTEND (React + TypeScript)
+# =============================================================================
+
+# TypeScript, TypeScript React, JavaScript e JavaScript React
+[*.{ts,tsx,js,jsx}]
+# 4 espaços de indentação para melhor legibilidade de código TypeScript
+indent_size = 4
+
+# Comprimento máximo recomendado por linha
+# Facilita leitura side-by-side e code review
+max_line_length = 100
+
+# =============================================================================
+# ARQUIVOS DE CONFIGURAÇÃO E ESTILO
+# =============================================================================
+
+# Arquivos JSON (package.json, tsconfig.json, etc.)
+[*.json]
+indent_size = 4
+
+# Arquivos de estilo (CSS, SCSS, Less)
+[*.{css,scss,less}]
+indent_size = 4
+
+# Arquivos HTML
+[*.html]
+indent_size = 4
+
+# Arquivos XML
+[*.xml]
+indent_size = 4
+
+# Arquivos YAML (GitHub Actions, configurações Docker, etc.)
+[*.{yml,yaml}]
+indent_size = 2  # YAML tradicionalmente usa 2 espaços
+
+# =============================================================================
+# ARQUIVOS DE TESTES E DOCUMENTAÇÃO DE COMPONENTES
+# =============================================================================
+
+# Arquivos de teste (Jest, Testing Library, etc.)
+[*.{test,spec}.{ts,tsx,js,jsx}]
+indent_size = 4
+
+# Arquivos do Storybook
+[*.stories.{ts,tsx}]
+indent_size = 4
+
+# =============================================================================
+# ARQUIVOS ESPECIAIS QUE REQUEREM TABS
+# =============================================================================
+
+# Makefiles exigem tabs para funcionar corretamente
+[Makefile]
+indent_style = tab
+
+# Arquivos batch do Windows
+[*.bat]
+indent_style = tab
+
+# Scripts shell (bash, zsh, etc.)
+[*.sh]
+indent_style = tab
+
+# =============================================================================
+# ARQUIVOS DE CONFIGURAÇÃO DO PROJETO
+# =============================================================================
+
+[.eslintrc.json]
+indent_size = 4
+
+[.prettierrc]
+indent_size = 4
+
+[tsconfig.json]
+indent_size = 4
+
+[package.json]
+indent_size = 4

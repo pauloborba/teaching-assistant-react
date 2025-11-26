@@ -13,7 +13,12 @@
     "client": "PORT=3004 npm start --prefix client",
     "build": "npm run build --prefix client",
     "test": "npm test --prefix client",
-    "lint": "npm run lint --prefix client"
+    "lint:client": "eslint client --ext .ts,.tsx",
+    "lint:server": "eslint server --ext .ts",
+    "lint": "npm run lint:client && npm run lint:server",
+    "lint:fix:client": "eslint client --ext .ts,.tsx --fix",
+    "lint:fix:server": "eslint server --ext .ts --fix",
+    "lint:fix": "npm run lint:fix:client && npm run lint:fix:server"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

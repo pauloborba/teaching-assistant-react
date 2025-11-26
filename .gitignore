@@ -5,3 +5,6 @@ client/build
 # Cucumber test reports
 client/reports/
 cucumber-report.*
+
+# ignore server assets folder
+tmp_data/
