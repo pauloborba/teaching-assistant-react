@@ -88,7 +88,7 @@ export const saveDataToFile = (): void => {
         }))
       }))
     };
-    
+
     ensureDataDirectory(dataFile);
     fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
@@ -99,7 +99,7 @@ export const saveDataToFile = (): void => {
 export const saveExamsToFile = (): void => {
   try {
     const data = examsManager.toJSON();
-    
+
     ensureDataDirectory(examsFile);
     fs.writeFileSync(examsFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
@@ -110,7 +110,7 @@ export const saveExamsToFile = (): void => {
 export const saveQuestionsToFile = (): void => {
   try {
     const data = questionsManager.toJSON();
-    
+
     ensureDataDirectory(questionsFile);
     fs.writeFileSync(questionsFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
@@ -123,7 +123,7 @@ export const saveStudentsExamsToFile = (): void => {
     const data = {
       studentsExams: examsManager.getAllStudentExams()
     };
-    
+
     ensureDataDirectory(studentsExamsFile);
     fs.writeFileSync(studentsExamsFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
@@ -137,7 +137,7 @@ export const loadDataFromFile = (): void => {
     if (fs.existsSync(dataFile)) {
       const fileContent = fs.readFileSync(dataFile, 'utf-8');
       const data = JSON.parse(fileContent);
-      
+
       // Load students
       if (data.students && Array.isArray(data.students)) {
         data.students.forEach((studentData: any) => {
@@ -166,7 +166,7 @@ export const loadDataFromFile = (): void => {
                 const student = studentSet.findStudentByCPF(enrollmentData.studentCPF);
                 if (student) {
                   const enrollment = classObj.addEnrollment(student);
-                  
+
                   if (enrollmentData.evaluations && Array.isArray(enrollmentData.evaluations)) {
                     enrollmentData.evaluations.forEach((evalData: any) => {
                       const evaluation = Evaluation.fromJSON(evalData);
@@ -192,7 +192,7 @@ export const loadExamsFromFile = (): void => {
     if (fs.existsSync(examsFile)) {
       const fileContent = fs.readFileSync(examsFile, 'utf-8');
       const data = JSON.parse(fileContent);
-      
+
       if (data.exams && Array.isArray(data.exams)) {
         data.exams.forEach((exam: ExamRecord) => {
           examsManager.addExam(exam);
@@ -223,7 +223,7 @@ export const loadStudentsExamsFromFile = (): void => {
     if (fs.existsSync(studentsExamsFile)) {
       const fileContent = fs.readFileSync(studentsExamsFile, 'utf-8');
       const data = JSON.parse(fileContent);
-      
+
       if (data.studentsExams && Array.isArray(data.studentsExams)) {
         data.studentsExams.forEach((studentExam: StudentExamRecord) => {
           examsManager.addStudentExam(studentExam);
@@ -240,7 +240,7 @@ export const saveGenerationsToFile = (): void => {
     const data = { generations: examGenerations };
     const dataDir = path.dirname(generationsFile);
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-    
+
     fs.writeFileSync(generationsFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
     console.error('Error saving generations to file:', error);
@@ -335,7 +335,7 @@ export const generateStudentExams = (examId: number, classId: string): StudentEx
   try {
     const exam = examsManager.getExamById(examId);
     if (!exam || exam.classId !== classId) throw new Error(`Exam ${examId} not found in class ${classId}`);
-    
+
     const classObj = classes.findClassById(classId);
     if (!classObj) throw new Error(`Class ${classId} not found`);
 
@@ -365,8 +365,8 @@ export const generateStudentExams = (examId: number, classId: string): StudentEx
       const shuffledOpenQuestions = [...openQuestions].sort(() => Math.random() - 0.5);
       const shuffledClosedQuestions = [...closedQuestions].sort(() => Math.random() - 0.5);
       const selectedQuestions = [
-          ...shuffledOpenQuestions.slice(0, exam.openQuestions), 
-          ...shuffledClosedQuestions.slice(0, exam.closedQuestions)
+        ...shuffledOpenQuestions.slice(0, exam.openQuestions),
+        ...shuffledClosedQuestions.slice(0, exam.closedQuestions)
       ];
 
       const studentExamRecord: StudentExamRecord = {
@@ -424,15 +424,15 @@ export const deleteQuestion = (id: number): boolean => {
 };
 
 export function shuffleArray<T>(array: T[]): T[] {
-    if (!Array.isArray(array) || array.length <= 1) {
-        return array;
-    }
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
+  if (!Array.isArray(array) || array.length <= 1) {
+    return array;
+  }
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
 }
 
 export type { QuestionRecord, QuestionOptionRecord } from '../models/Questions';
