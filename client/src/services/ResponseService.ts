@@ -1,74 +1,46 @@
 class ResponseService {
   private readonly baseUrl = 'http://localhost:3005/api/v1/exams';
 
-  /**
-   * Submit student responses for an exam.
-   * @param examId Exam identifier
-   * @param answers Object containing answers payload
-   * @param token Optional auth token (Bearer)
-   */
-  async submitResponses(examId: string, answers: any, token?: string): Promise<any> {
-    try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${this.baseUrl}/${encodeURIComponent(examId)}/responses`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(answers),
-      });
-
-      // Handle common expected status codes from feature scenarios
-      if (response.status === 201) {
-        return await response.json();
-      }
-
-      if (response.status === 400) {
-        const body = await response.json().catch(() => ({}));
-        throw new Error(body.message || 'Invalid request payload');
-      }
-
-      if (response.status === 403) {
-        throw new Error('Forbidden');
-      }
-
-      if (response.status === 410) {
-        throw new Error('Exam submission period has ended.');
-      }
-
-      // Fallback for other non-ok statuses
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
-        throw new Error(body.message || `Request failed with status ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error submitting responses:', error);
-      throw error;
-    }
+  async getQuestions(examId: string | number): Promise<any[]> {
+    const res = await fetch(`${this.baseUrl}/${encodeURIComponent(String(examId))}/questions`);
+    if (!res.ok) throw new Error('Failed to fetch questions');
+    return res.json();
   }
 
-  /**
-   * Optionally fetch exam details (useful to check open/closed status).
-   * @param examId
-   */
-  async getExam(examId: string): Promise<any> {
-    try {
-      const response = await fetch(`${this.baseUrl}/${encodeURIComponent(examId)}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch exam: ${response.statusText}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching exam:', error);
-      throw error;
+  async submitResponse(examId: string | number, studentCpf: string, answers: any[], token?: string): Promise<any> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const response = await fetch(`${this.baseUrl}/${encodeURIComponent(String(examId))}/responses`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ studentCpf, answers }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || data.message || `Request failed with status ${response.status}`);
     }
+
+    return data;
+  }
+
+  async getResponses(examId: string | number, token?: string): Promise<any[]> {
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${this.baseUrl}/${encodeURIComponent(String(examId))}/responses`, { headers });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to fetch responses');
+    }
+    return res.json();
+  }
+
+  async getExam(examId: string | number): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/${encodeURIComponent(String(examId))}`);
+    if (!res.ok) throw new Error('Failed to fetch exam');
+    return res.json();
   }
 }
 

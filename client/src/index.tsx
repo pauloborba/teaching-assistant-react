@@ -6,6 +6,7 @@ import App from './App';
 import ExamplePage from './pages/ExamplePage';
 import ExamPage from './pages/ExamPage';
 import Exam from './pages/Exam';
+import ExamResponse from './pages/ExamResponse';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -24,6 +25,7 @@ root.render(
         {/* Adicione mais rotas aqui conforme necessário */}
         <Route path='/exam' element={<Exam />} />
         <Route path="/exam" element={<ExamPage />} />
+        <Route path='/examResponse' element={<ExamResponse />}/>
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { exams, studentsExams, StudentExam, triggerSaveStudentsExams, cleanCPF } from '../services/dataService';
+import { exams, studentsExams, StudentExam, triggerSaveStudentsExams, cleanCPF, questions } from '../services/dataService';
 
 const router = Router();
 
@@ -19,6 +19,58 @@ router.get('/v1/exams/:examId', (req: Request, res: Response) => {
     res.json(exam);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch exam' });
+  }
+});
+
+/**
+ * GET /api/v1/exams/:examId/questions
+ * Return question objects for an exam
+ */
+router.get('/v1/exams/:examId/questions', (req: Request, res: Response) => {
+  try {
+    const { examId } = req.params;
+    const exam = exams.find(e => String((e as any).id) === examId || (e as any).title === examId);
+    if (!exam) {
+      return res.status(404).json({ error: 'Exam not found' });
+    }
+
+    const qIds: number[] = (exam as any).questions || [];
+    const examQuestions = questions.filter(q => qIds.includes((q as any).id));
+    res.json(examQuestions);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch exam questions' });
+  }
+});
+
+/**
+ * GET /api/v1/exams/:examId/responses
+ * Return responses submitted for an exam (teachers/professors)
+ */
+router.get('/v1/exams/:examId/responses', (req: Request, res: Response) => {
+  try {
+    const { examId } = req.params;
+    const auth = (req.headers.authorization || '') as string;
+
+    // Basic auth-role handling (no real JWT parsing here): require token and restrict to professor-like tokens
+    if (!auth) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const token = auth.split(' ')[1] || '';
+    if (!token.toLowerCase().includes('prof') && !token.toLowerCase().includes('teacher')) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const exam = exams.find(e => String((e as any).id) === examId || (e as any).title === examId);
+    if (!exam) {
+      return res.status(404).json({ error: 'Exam not found' });
+    }
+
+    const examIdNum = (exam as any).id;
+    const responses = studentsExams.filter(se => se.examId === examIdNum);
+    res.json(responses);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch responses' });
   }
 });
 
