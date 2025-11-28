@@ -47,6 +47,7 @@ const saveDataToFile = (): void => {
         topic: classObj.getTopic(),
         semester: classObj.getSemester(),
         year: classObj.getYear(),
+        especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
         enrollments: classObj.getEnrollments().map(enrollment => ({
           studentCPF: enrollment.getStudent().getCPF(),
           evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
@@ -90,7 +91,7 @@ const loadDataFromFile = (): void => {
       if (data.classes && Array.isArray(data.classes)) {
         data.classes.forEach((classData: any) => {
           try {
-            const classObj = new Class(classData.topic, classData.semester, classData.year, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA);
+            const classObj = new Class(classData.topic, classData.semester, classData.year, EspecificacaoDoCalculoDaMedia.fromJSON(classData.especificacaoDoCalculoDaMedia));
             classes.addClass(classObj);
 
             // Load enrollments for this class

@@ -91,7 +91,7 @@ const DEFAULT_PESOS_DAS_METAS = new Map<Meta, number>([
   ['Qualidade de Software', 1],
 ]);
 
-const DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA = new EspecificacaoDoCalculoDaMedia(
+export const DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA = new EspecificacaoDoCalculoDaMedia(
   DEFAULT_PESOS_DOS_CONCEITOS,
   DEFAULT_PESOS_DAS_METAS
 );
