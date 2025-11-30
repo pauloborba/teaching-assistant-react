@@ -2,7 +2,7 @@
 // (ou onde você preferir)
 
 import React from "react";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from "recharts";
 
 // 1. Tipo dos dados que o gráfico espera receber
 export type ChartData = {
@@ -13,6 +13,23 @@ export type ChartData = {
 interface ClassFailureChartProps {
  data: ChartData[];
 }
+
+// Color function to generate different colors for each bar
+const getBarColor = (index: number): string => {
+ const colors = [
+ '#ef4444', // red
+ '#3b82f6', // blue
+ '#10b981', // green
+ '#f59e0b', // yellow
+ '#8b5cf6', // purple
+ '#ec4899', // pink
+ '#06b6d4', // cyan
+ '#84cc16', // lime
+ '#f97316', // orange
+ '#6366f1', // indigo
+ ];
+ return colors[index % colors.length];
+};
 
 export const ClassFailureChart: React.FC<ClassFailureChartProps> = ({ data }) => {
  console.log("Rendering ClassFailureChart with data:", data);
@@ -50,9 +67,12 @@ export const ClassFailureChart: React.FC<ClassFailureChartProps> = ({ data }) =>
       />
       <Bar
        dataKey="failures"
-       fill="#ef4444"
        radius={[4, 4, 0, 0]}
-      />
+      >
+       {data.map((entry, index) => (
+        <Cell key={`cell-${index}`} fill={getBarColor(index)} />
+       ))}
+      </Bar>
      </BarChart>
     </ResponsiveContainer>
    </div>
