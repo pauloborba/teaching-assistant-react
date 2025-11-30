@@ -99,8 +99,52 @@
             {
               "goal": "Project Management",
               "grade": "MPA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
             }
           ]
+        }
+      ],
+      "goals": [
+        {
+          "id": "goal-1-req",
+          "description": "Requirements Analysis",
+          "weight": 20,
+          "createdAt": "2025-01-15T10:00:00.000Z"
+        },
+        {
+          "id": "goal-1-design",
+          "description": "Software Design",
+          "weight": 25,
+          "createdAt": "2025-01-15T10:05:00.000Z"
+        },
+        {
+          "id": "goal-1-tests",
+          "description": "Testing & Quality",
+          "weight": 20,
+          "createdAt": "2025-01-15T10:10:00.000Z"
+        },
+        {
+          "id": "goal-1-refact",
+          "description": "Refactoring",
+          "weight": 15,
+          "createdAt": "2025-01-15T10:15:00.000Z"
+        },
+        {
+          "id": "goal-1-config",
+          "description": "Configuration Management",
+          "weight": 20,
+          "createdAt": "2025-01-15T10:20:00.000Z"
         }
       ]
     },
@@ -166,6 +210,38 @@
               "grade": "MA"
             }
           ]
+        }
+      ],
+      "goals": [
+        {
+          "id": "1a2c4f73-9426-42f8-8c69-771162cfb9a0",
+          "description": "Requirements Analysis",
+          "weight": 20,
+          "createdAt": "2025-01-15T10:00:00.000Z"
+        },
+        {
+          "id": "7d7a2c1b-1066-4aa6-82c5-8abda2d35471",
+          "description": "Software Design",
+          "weight": 25,
+          "createdAt": "2025-01-15T10:05:00.000Z"
+        },
+        {
+          "id": "49a692d7-b258-4e3b-a63e-26f64ee7c2d3",
+          "description": "Testing & Quality",
+          "weight": 20,
+          "createdAt": "2025-01-15T10:10:00.000Z"
+        },
+        {
+          "id": "6c880342-72ab-42c8-95b7-59af28d348d5",
+          "description": "Refactoring",
+          "weight": 15,
+          "createdAt": "2025-01-15T10:15:00.000Z"
+        },
+        {
+          "id": "e53371ec-edb7-4892-9156-2d4ebcff10d1",
+          "description": "Configuration Management",
+          "weight": 20,
+          "createdAt": "2025-01-15T10:20:00.000Z"
         }
       ]
     }
