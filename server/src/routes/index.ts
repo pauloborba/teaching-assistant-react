@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import healthRoutes from './health';
 import statsRoutes from './stats';
-import examsRoutes from './exams';
+import examsRoutes from "./exams";
+import correctionRoutes from "./correction";
+import examPdfRoutes from './examPdf'
 
 const router = Router();
 
@@ -11,8 +13,11 @@ router.use(healthRoutes);
 // Stats routes (example of accessing persistent data)
 router.use(statsRoutes);
 
-// Exams and responses routes
-router.use(examsRoutes);
+
+// Exams routes
+router.use('/exams', examsRoutes);
+router.use(correctionRoutes);
+router.use('/exams', examPdfRoutes);
 
 export default router;
 
