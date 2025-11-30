@@ -54,6 +54,32 @@
               "goal": "Refactoring",
               "grade": "MA"
             }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
           ]
         },
         {
@@ -83,6 +109,32 @@
               "goal": "Tests",
               "grade": "MPA"
             }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
           ]
         },
         {
@@ -100,6 +152,32 @@
               "goal": "Project Management",
               "grade": "MPA"
             }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
           ]
         }
       ]
@@ -114,7 +192,33 @@
           "evaluations": [
             {
               "goal": "Requirements",
-              "grade": "MPA"
+              "grade": "MANA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MANA"
+            }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
             },
             {
               "goal": "Configuration Management",
@@ -122,18 +226,18 @@
             },
             {
               "goal": "Project Management",
-              "grade": "MPA"
+              "grade": "MA"
             },
             {
               "goal": "Design",
               "grade": "MA"
             },
             {
-              "goal": "Refactoring",
+              "goal": "Tests",
               "grade": "MA"
             },
             {
-              "goal": "Tests",
+              "goal": "Refactoring",
               "grade": "MA"
             }
           ]
@@ -165,7 +269,8 @@
               "goal": "Refactoring",
               "grade": "MA"
             }
-          ]
+          ],
+          "selfEvaluations": []
         }
       ]
     }
