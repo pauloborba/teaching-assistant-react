@@ -8,62 +8,75 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ResponsiveContainer,
 } from 'recharts';
 import ClassService from '../services/ClassService';
+import { Class } from '@/src/types/Class';
 import {
   generateAnalyticsForDiscipline,
   transformToChartData,
   ChartDataPoint
 } from '../../lib/StudentsAnalyticsCalculator';
 
-interface classSumaryProps {
-  data: ChartData[];
+interface ClassSumaryProps {
+  data: Class[] | null;
   discipline?: string;
+  selectedPeriodsCount?: number;
+  totalPeriodsCount?: number;
 }
 
 /**
  * Componente que exibe o gráfico de analytics para uma disciplina específica.
  * Busca automaticamente os dados da API e processa localmente.
  */
-const classSumary: React.FC<classSumaryProps> = 
-  ({ data, discipline }) => {
+const ClassSumary: React.FC<ClassSumaryProps> = 
+  ({ data, discipline, selectedPeriodsCount = 0, totalPeriodsCount = 0 }) => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('🔍 ClassSumary - Props recebidas:', { discipline, data });
+    
     if (!discipline) {
+      console.warn('⚠️ Disciplina não fornecida');
       setLoading(false);
       return;
     }
 
-    const fetchAndProcessData = async () => {
+    if (!data || data.length === 0) {
+      console.warn('⚠️ Dados não fornecidos ou vazios');
+      setLoading(false);
+      return;
+    }
+
+    const processData = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Buscar todas as turmas da API
-        const allClasses = data;
+        console.log('📊 Processando analytics para:', discipline);
+        console.log('📦 Dados recebidos:', data);
 
         // Gerar analytics para a disciplina específica
-        const analyticsData = generateAnalyticsForDiscipline(discipline, allClasses);
-        //console.log('📊 Analytics gerados:', analyticsData);
+        const analyticsData = generateAnalyticsForDiscipline(discipline, data);
+        console.log('📊 Analytics gerados:', analyticsData);
 
         // Transformar para formato do gráfico
         const transformedData = transformToChartData(analyticsData);
-        //console.log('📈 Dados transformados para o gráfico:', transformedData);
+        console.log('📈 Dados transformados para o gráfico:', transformedData);
 
         setChartData(transformedData);
       } catch (err) {
-        //console.error('Erro ao processar analytics:', err);
+        console.error('❌ Erro ao processar analytics:', err);
         setError('Falha ao carregar os dados de analytics');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAndProcessData();
-  }, [discipline]);
+    processData();
+  }, [discipline, data]);
 
   // Estado de loading
   if (loading) {
@@ -94,20 +107,35 @@ const classSumary: React.FC<classSumaryProps> =
 
   // Renderizar gráfico
   return (
-    <div style={{ width: '100%', padding: '20px' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>
-        Analytics - {discipline}
+    <div style={{ width: '100%', padding: '20px'}}>
+      <h2 style={{ textAlign: 'center', marginBottom: '0.5rem'}}>
+        Análise - {discipline}
       </h2>
       
+      {/* Informação de filtro */}
+      {selectedPeriodsCount > 0 && (
+        <div style={{
+          textAlign: 'center',
+          fontSize: '0.875rem',
+          color: '#3b82f6',
+          marginBottom: '1rem',
+          padding: '0.5rem',
+          backgroundColor: '#eff6ff',
+          borderRadius: '6px',
+          border: '1px solid #bfdbfe',
+          fontWeight: '500'
+        }}>
+          📊 Exibindo {selectedPeriodsCount} de {totalPeriodsCount} período(s)
+        </div>
+      )}
+      
       <div style={{ width: '100%', height: 400 }}>
-        {/* Avoid ResponsiveContainer due to React context mismatch in some setups.
-            Use fixed pixel width for reliable rendering during testing. */}
-        <LineChart
-          width={900}
-          height={400}
-          data={chartData}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
+        {/* ResponsiveContainer permite que o gráfico seja adaptável */}
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={chartData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="period" 
@@ -117,7 +145,6 @@ const classSumary: React.FC<classSumaryProps> =
               label={{ value: 'Número de Alunos', angle: -90, position: 'insideLeft' }}
             />
             <Tooltip />
-            <Legend />
             
             {/* Linha Verde - APV. M (Aprovado pela Média) */}
             <Line
@@ -169,12 +196,11 @@ const classSumary: React.FC<classSumaryProps> =
               name="REP. F (Falta)"
             />
           </LineChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Legenda explicativa */}
       <div style={{ 
-        marginTop: '20px', 
-        padding: '15px', 
         backgroundColor: '#f9fafb', 
         borderRadius: '8px' 
       }}>
@@ -201,4 +227,4 @@ const classSumary: React.FC<classSumaryProps> =
   );
 };
 
-export default classSumary;
+export default ClassSumary;
