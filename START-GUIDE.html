@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teaching Assistant - Como Executar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 16px rgba(220, 38, 38, 0.4);
+            border: 3px solid white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            color: #1a1a1a;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 2px solid #dc2626;
+        }
+
+        .card h2 {
+            color: #dc2626;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .step {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #dc2626;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        .step h3 {
+            color: #dc2626;
+            margin-bottom: 0.5rem;
+        }
+
+        .command {
+            background: #1a1a1a;
+            color: #22c55e;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 0.5rem 0;
+            overflow-x: auto;
+            border: 2px solid #dc2626;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            border: 2px solid #f59e0b;
+        }
+
+        .info-box strong {
+            color: #991b1b;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #065f46;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            border: 2px solid #22c55e;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            border: 2px solid #dc2626;
+        }
+
+        ul {
+            margin-left: 2rem;
+            margin-top: 0.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Teaching Assistant</h1>
+            <p>Guia de Execução do Projeto</p>
+        </div>
+
+        <div class="card">
+            <h2>📋 Como Executar o Projeto</h2>
+            
+            <div class="success-box" style="text-align: center; font-size: 1.2rem;">
+                🚀 <strong>TUDO NA MESMA PORTA!</strong> Frontend + Backend em um único servidor!
+            </div>
+
+            <div class="steps">
+                <div class="step">
+                    <h3><span class="step-number">1</span>Abra o Terminal no VS Code</h3>
+                    <p>Pressione <strong>Ctrl + `</strong> para abrir o terminal integrado</p>
+                    <p>Certifique-se de estar na pasta <code>teaching-assistant-react</code></p>
+                </div>
+
+                <div class="step">
+                    <h3><span class="step-number">2</span>Execute o Comando Mágico ✨</h3>
+                    <div class="command">npm start</div>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        ℹ️ Este comando irá:
+                        <ul>
+                            <li>🔨 Compilar o frontend (build)</li>
+                            <li>🚀 Iniciar o servidor na porta <strong>3005</strong></li>
+                            <li>✅ Servir frontend + backend na <strong>mesma porta</strong></li>
+                        </ul>
+                    </div>
+                    <div class="success-box" style="margin-top: 1rem;">
+                        ✅ Aguarde até ver:<br>
+                        <strong>"Server running on http://localhost:3005"</strong><br>
+                        <strong>"Frontend available at http://localhost:3005"</strong>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3><span class="step-number">3</span>Acesse a Aplicação</h3>
+                    <p>Acesse no navegador:</p>
+                    <div class="command">http://localhost:3005</div>
+                    <div class="info-box" style="margin-top: 0.5rem;">
+                        ℹ️ A API está disponível em: <code>http://localhost:3005/api</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="warning-box" style="margin-top: 2rem;">
+                <h4 style="margin-bottom: 0.5rem;">💻 Modo Desenvolvimento (2 servidores separados)</h4>
+                <p>Se quiser desenvolver com hot-reload, use:</p>
+                <div class="command" style="margin-top: 0.5rem;">npm run dev</div>
+                <p style="margin-top: 0.5rem;">Isso abre Backend (3005) + Frontend (3004) em portas separadas</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🎯 Funcionalidades Principais</h2>
+            <ul>
+                <li><strong>Students</strong> - Gerenciar alunos cadastrados</li>
+                <li><strong>Classes</strong> - Visualizar turmas e gerenciar goals</li>
+                <li><strong>Evaluations</strong> - Avaliar alunos por turma</li>
+                <li><strong>Goals Management</strong> - CRUD completo de metas</li>
+                <li><strong>Clone Goals</strong> - Copiar metas entre turmas</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>⚠️ Solução de Problemas</h2>
+            
+            <div class="warning-box">
+                <strong>Erro: "ts-node not found"</strong>
+                <div class="command" style="margin-top: 1rem;">npm install -g ts-node typescript</div>
+            </div>
+
+            <div class="warning-box">
+                <strong>Erro: "Failed to load classes"</strong>
+                <p style="margin-top: 0.5rem;">Verifique se o backend está rodando na porta 3005</p>
+            </div>
+
+            <div class="warning-box">
+                <strong>Erro: "Port already in use"</strong>
+                <p style="margin-top: 0.5rem;">Feche os processos usando as portas 3004 ou 3005</p>
+                <div class="command" style="margin-top: 0.5rem;">
+                    netstat -ano | findstr :3004<br>
+                    netstat -ano | findstr :3005
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>💾 Armazenamento de Dados</h2>
+            <div class="info-box">
+                ℹ️ O projeto usa <strong>arquivos JSON</strong> como banco de dados:
+                <ul style="margin-top: 0.5rem;">
+                    <li><code>backend/data/app-data.json</code> - Turmas, goals e matrículas</li>
+                    <li><code>backend/data/students.json</code> - Dados dos alunos</li>
+                </ul>
+                <p style="margin-top: 0.5rem;"><strong>Não é necessário instalar PostgreSQL, MySQL ou MongoDB!</strong></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🧪 Testes</h2>
+            <div class="steps">
+                <div class="step">
+                    <h3>Backend Tests</h3>
+                    <div class="command">cd backend<br>npm test</div>
+                    <p style="margin-top: 0.5rem;">✅ 20 testes unitários para Goals (100% cobertura)</p>
+                </div>
+
+                <div class="step">
+                    <h3>Frontend Tests</h3>
+                    <div class="command">cd frontend<br>npm test</div>
+                    <p style="margin-top: 0.5rem;">✅ Testes de componentes com React Testing Library</p>
+                </div>
+
+                <div class="step">
+                    <h3>E2E Tests</h3>
+                    <div class="command">cd frontend<br>npx playwright test</div>
+                    <p style="margin-top: 0.5rem;">✅ Testes end-to-end com Playwright</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>📚 Teaching Assistant - Sistema de Gerenciamento Acadêmico</p>
+            <p>Desenvolvido com React + TypeScript + Node.js</p>
+        </div>
+    </div>
+</body>
+</html>
