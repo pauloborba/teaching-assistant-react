@@ -8,6 +8,12 @@ import { Class } from './models/Class';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// usado para ler arquivos em POST
+const multer = require('multer');
+
+// pasta usada para salvar os upload's feitos
+const upload_dir = multer({dest: 'tmp_data/'})
+
 const app = express();
 const PORT = 3005;
 
@@ -100,6 +106,17 @@ const loadDataFromFile = (): void => {
                       enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
                     });
                   }
+
+                    // Load medias and attendance status if provided in the data file
+                    if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
+                      enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
+                    }
+                    if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
+                      enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
+                    }
+                    if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
+                      enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
+                    }
                 } else {
                   console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
                 }
@@ -396,13 +413,30 @@ app.get('/api/classes/:classId/enrollments', (req: Request, res: Response) => {
   }
 });
 
-app.get('/api/classes/:classTopic', (req: Request, res: Response) => {
+// GET /api/classes/:classId/enrollments/:studentCPF/evaluation - Get the student's average and final average for a class
+app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
   try {
-    const { classTopic } = req.params;
+    const { classId, studentCPF } = req.params;
 
-    const  filteredClasses = classes.findClassesByTopic(classTopic);
-    console.log(filteredClasses);
-    res.json(filteredClasses.map(c => c.toJSON()));
+    const classObj = classes.findClassById(classId);
+    if (!classObj) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    const cleanedCPF = cleanCPF(studentCPF);
+    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
+    if (!enrollment) {
+      return res.status(404).json({ error: 'Student not enrolled in this class' });
+    }
+
+    const mediaPreFinal = enrollment.getMediaPreFinal();
+    const mediaPosFinal = enrollment.getMediaPosFinal();
+
+    res.json({
+      student: enrollment.getStudent().toJSON(),
+      average: mediaPreFinal,
+      final_average: mediaPosFinal
+    });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
@@ -445,6 +479,14 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
+});
+
+// POST api/classes/gradeImport/:classId, usado na feature de importacao de grades
+// Vai ser usado em 2 fluxos(poderia ter divido em 2 endpoints mas preferi deixar em apenas 1)
+// [Front] Upload → [Back] lê só o cabeçalho e retorna colunas da planilha e os goals da 'classId'
+// [Front] Mapeia colunas da planilha para os goals → [Back] faz parse completo (stream)
+app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (req: express.Request, res: express.Response) => {
+  res.status(501).json({ error: "Endpoint ainda não implementado." });
 });
 
 app.listen(PORT, () => {

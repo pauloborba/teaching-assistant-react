@@ -128,18 +128,21 @@ const App: React.FC = () => {
           <button
             className={`tab-button ${activeTab === 'students' ? 'active' : ''}`}
             onClick={() => setActiveTab('students')}
+            data-testid="students-tab"
           >
             Students
           </button>
           <button
             className={`tab-button ${activeTab === 'evaluations' ? 'active' : ''}`}
             onClick={() => setActiveTab('evaluations')}
+            data-testid="evaluations-tab"
           >
             Evaluations
           </button>
           <button
             className={`tab-button ${activeTab === 'classes' ? 'active' : ''}`}
             onClick={() => setActiveTab('classes')}
+            data-testid="classes-tab"
           >
             Classes
           </button>
