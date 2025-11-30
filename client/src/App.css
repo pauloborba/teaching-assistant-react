@@ -1193,3 +1193,222 @@ tbody tr:last-child td {
   background-color: #fecaca;
   color: #991b1b;
 }
+
+/* Self-Evaluation specific styles */
+.self-evaluation-section {
+  width: 100%;
+}
+
+.self-evaluation-section h3 {
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.search-container input[type="email"],
+.search-container input[type="text"] {
+  transition: all 0.2s ease;
+}
+
+.search-container input[type="email"]:disabled,
+.search-container input[type="text"]:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Grade color variables for comparison view */
+:root {
+  --grade-ma-bg: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  --grade-ma-color: white;
+  --grade-mpa-bg: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --grade-mpa-color: white;
+  --grade-mana-bg: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --grade-mana-color: white;
+}
+
+/* Comparison view grade styling */
+.evaluation-section span[style*="grade-ma"] {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+  color: white !important;
+}
+
+.evaluation-section span[style*="grade-mpa"] {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: white !important;
+}
+
+.evaluation-section span[style*="grade-mana"] {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: white !important;
+}
+
+.self-evaluation-matrix {
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #cbd5e1;
+}
+
+.self-evaluation-matrix .evaluation-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  min-width: 600px;
+}
+
+.self-evaluation-matrix .evaluation-table thead tr {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.self-evaluation-matrix .evaluation-table th {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+  padding: 16px;
+  text-align: center;
+  font-weight: 700;
+  border: none;
+  font-size: 1rem;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.self-evaluation-matrix .evaluation-table th:first-child {
+  text-align: left;
+  width: 50%;
+}
+
+.self-evaluation-matrix .evaluation-table th:last-child {
+  text-align: center;
+  width: 50%;
+}
+
+.self-evaluation-matrix .evaluation-table tbody tr {
+  border-bottom: 1px solid #cbd5e1;
+  transition: background-color 0.2s ease;
+}
+
+.self-evaluation-matrix .evaluation-table tbody tr:nth-child(even) {
+  background-color: #f0f9ff;
+}
+
+.self-evaluation-matrix .evaluation-table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.self-evaluation-matrix .evaluation-table tbody tr:hover {
+  background-color: #e0f2fe;
+  transform: scale(1.001);
+}
+
+.self-evaluation-matrix .evaluation-table td {
+  padding: 12px 8px;
+  text-align: center;
+  border: 1px solid #cbd5e1;
+  vertical-align: middle;
+}
+
+.self-evaluation-matrix .evaluation-table td:first-child {
+  text-align: left;
+  color: #0c4a6e;
+  font-weight: 600;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  position: relative;
+  z-index: 1;
+  padding: 16px;
+}
+
+.self-evaluation-matrix .evaluation-table tbody tr:nth-child(even) td:first-child {
+  background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%);
+}
+
+.self-evaluation-matrix .evaluation-table tbody tr:hover td:first-child {
+  background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%);
+}
+
+/* Style for grade spans in self-evaluation table */
+.self-evaluation-matrix .evaluation-table td:not(:first-child) span {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.self-evaluation-matrix .evaluation-table td:not(:first-child) span[style*="background"] {
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.self-evaluation-matrix .evaluation-select {
+  width: 100%;
+  max-width: 120px;
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  text-align-last: center;
+}
+
+.self-evaluation-matrix .evaluation-select:hover {
+  border-color: #3b82f6;
+  transform: scale(1.05);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.self-evaluation-matrix .evaluation-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  transform: scale(1.05);
+}
+
+/* Grade-specific colors for self-evaluation */
+.self-evaluation-matrix .evaluation-select.grade-ma {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  color: white;
+  border-color: #059669;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.self-evaluation-matrix .evaluation-select.grade-mpa {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border-color: #f59e0b;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.self-evaluation-matrix .evaluation-select.grade-mana {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border-color: #ef4444;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.self-evaluation-matrix .evaluation-select option {
+  background-color: white;
+  color: #374151;
+  font-weight: 600;
+  text-align: center;
+  padding: 8px;
+}
+
+.self-evaluation-matrix .evaluation-select option[value="MA"] {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.self-evaluation-matrix .evaluation-select option[value="MPA"] {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.self-evaluation-matrix .evaluation-select option[value="MANA"] {
+  background-color: #fecaca;
+  color: #991b1b;
+}

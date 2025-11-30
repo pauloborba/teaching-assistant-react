@@ -7,6 +7,7 @@ export interface Enrollment {
   mediaPreFinal?: number;
   mediaPosFinal?: number;
   reprovadoPorFalta?: boolean;
+  selfEvaluations: Evaluation[];
 }
 
 export interface CreateEnrollmentRequest {
@@ -15,6 +16,7 @@ export interface CreateEnrollmentRequest {
   mediaPreFinal?: number;
   mediaPosFinal?: number;
   reprovadoPorFalta?: boolean;
+  selfEvaluations?: Evaluation[];
 }
 
 export interface UpdateEnrollmentRequest {
@@ -22,4 +24,5 @@ export interface UpdateEnrollmentRequest {
   mediaPreFinal?: number;
   mediaPosFinal?: number;
   reprovadoPorFalta?: boolean;
+  selfEvaluations?: Evaluation[];
 }

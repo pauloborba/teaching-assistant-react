@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { StudentSet } from './models/StudentSet';
 import { Student } from './models/Student';
-import { Evaluation } from './models/Evaluation';
+import { Evaluation, Grade } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import * as fs from 'fs';
@@ -48,7 +48,8 @@ const saveDataToFile = (): void => {
         year: classObj.getYear(),
         enrollments: classObj.getEnrollments().map(enrollment => ({
           studentCPF: enrollment.getStudent().getCPF(),
-          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
+          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+          selfEvaluations: enrollment.getSelfEvaluations().map(selfEvaluation => selfEvaluation.toJSON())
         }))
       }))
     };
@@ -58,6 +59,16 @@ const saveDataToFile = (): void => {
   } catch (error) {
     console.error('Error saving students to file:', error);
   }
+};
+
+const loadEvaluations = (
+  evalArray: any[],
+  addFn: (goal: string, grade: Grade) => void
+) => {
+  evalArray.forEach((e: any) => {
+    const evaluation = Evaluation.fromJSON(e);
+    addFn(evaluation.getGoal(), evaluation.getGrade());
+  });
 };
 
 // Load data from file
@@ -99,13 +110,16 @@ const loadDataFromFile = (): void => {
                 if (student) {
                   const enrollment = classObj.addEnrollment(student);
                   
-                  // Load evaluations for this enrollment
+                  // Load evaluations
                   if (enrollmentData.evaluations && Array.isArray(enrollmentData.evaluations)) {
-                    enrollmentData.evaluations.forEach((evalData: any) => {
-                      const evaluation = Evaluation.fromJSON(evalData);
-                      enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
-                    });
+                    loadEvaluations(enrollmentData.evaluations, enrollment.addOrUpdateEvaluation.bind(enrollment));
                   }
+
+                  // Load self-evaluations
+                  if (enrollmentData.selfEvaluations && Array.isArray(enrollmentData.selfEvaluations)) {
+                    loadEvaluations(enrollmentData.selfEvaluations, enrollment.addOrUpdateSelfEvaluation.bind(enrollment));
+                  }
+
                     
                     // Load medias and attendance status if provided in the data file
                     if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
@@ -154,6 +168,53 @@ if (!isTestMode) {
 const cleanCPF = (cpf: string): string => {
   return cpf.replace(/[.-]/g, '');
 };
+
+// Handlers for evaluation and self-evaluation updates
+const handleEvaluationUpdate = (req: Request, res: Response, options: {
+  type: 'evaluation' | 'selfEvaluation';
+}) => {
+  try {
+    const { classId, studentCPF } = req.params;
+    const { goal, grade } = req.body;
+
+    if (!goal) {
+      return res.status(400).json({ error: 'Goal is required' });
+    }
+
+    const classObj = classes.findClassById(classId);
+    if (!classObj) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    const cleanedCPF = cleanCPF(studentCPF);
+    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
+    if (!enrollment) {
+      return res.status(404).json({ error: 'Student not enrolled in this class' });
+    }
+
+    const isSelf = options.type === 'selfEvaluation';
+
+    if (grade === '' || grade === null || grade === undefined) {
+      isSelf
+        ? enrollment.removeSelfEvaluation(goal)
+        : enrollment.removeEvaluation(goal);
+    } else {
+      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
+        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA or MA' });
+      }
+
+      isSelf
+        ? enrollment.addOrUpdateSelfEvaluation(goal, grade)
+        : enrollment.addOrUpdateEvaluation(goal, grade);
+    }
+
+    triggerSave();
+    res.json(enrollment.toJSON());
+
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+}
 
 // Routes
 
@@ -450,43 +511,14 @@ app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 });
 
 // PUT /api/classes/:classId/enrollments/:studentCPF/evaluation - Update evaluation for an enrolled student
-app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
-  try {
-    const { classId, studentCPF } = req.params;
-    const { goal, grade } = req.body;
-    
-    if (!goal) {
-      return res.status(400).json({ error: 'Goal is required' });
-    }
+app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req, res) =>
+  handleEvaluationUpdate(req, res, { type: 'evaluation' })
+);
 
-    const classObj = classes.findClassById(classId);
-    if (!classObj) {
-      return res.status(404).json({ error: 'Class not found' });
-    }
+app.put('/api/classes/:classId/enrollments/:studentCPF/selfEvaluation', (req, res) =>
+  handleEvaluationUpdate(req, res, { type: 'selfEvaluation' })
+);
 
-    const cleanedCPF = cleanCPF(studentCPF);
-    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
-    if (!enrollment) {
-      return res.status(404).json({ error: 'Student not enrolled in this class' });
-    }
-
-    if (grade === '' || grade === null || grade === undefined) {
-      // Remove evaluation
-      enrollment.removeEvaluation(goal);
-    } else {
-      // Add or update evaluation
-      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
-        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
-      }
-      enrollment.addOrUpdateEvaluation(goal, grade);
-    }
-
-    triggerSave(); // Save to file after evaluation update
-    res.json(enrollment.toJSON());
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
-  }
-});
 
 // POST api/classes/gradeImport/:classId, usado na feature de importacao de grades
 // Vai ser usado em 2 fluxos(poderia ter divido em 2 endpoints mas preferi deixar em apenas 1)
