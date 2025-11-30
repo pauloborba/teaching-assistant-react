@@ -1,0 +1,128 @@
+# Pull Request - Teaching Assistant
+
+## 📝 Descrição
+<!-- Descreva de forma clara e objetiva as mudanças realizadas -->
+
+**O que foi feito:**
+
+**Por que foi feito:**
+
+## 📌 Observações
+<!-- Informações extras para os revisores, dúvidas, decisões técnicas, etc. -->
+
+### Impacto:
+- [ ] 🟢 Baixo - Mudança isolada, sem efeitos colaterais
+- [ ] 🟡 Médio - Afeta algumas funcionalidades
+- [ ] 🔴 Alto - Mudanças críticas ou estruturais
+
+#### Riscos identificados:
+- 
+
+## 📦 Área afetada
+<!-- Marque com x as áreas do projeto afetadas -->
+
+### Frontend (Client - React):
+- [ ] 🖥️ Componentes React
+- [ ] 🔌 Services/API
+- [ ] 📝 Types/Interfaces TypeScript
+- [ ] 🎨 Estilos e UI
+
+### Backend (Server - Express/Node.js):
+- [ ] 🔌 API Routes/Endpoints
+- [ ] 📊 Models e lógica de negócio
+- [ ] 💾 Persistência de dados
+
+### Funcionalidades:
+- [ ] 🎓 Gerenciamento de Estudantes
+- [ ] 📋 Gerenciamento de Turmas
+- [ ] 📝 Gerenciamento de Matrículas
+- [ ] 📈 Gerenciamento de Avaliações
+- [ ] 📄 Importação de dados
+- [ ] Provas
+- [ ] Flashcards
+- [ ] Colocar aqui o nome da sua feature
+
+### Infraestrutura:
+- [ ] 🔧 Configurações (tsconfig, jest.config, cucumber.js)
+- [ ] 📦 Dependências (package.json)
+- [ ] 🚀 Scripts de build/deploy
+- [ ] 📝 Documentação (README, guias)
+
+## 🔧 Tipo de mudança
+<!-- Marque com x o que se aplica -->
+- [ ] 🐛 Correção de bug (fix)
+- [ ] ✨ Nova funcionalidade (feature)
+- [ ] ♻️ Refatoração de código
+- [ ] 📚 Atualização de documentação
+- [ ] ✅ Adição/atualização de testes
+- [ ] 🎨 Melhorias de UI/UX
+- [ ] 🔒 Correção de segurança
+- [ ] ⚡ Melhoria de performance
+
+## 🧪 Testes
+<!-- Descreva como as mudanças foram testadas -->
+
+### Testes automatizados
+
+#### Por nível de teste:
+- [ ] 🔬 **Testes Unitários** (Jest) - Classes e funções isoladas
+  - _Dependências: versões antigas, stubs e drivers_
+- [ ] 🔗 **Testes de Integração** - Interação entre componentes/serviços
+  - _Dependências: novas versões evoluídas por outros desenvolvedores_
+- [ ] 🎯 **Testes End-to-End** (Cucumber) - Fluxos completos da aplicação
+  - _Dependências: todas as dependências envolvidas_
+- [ ] 🌐 **Testes de Sistema** - Ambiente completo de produção
+  - _Dependências: ambiente de produção com dependências externas reais_
+
+#### Por área testada:
+- [ ] 🖥️ Testes de GUI (interface do usuário)
+- [ ] 📊 Testes de Classes/Models (lógica de negócio)
+- [ ] 🔌 Testes de Services/API (comunicação e endpoints)
+
+#### Cobertura:
+- [ ] Cobertura de testes mantida/aumentada
+- [ ] Casos de erro e edge cases cobertos
+
+### Como revisar e testar
+<!-- Adicione etapas mais claras para se testar, se necessário -->
+
+**Testes Unitários (Server):**
+```bash
+cd server
+npm install
+npm test                    # Executar testes
+npm run test:watch          # Modo watch
+npm run test:coverage       # Com cobertura
+```
+
+**Testes E2E (Client):**
+```bash
+cd client
+npm install
+npm start                   # Terminal 1: iniciar app
+npm run test:cucumber       # Terminal 2: executar testes
+```
+
+**Testar manualmente:**
+- Servidor: `http://localhost:3000`
+- Cliente: `http://localhost:3004`
+
+## 📸 Screenshots/GIFs
+<!-- Se aplicável, adicione capturas de tela ou GIFs das mudanças visuais -->
+
+
+## ✅ Checklist
+<!-- Marque com x tudo que foi feito -->
+- [ ] Código segue os padrões do projeto
+- [ ] Realizei self-review do código
+- [ ] Comentei código em áreas complexas
+- [ ] Atualizei a documentação (se necessário)
+- [ ] Mudanças não geram warnings
+- [ ] Adicionei testes que provam que a correção/feature funciona
+- [ ] Testes novos e existentes passam localmente
+- [ ] Mudanças dependentes foram merged e publicadas
+
+## 🔗 Issues relacionadas
+<!-- Referencie issues relacionadas -->
+- Closes #
+- Relacionado a #

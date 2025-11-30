@@ -22,7 +22,7 @@ export class Classes {
   // Remove class by ID
   removeClass(classId: string): boolean {
     const index = this.classes.findIndex(c => c.getClassId() === classId);
-    
+
     if (index === -1) {
       return false;
     }
@@ -34,7 +34,7 @@ export class Classes {
   // Update class
   updateClass(updatedClass: Class): Class {
     const existingClass = this.findClassById(updatedClass.getClassId());
-    
+
     if (!existingClass) {
       throw new Error('Class not found');
     }
@@ -43,16 +43,16 @@ export class Classes {
     existingClass.setTopic(updatedClass.getTopic());
     existingClass.setSemester(updatedClass.getSemester());
     existingClass.setYear(updatedClass.getYear());
-    
+
     // Update enrollments: merge existing with updated enrollments
     const updatedEnrollments = updatedClass.getEnrollments();
     const existingEnrollments = existingClass.getEnrollments();
-    
+
     // Process each updated enrollment
     updatedEnrollments.forEach(updatedEnrollment => {
       const studentCPF = updatedEnrollment.getStudent().getCPF();
       const existingEnrollment = existingClass.findEnrollmentByStudentCPF(studentCPF);
-      
+
       if (existingEnrollment) {
         // Update existing enrollment's evaluations
         const updatedEvaluations = updatedEnrollment.getEvaluations();
@@ -77,13 +77,18 @@ export class Classes {
         }
       }
     });
-    
+
     return existingClass;
   }
 
   // Find class by ID
   findClassById(classId: string): Class | undefined {
     return this.classes.find(c => c.getClassId() === classId);
+  }
+
+  // Find classes by topic
+  findClassesByTopic(topic: string): Class[] {
+    return this.classes.filter(c => c.getTopic().toLowerCase().includes(topic.toLowerCase()));
   }
 
   // Get all classes
@@ -99,11 +104,6 @@ export class Classes {
   // Find classes by year
   findClassesByYear(year: number): Class[] {
     return this.classes.filter(c => c.getYear() === year);
-  }
-
-  // Find classes by topic
-  findClassesByTopic(topic: string): Class[] {
-    return this.classes.filter(c => c.getTopic().toLowerCase().includes(topic.toLowerCase()));
   }
 
   // Get all students enrolled in any class

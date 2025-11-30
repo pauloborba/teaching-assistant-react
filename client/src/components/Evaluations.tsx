@@ -3,6 +3,8 @@ import { Class } from '../types/Class';
 import ClassService from '../services/ClassService';
 import EnrollmentService from '../services/EnrollmentService';
 
+import { ImportGradeComponent } from './ImportGrade';
+
 interface EvaluationsProps {
   onError: (errorMessage: string) => void;
 }
@@ -19,7 +21,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   // Predefined evaluation goals
   const evaluationGoals = [
     'Requirements',
-    'Configuration Management', 
+    'Configuration Management',
     'Project Management',
     'Design',
     'Tests',
@@ -92,7 +94,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   return (
     <div className="evaluation-section">
       <h3>Evaluations</h3>
-      
+
       {/* Class Selection */}
       <div className="class-selection-container">
         <label htmlFor="classSelect">Select Class:</label>
@@ -112,10 +114,10 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
       </div>
 
       {!selectedClass && (
-        <div style={{ 
-          padding: '20px', 
-          border: '2px dashed #ccc', 
-          borderRadius: '8px', 
+        <div style={{
+          padding: '20px',
+          border: '2px dashed #ccc',
+          borderRadius: '8px',
           textAlign: 'center',
           color: '#666',
           marginTop: '20px'
@@ -126,10 +128,10 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
       )}
 
       {selectedClass && selectedClass.enrollments.length === 0 && (
-        <div style={{ 
-          padding: '20px', 
-          border: '2px dashed #ccc', 
-          borderRadius: '8px', 
+        <div style={{
+          padding: '20px',
+          border: '2px dashed #ccc',
+          borderRadius: '8px',
           textAlign: 'center',
           color: '#666',
           marginTop: '20px'
@@ -142,8 +144,12 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
 
       {selectedClass && selectedClass.enrollments.length > 0 && (
         <div className="evaluation-table-container">
+          {/*Componente de importacao de notas de uma planilha, vai reagir as mudacas do classId */}
+          <div>
+            <ImportGradeComponent classID={selectedClassId} />
+          </div>
           <h4>{selectedClass.topic} ({selectedClass.year}/{selectedClass.semester})</h4>
-          
+
           <div className="evaluation-matrix">
             <table className="evaluation-table">
               <thead>
@@ -157,7 +163,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
               <tbody>
                 {selectedClass.enrollments.map(enrollment => {
                   const student = enrollment.student;
-                  
+
                   // Create a map of evaluations for quick lookup
                   const studentEvaluations = enrollment.evaluations.reduce((acc, evaluation) => {
                     acc[evaluation.goal] = evaluation.grade;
@@ -169,7 +175,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                       <td className="student-name-cell">{student.name}</td>
                       {evaluationGoals.map(goal => {
                         const currentGrade = studentEvaluations[goal] || '';
-                        
+
                         return (
                           <td key={goal} className="evaluation-cell">
                             <select

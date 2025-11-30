@@ -15,6 +15,7 @@ interface ClassesProps {
   onError: (errorMessage: string) => void;
 }
 
+
 const Classes: React.FC<ClassesProps> = ({
   classes,
   onClassAdded,
@@ -72,7 +73,6 @@ const Classes: React.FC<ClassesProps> = ({
       // Reset enrollment panel
       setSelectedStudentsForEnrollment(new Set());
       setEnrollmentPanelClass(null);
-      setClassListPanelClass(null);
 
       // Refresh class data
       onClassUpdated();
@@ -241,6 +241,7 @@ const Classes: React.FC<ClassesProps> = ({
   return (
     <div className="classes-container">
       <h2>Class Management</h2>
+
       {/* Class Form */}
       <div className="class-form-container">
         <h3>{editingClass ? 'Edit Class' : 'Add New Class'}</h3>
@@ -310,24 +311,19 @@ const Classes: React.FC<ClassesProps> = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '16px'
+          marginBottom: '16px',
+          flexDirection: 'row'
         }}>
           <h3>Existing Classes ({classes.length})</h3>
           <button
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="enroll-btn"
             onClick={() => handleOpenClassListPanel(classes)}
-            title="Analyse class"
+            title="Analyze Classes"
           >
-            Analyse
+            Analyze Classes
           </button>
         </div>
+
 
         {classes.length === 0 ? (
           <div className="no-classes">

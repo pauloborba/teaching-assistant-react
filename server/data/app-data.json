@@ -19,6 +19,36 @@
       "name": "Joana Refatoração",
       "cpf": "55555555555",
       "email": "jr@gmail.com"
+    },
+    {
+      "name": "Carlos Coesão",
+      "cpf": "44444444444",
+      "email": "cc@cin.ufpe.br"
+    },
+    {
+      "name": "Ana Abstração",
+      "cpf": "66666666666",
+      "email": "aa@gmail.com"
+    },
+    {
+      "name": "Pedro Padrões",
+      "cpf": "77777777777",
+      "email": "pp@cin.ufpe.br"
+    },
+    {
+      "name": "Beatriz Bugs",
+      "cpf": "88888888888",
+      "email": "bb@gmail.com"
+    },
+    {
+      "name": "Lucas Legacy",
+      "cpf": "99999999999",
+      "email": "ll@cin.ufpe.br"
+    },
+    {
+      "name": "Sofia SOLID",
+      "cpf": "10101010101",
+      "email": "ss@gmail.com"
     }
   ],
   "classes": [

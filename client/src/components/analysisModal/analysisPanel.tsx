@@ -346,7 +346,8 @@ const AnalysisPanel: React.FC<{ classTopic: string; onClose: () => void }> = ({
                                     border: 'none',
                                     borderRadius: '3px',
                                     cursor: 'pointer',
-                                    flex: 1
+                                    flex: 1,
+                                    minWidth: 0
                                   }}
                                 >
                                   Todos
@@ -357,14 +358,15 @@ const AnalysisPanel: React.FC<{ classTopic: string; onClose: () => void }> = ({
                                     deselectAllFromClass(classInfo);
                                   }}
                                   style={{
-                                    padding: '0.25rem 0.5rem',
-                                    fontSize: '0.7rem',
+                                    padding: '0.25rem 0.4rem',
+                                    fontSize: '0.65rem',
                                     backgroundColor: '#6b7280',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '3px',
                                     cursor: 'pointer',
-                                    flex: 1
+                                    flex: 1,
+                                    minWidth: 0
                                   }}
                                 >
                                   Nenhum

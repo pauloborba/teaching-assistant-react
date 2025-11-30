@@ -13,10 +13,10 @@ interface StudentFormProps {
   selectedClass?: Class | null;     // Currently selected class for auto-enrollment
 }
 
-const StudentForm: React.FC<StudentFormProps> = ({ 
-  onStudentAdded, 
-  onStudentUpdated, 
-  onCancel, 
+const StudentForm: React.FC<StudentFormProps> = ({
+  onStudentAdded,
+  onStudentUpdated,
+  onCancel,
   editingStudent,
   onError,
   selectedClass
@@ -50,7 +50,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       if (editingStudent) {
         // Update existing student
@@ -62,7 +62,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
       } else {
         // Add new student
         const newStudent = await studentService.createStudent(formData);
-        
+
         // Auto-enroll in selected class if one is selected
         if (selectedClass) {
           try {
@@ -76,7 +76,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
             return; // Exit early to avoid showing success message
           }
         }
-        
+
         setFormData({ name: '', cpf: '', email: '' }); // Clear form
         onStudentAdded();
       }
@@ -98,7 +98,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
   const formatCPF = (value: string) => {
     // Remove non-digits
     const digits = value.replace(/\D/g, '');
-    
+
     // Apply CPF mask (000.000.000-00)
     if (digits.length <= 11) {
       return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
@@ -115,7 +115,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="student-form">
+    <form onSubmit={handleSubmit} className="student-form" data-testid="student-form">
       <h2>
         {editingStudent ? (
           <>
@@ -128,13 +128,13 @@ const StudentForm: React.FC<StudentFormProps> = ({
           'Add New Student'
         )}
       </h2>
-      
+
       {/* Class enrollment indicator */}
       {!editingStudent && selectedClass && (
-        <div style={{ 
-          padding: '10px', 
-          backgroundColor: '#e8f5e8', 
-          border: '1px solid #4caf50', 
+        <div style={{
+          padding: '10px',
+          backgroundColor: '#e8f5e8',
+          border: '1px solid #4caf50',
           borderRadius: '4px',
           marginBottom: '15px',
           fontSize: '0.9em'
@@ -145,7 +145,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
           </span>
         </div>
       )}
-      
+
       <div className="form-group">
         <label htmlFor="name">Name:</label>
         <input
@@ -188,7 +188,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
       </div>
 
       <div className="form-buttons">
-        <button type="submit" disabled={isSubmitting}>
+        <button type="submit" disabled={isSubmitting} data-testid="submit-student-button">
           {isSubmitting ? 'Saving...' : (editingStudent ? 'Update Student' : 'Add Student')}
         </button>
         {onCancel && (
