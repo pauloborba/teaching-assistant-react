@@ -101,7 +101,6 @@ const AnalysisPanel: React.FC<{ classTopic: string; onClose: () => void }> = ({
               {loading ? (
                 <p>Loading class data...</p>
               ) : chartData.length > 0 ? (
-                // Renderiza o componente de gráfico separado!
                 <ClassFailureChart data={chartData} />
               ) : (
                 <p>No data found for this class.</p>

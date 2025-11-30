@@ -10,12 +10,12 @@ interface StudentListProps {
   loading: boolean;
 }
 
-const StudentList: React.FC<StudentListProps> = ({ 
-  students, 
-  onStudentDeleted, 
-  onEditStudent, 
-  onError, 
-  loading 
+const StudentList: React.FC<StudentListProps> = ({
+  students,
+  onStudentDeleted,
+  onEditStudent,
+  onError,
+  loading
 }) => {
   const handleDelete = async (student: Student) => {
     if (window.confirm(`Are you sure you want to delete ${student.name}?`)) {
