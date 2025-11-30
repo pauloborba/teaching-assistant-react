@@ -26,6 +26,18 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 1,
       "year": 2025,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Gerência de Configuração": 1,
+          "Gerência de Projeto": 1,
+          "Qualidade de Software": 1
+        }
+      },
       "enrollments": [
         {
           "studentCPF": "11111111111",
@@ -108,6 +120,18 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 2,
       "year": 2025,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Gerência de Configuração": 1,
+          "Gerência de Projeto": 1,
+          "Qualidade de Software": 1
+        }
+      },
       "enrollments": [
         {
           "studentCPF": "22222222222",
