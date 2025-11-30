@@ -22,6 +22,12 @@ const PORT = 3005;
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from the React frontend app
+const frontendBuildPath = path.join(__dirname, '../../frontend/build');
+if (fs.existsSync(frontendBuildPath)) {
+  app.use(express.static(frontendBuildPath));
+}
+
 // In-memory storage with file persistence
 const studentSet = new StudentSet();
 const classes = new Classes();
@@ -555,10 +561,25 @@ app.delete('/api/classes/:classId/goals/:goalId', (req: Request, res: Response) 
 app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (req: express.Request, res: express.Response) => {
   res.status(501).json({ error: "Endpoint ainda não implementado." });
 });
+
+// Serve React frontend for all non-API routes (must be after all API routes)
+app.get('*', (req: Request, res: Response) => {
+  const indexPath = path.join(__dirname, '../../frontend/build/index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ 
+      error: 'Frontend not built. Run "npm run build" in the frontend directory first.' 
+    });
+  }
+});
+
 // Only start server if executed directly - makes it easier to test using supertest/importing the app
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`API available at http://localhost:${PORT}/api`);
+    console.log(`Frontend available at http://localhost:${PORT}`);
   });
 }
 
