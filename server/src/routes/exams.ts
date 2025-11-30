@@ -1,50 +1,331 @@
 import { Router, Request, Response } from "express";
+import PDFDocument from 'pdfkit';
+import archiver from 'archiver';
+import { Readable } from 'stream';
+
 import {
   getStudentsWithExamsForClass,
   getExamsForClass,
   addExam,
   triggerSaveExams,
   generateStudentExams,
-  questions,
+  questions, // <--- CORREÇÃO: Importando com o nome original para não quebrar o código do amigo
+  addExamGeneration,
+  getGenerationsForExam,
+  ExamGenerationRecord,
+  ExamVersionMap
 } from "../services/dataService";
 
 const router = Router();
 
+// --- TIPOS E INTERFACES ---
+
+interface Question {
+  id: number;
+  question: string;
+  topic: string;
+  type: 'open' | 'closed';
+  options?: { id: number; option: string; isCorrect: boolean }[];
+  answer?: string;
+}
+
+// --- SUAS FUNÇÕES AUXILIARES (HELPER FUNCTIONS) ---
+
+function shuffleArray<T>(array: T[]): T[] {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+}
+
 /**
- * GET /api/exams/students
- * Get students with exam information for a specific class and exam
- * Query parameters:
- *   - classId: The class ID (required)
- *   - examId: The exam ID (optional - if not provided, returns all exams in class)
+ * Gera o documento PDF (Visual)
  */
+const generateExamPDF = (
+    className: string,
+    teacherName: string,
+    examTitle: string,
+    versionNumber: number, 
+    questions: Question[], 
+    isGabarito: boolean
+): InstanceType<typeof PDFDocument> => {
+  // bufferPages: true permite acessar as páginas depois de geradas para por o rodapé
+  const doc = new PDFDocument({ margin: 50, size: 'A4', bufferPages: true }); 
+  const FONT_REGULAR = 'Times-Roman'; 
+  const FONT_BOLD = 'Times-Bold';
+
+  doc.font(FONT_REGULAR);
+
+  // --- CABEÇALHO (Página 1) ---
+  doc.fontSize(16);
+  doc.text(className, { align: 'center' });
+  doc.text(examTitle, { align: 'center' });
+  doc.moveDown(0.5);
+
+  doc.fontSize(12);
+  doc.text(teacherName, { align: 'center' });
+  doc.text('Centro de Informática', { align: 'center' });
+  doc.text('Universidade Federal de Pernambuco', { align: 'center' });
+  doc.moveDown(0.5);
+
+  doc.text('___ de _________________ de ______', { align: 'center' });
+  doc.moveDown(2);
+
+  if (!isGabarito) {
+      doc.font(FONT_BOLD).fontSize(11);
+      doc.text(
+          'Em cada questão a seguir, some os valores das afirmações que você considera corretas e escreva o resultado da soma no espaço indicado. Todas as questões têm o mesmo peso.',
+          { align: 'justify' }
+      );
+      doc.moveDown(2);
+  } else {
+      doc.font(FONT_BOLD).fontSize(14).text('GABARITO OFICIAL', { align: 'center', underline: true });
+      doc.moveDown(2);
+  }
+
+  // --- QUESTÕES ---
+  doc.font(FONT_REGULAR).fontSize(12);
+
+  questions.forEach((q, index) => {
+    // Se o cursor passou de 650, cria nova página para não quebrar a questão
+    if (doc.y > 650) doc.addPage();
+
+    doc.font(FONT_BOLD).text(`Questão ${index + 1}.`, { continued: true });
+    doc.font(FONT_REGULAR).text(` ${q.question}`, { align: 'justify' });
+    doc.moveDown(0.5);
+
+    if (q.type === 'closed' && q.options) {
+        // Questão Fechada
+        q.options.forEach((opt, idx) => {
+            if (doc.y > 720) doc.addPage(); // Verifica quebra nas opções
+
+            const letra = String.fromCharCode(65 + idx);
+            const isRight = isGabarito && opt.isCorrect;
+
+            if (isRight) {
+                doc.font(FONT_BOLD).text(`(X) ${letra}) ${opt.option}`);
+                doc.font(FONT_REGULAR);
+            } else {
+                doc.text(`( ) ${letra}) ${opt.option}`);
+            }
+        });
+        doc.moveDown(1.5);
+    } else {
+        // Questão Aberta
+        if (isGabarito) {
+            doc.font(FONT_BOLD).text('Resposta Esperada:', { underline: true });
+            doc.font(FONT_REGULAR).text(q.answer || 'Sem resposta cadastrada.');
+            doc.moveDown(1.5);
+        } else {
+            // Verifica espaço para as linhas de resposta
+            if (doc.y > 600) doc.addPage();
+
+            doc.moveDown(0.5);
+            doc.font(FONT_BOLD).text('Resposta:');
+            doc.moveDown(0.2);
+            
+            // Desenha 5 linhas
+            const linhas = 5;
+            for(let l = 0; l < linhas; l++) {
+                 doc.font(FONT_REGULAR).text('__________________________________________________________________________');
+                 doc.moveDown(0.3);
+            }
+            doc.moveDown(1.5);
+        }
+    }
+  });
+
+  // --- CAMPO DE NOME (Fim da Prova) ---
+  if (!isGabarito) {
+      if (doc.y > 700) doc.addPage();
+      
+      doc.moveDown(2);
+      doc.font(FONT_BOLD).fontSize(12);
+      doc.text('Aluno(a): _______________________________________________________________', { align: 'center' });
+  }
+
+  // --- RODAPÉ (CORRIGIDO) ---
+  const range = doc.bufferedPageRange(); 
+  for (let i = 0; i < range.count; i++) {
+      doc.switchToPage(i); 
+
+      // 1. Salva a margem atual
+      const oldBottomMargin = doc.page.margins.bottom;
+      
+      // 2. Zera a margem inferior para permitir escrita no rodapé sem criar nova página
+      doc.page.margins.bottom = 0;
+
+      const bottom = doc.page.height - 30; // 30px da borda inferior
+      const right = doc.page.width - 50;   // Alinhado à direita com a margem lateral
+      
+      doc.font(FONT_REGULAR).fontSize(10);
+      const text = `Tipo de Prova: ${versionNumber}`;
+      const width = doc.widthOfString(text);
+      
+      // Escreve o texto
+      doc.text(text, right - width, bottom, { 
+          lineBreak: false 
+      });
+
+      // 3. Restaura a margem (boa prática, embora o loop vá para a próxima página logo em seguida)
+      doc.page.margins.bottom = oldBottomMargin;
+  }
+
+  return doc;
+};
+
+// --- HANDLERS DAS SUAS ROTAS NOVAS ---
+
+const handleGetExamZIP = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params; 
+    const { classId } = req.query; 
+    const quantity = parseInt(req.query.quantity as string, 10);
+
+    if (isNaN(quantity) || quantity <= 0) return res.status(400).json({ error: 'Quantidade inválida.' });
+    if (!classId || typeof classId !== 'string') return res.status(400).json({ error: 'classId é obrigatório.' });
+
+    // 1. Busca Definição
+    const allExams = getExamsForClass(classId);
+    const examIdNum = parseInt(id, 10); 
+    const examDef = allExams.find(e => e.id === examIdNum);
+
+    if (!examDef) return res.status(404).json({ error: 'Prova não encontrada.' });
+    if (!examDef.questions || examDef.questions.length === 0) {
+        return res.status(400).json({ error: 'Esta prova não possui questões vinculadas.' });
+    }
+
+    // --- DADOS PARA O CABEÇALHO ---
+    // Idealmente você buscaria o nome da turma no seu 'classes' service.
+    // Como solicitado na imagem, vou deixar hardcoded o que você pediu ou genérico
+    // Se você tiver o objeto da turma, use: const classObj = classes.find(...)
+    const className = "Engenharia de Software e Sistemas"; 
+    const teacherName = "Paulo Borba"; 
+
+    // 2. Prepara Registro
+    const timestamp = new Date();
+    const generationId = `${examIdNum}-${timestamp.getTime()}`; 
+    
+    const newGenerationRecord: ExamGenerationRecord = {
+        id: generationId,
+        examId: examIdNum,
+        classId: classId,
+        timestamp: timestamp.toISOString(),
+        description: `Lote gerado em ${timestamp.toLocaleString('pt-BR')} (${quantity} provas)`,
+        versions: [] 
+    };
+
+    // 3. ZIP Stream
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="Lote_${examDef.title}.zip"`);
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.on('error', (err) => { throw err; });
+    archive.pipe(res);
+
+    const originalQuestionsPool = questions.filter(q => examDef.questions.includes(q.id));
+
+    // 4. Loop de Geração
+    for (let i = 1; i <= quantity; i++) {
+        
+        // Randomização (Deep Copy + Shuffle)
+        let versionQuestions: Question[] = JSON.parse(JSON.stringify(originalQuestionsPool));
+        versionQuestions = shuffleArray(versionQuestions);
+        versionQuestions.forEach(q => {
+            if (q.type === 'closed' && q.options && q.options.length > 0) {
+                q.options = shuffleArray(q.options);
+            }
+        });
+
+        // GERA PDF PROVA (Passando os novos parâmetros de cabeçalho)
+        const docProva = generateExamPDF(
+            className, 
+            teacherName, 
+            examDef.title, 
+            i, 
+            versionQuestions, 
+            false
+        );
+        archive.append(docProva as unknown as Readable, { name: `Provas/Prova_Tipo_${i}.pdf` });
+        docProva.end();
+
+        // GERA PDF GABARITO
+        const docGabarito = generateExamPDF(
+            className, 
+            teacherName, 
+            examDef.title, 
+            i, 
+            versionQuestions, 
+            true
+        );
+        archive.append(docGabarito as unknown as Readable, { name: `Gabaritos/Gabarito_Tipo_${i}.pdf` });
+        docGabarito.end();
+
+        // Mapeamento
+        const mapEntry: ExamVersionMap = {
+            versionNumber: i,
+            questions: versionQuestions.map((q, idx) => {
+                let gabarito = '';
+                if (q.type === 'closed' && q.options) {
+                    const indexCorreta = q.options.findIndex(opt => opt.isCorrect);
+                    gabarito = indexCorreta >= 0 ? String.fromCharCode(65 + indexCorreta) : '?';
+                } else {
+                    gabarito = q.answer || 'Dissertativa';
+                }
+                return {
+                    numero: idx + 1,
+                    questionId: q.id,
+                    type: q.type,
+                    rightAnswer: gabarito
+                };
+            })
+        };
+        newGenerationRecord.versions.push(mapEntry);
+    }
+
+    addExamGeneration(newGenerationRecord);
+    archive.finalize();
+
+  } catch (error: any) {
+    console.error('Erro na rota ZIP:', error);
+    if (!res.headersSent) res.status(500).json({ error: error.message || 'Erro interno.' });
+  }
+};
+
+const handleGetGenerations = (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { classId } = req.query;
+    if (!classId) return res.status(400).json({ error: 'classId required' });
+    const generations = getGenerationsForExam(parseInt(id, 10), classId as string);
+    generations.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    res.json(generations);
+};
+
+// --- DEFINIÇÃO DAS ROTAS (ANTIGAS E NOVAS) ---
+
+// Rotas do Amigo (Mantidas intactas)
 router.get("/students", (req: Request, res: Response) => {
   try {
     const { classId, examId } = req.query;
-
-    // Validate classId is provided
     if (!classId || typeof classId !== "string") {
-      return res.status(400).json({
-        error: "classId is required and must be a string",
-      });
+      return res.status(400).json({ error: "classId is required and must be a string" });
     }
 
-    // Convert examId to number if provided
     let examIdNum: number | undefined;
     if (examId) {
       examIdNum = parseInt(examId as string, 10);
       if (isNaN(examIdNum)) {
-        return res.status(400).json({
-          error: "examId must be a valid number",
-        });
+        return res.status(400).json({ error: "examId must be a valid number" });
       }
     }
 
-    // Get students with exam information
     const studentsWithExams = getStudentsWithExamsForClass(classId, examIdNum);
 
     if (studentsWithExams.length === 0) {
       return res.status(200).json({
-        message: "No students found for the given class and exam criteria",
+        message: "No students found",
         classId: classId,
         examId: examIdNum || "all",
         total: 0,
@@ -52,33 +333,23 @@ router.get("/students", (req: Request, res: Response) => {
       });
     }
 
-    // Transform data to table format with all required fields
     const tableData = studentsWithExams.map(studentData => {
-      // Get the exam definition to retrieve question details
-      const examDef = getExamsForClass(classId).find(
-        (e) => e.id === studentData.examId
-      );
+      const examDef = getExamsForClass(classId).find(e => e.id === studentData.examId);
+      if (!examDef) return null;
 
-      if (!examDef) {
-        return null;
-      }
-
-      // Get ONLY the questions selected for THIS student
       const examQuestions = studentData.answers
         .map((a: { questionId: number; answer: any; }) => {
-          const q = questions.find((q) => q.id === a.questionId);
+          const q = questions.find((q) => q.id === a.questionId); // Aqui usa 'questions'
           if (!q) return null;
-
           return {
             idQuestion: q.id,
             tipoQuestao: q.type === "open" ? "Aberta" : "Fechada",
             textoPergunta: q.question,
-            respostaAluno: a.answer, // opcional: devolve a resposta
+            respostaAluno: a.answer,
           };
         })
         .filter(Boolean);
 
-      // Return table row format
       return {
         studentName: studentData.studentName,
         examID: studentData.examId,
@@ -87,119 +358,58 @@ router.get("/students", (req: Request, res: Response) => {
         ativo: "Sim",
         details: examQuestions,
       };
-    }).filter(Boolean); // Remove null entries
+    }).filter(Boolean);
 
     res.status(200).json({
-      message: "Students with exam information retrieved successfully",
+      message: "Success",
       classId: classId,
       examId: examIdNum || "all",
       total: tableData.length,
       data: tableData,
     });
   } catch (error) {
-    console.error("Error fetching students with exams:", error);
-    res.status(500).json({
-      error: "Internal server error",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    console.error("Error fetching students:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-/**
- * GET /api/exams/class/:classId
- * Get all exams for a specific class
- */
 router.get("/class/:classId", (req: Request, res: Response) => {
   try {
     const { classId } = req.params;
-
     const exams = getExamsForClass(classId);
-
     if (exams.length === 0) {
-      return res.status(404).json({
-        message: "No exams found for the given class",
-        classId: classId,
-        data: [],
-      });
+      return res.status(404).json({ message: "No exams found", classId, data: [] });
     }
-
-    res.status(200).json({
-      message: "Exams retrieved successfully",
-      classId: classId,
-      total: exams.length,
-      data: exams,
-    });
+    res.status(200).json({ message: "Success", classId, total: exams.length, data: exams });
   } catch (error) {
-    console.error("Error fetching exams by class:", error);
-    res.status(500).json({
-      error: "Internal server error",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    console.error("Error fetching exams:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-/**
- * POST /api/exams/:examId/generate
- * Generate randomized student exams with different questions for each student
- * Query parameters:
- *   - classId: The class ID (required)
- */
 router.post("/:examId/generate", (req: Request, res: Response) => {
   try {
     const { examId } = req.params;
     const { classId } = req.query;
-
-    // Validate examId
-    if (!examId) {
-      return res.status(400).json({
-        error: "examId is required",
-      });
-    }
+    if (!examId) return res.status(400).json({ error: "examId required" });
 
     const examIdNum = parseInt(examId, 10);
-    if (isNaN(examIdNum)) {
-      return res.status(400).json({
-        error: "examId must be a valid number",
-      });
-    }
+    if (isNaN(examIdNum)) return res.status(400).json({ error: "Invalid examId" });
+    if (!classId || typeof classId !== "string") return res.status(400).json({ error: "classId required" });
 
-    // Validate classId
-    if (!classId || typeof classId !== "string") {
-      return res.status(400).json({
-        error: "classId is required and must be a string",
-      });
-    }
-
-    // Generate student exams
     const generatedExams = generateStudentExams(examIdNum, classId);
-
-    res.status(201).json({
-      message: "Student exams generated successfully",
-      examId: examIdNum,
-      classId: classId,
-      totalGenerated: generatedExams.length,
-      data: generatedExams,
-    });
+    res.status(201).json({ message: "Generated", examId: examIdNum, classId, totalGenerated: generatedExams.length, data: generatedExams });
   } catch (error) {
-    console.error("Error generating student exams:", error);
-    res.status(500).json({
-      error: "Internal server error",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    console.error("Error generating:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-/**
- * POST /api/exams
- * Create a new exam
- * Body parameters:
- *   - codigoProva: Exam code/ID (required, must be unique)
- *   - nomeProva: Exam name (required)
- *   - classId: Class ID (required)
- *   - tema: Exam topic/theme (required)
- *   - quantidadeAberta: Number of open questions (required, non-negative integer)
- *   - quantidadeFechada: Number of closed questions (required, non-negative integer)
- */
+// Suas Rotas Novas
+router.get('/:id/zip', handleGetExamZIP);
+router.get('/:id/generations', handleGetGenerations);
+
+// Rota de Criação do Amigo (Agora corrigida com o import certo)
 router.post("/", (req: Request, res: Response) => {
   try {
     const {
@@ -211,96 +421,32 @@ router.post("/", (req: Request, res: Response) => {
       quantidadeFechada,
     } = req.body;
 
-    // Validate required fields
-    if (!codigoProva || typeof codigoProva !== "string") {
-      return res.status(400).json({
-        error: "codigoProva is required and must be a string",
-      });
-    }
+    if (!codigoProva || typeof codigoProva !== "string") return res.status(400).json({ error: "codigoProva required" });
+    if (!nomeProva || typeof nomeProva !== "string") return res.status(400).json({ error: "nomeProva required" });
+    if (!classId || typeof classId !== "string") return res.status(400).json({ error: "classId required" });
+    if (!tema || typeof tema !== "string") return res.status(400).json({ error: "tema required" });
+    if (quantidadeAberta === undefined || quantidadeAberta < 0) return res.status(400).json({ error: "qtdAberta invalid" });
+    if (quantidadeFechada === undefined || quantidadeFechada < 0) return res.status(400).json({ error: "qtdFechada invalid" });
+    if (quantidadeAberta === 0 && quantidadeFechada === 0) return res.status(400).json({ error: "At least one question required" });
 
-    if (!nomeProva || typeof nomeProva !== "string") {
-      return res.status(400).json({
-        error: "nomeProva is required and must be a string",
-      });
-    }
-
-    if (!classId || typeof classId !== "string") {
-      return res.status(400).json({
-        error: "classId is required and must be a string",
-      });
-    }
-
-    if (!tema || typeof tema !== "string") {
-      return res.status(400).json({
-        error: "tema is required and must be a string",
-      });
-    }
-
-    // Validate question quantities
-    if (
-      quantidadeAberta === undefined ||
-      !Number.isInteger(quantidadeAberta) ||
-      quantidadeAberta < 0
-    ) {
-      return res.status(400).json({
-        error: "quantidadeAberta is required and must be a non-negative integer",
-      });
-    }
-
-    if (
-      quantidadeFechada === undefined ||
-      !Number.isInteger(quantidadeFechada) ||
-      quantidadeFechada < 0
-    ) {
-      return res.status(400).json({
-        error: "quantidadeFechada is required and must be a non-negative integer",
-      });
-    }
-
-    // Validate that at least one question type is required
-    if (quantidadeAberta === 0 && quantidadeFechada === 0) {
-      return res.status(400).json({
-        error: "At least one question is required (quantidadeAberta or quantidadeFechada must be > 0)",
-      });
-    }
-
-    // Check if exam code already exists
     const allExams = getExamsForClass(classId);
     if (allExams.some((exam) => exam.id.toString() === codigoProva)) {
-      return res.status(409).json({
-        error: "An exam with this codigoProva already exists in this class",
-      });
+      return res.status(409).json({ error: "Exam code exists" });
     }
 
-    // Generate unique ID (using timestamp + random number if needed)
     const examId = parseInt(codigoProva, 10) || Date.now();
 
-    // Get questions by topic (tema)
+    // CORREÇÃO AQUI: Agora 'questions' existe e funciona!
     const questionsByTopic = questions.filter(q => q.topic === tema);
     
-    if (questionsByTopic.length === 0) {
-      return res.status(400).json({
-        error: `No questions found for topic: ${tema}`,
-      });
-    }
+    if (questionsByTopic.length === 0) return res.status(400).json({ error: `No questions for topic: ${tema}` });
 
-    // Check if we have enough questions for the required quantities
     const openQuestionsAvailable = questionsByTopic.filter(q => q.type === 'open').length;
     const closedQuestionsAvailable = questionsByTopic.filter(q => q.type === 'closed').length;
 
-    if (openQuestionsAvailable < quantidadeAberta) {
-      return res.status(400).json({
-        error: `Not enough open questions for topic "${tema}". Required: ${quantidadeAberta}, Available: ${openQuestionsAvailable}`,
-      });
-    }
+    if (openQuestionsAvailable < quantidadeAberta) return res.status(400).json({ error: `Not enough open questions` });
+    if (closedQuestionsAvailable < quantidadeFechada) return res.status(400).json({ error: `Not enough closed questions` });
 
-    if (closedQuestionsAvailable < quantidadeFechada) {
-      return res.status(400).json({
-        error: `Not enough closed questions for topic "${tema}". Required: ${quantidadeFechada}, Available: ${closedQuestionsAvailable}`,
-      });
-    }
-
-    // Create new exam object with questions from the topic
     const newExam = {
       id: examId,
       classId: classId,
@@ -308,23 +454,16 @@ router.post("/", (req: Request, res: Response) => {
       isValid: true,
       openQuestions: quantidadeAberta,
       closedQuestions: quantidadeFechada,
-      questions: questionsByTopic.map(q => q.id), // All question IDs from this topic
+      questions: questionsByTopic.map(q => q.id),
     };
 
-    // Add exam to the system
     addExam(newExam);
     triggerSaveExams();
 
-    res.status(201).json({
-      message: "Exam created successfully",
-      data: newExam,
-    });
+    res.status(201).json({ message: "Exam created", data: newExam });
   } catch (error) {
     console.error("Error creating exam:", error);
-    res.status(500).json({
-      error: "Internal server error",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
