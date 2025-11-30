@@ -55,6 +55,108 @@
     {
       "topic": "Engenharia de Software e Sistemas",
       "semester": 1,
+      "year": 2024,
+      "enrollments": [
+        {
+          "studentCPF": "11111111111",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MANA"
+            }
+          ],
+          "mediaPreFinal": 5.5,
+          "mediaPosFinal": 6.0,
+          "reprovadoPorFalta": false
+        },
+        {
+          "studentCPF": "55555555555",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            }
+          ],
+          "mediaPreFinal": 4.0,
+          "mediaPosFinal": 4.5,
+          "reprovadoPorFalta": false
+        },
+        {
+          "studentCPF": "22222222222",
+          "evaluations": [
+            {
+              "goal": "Configuration Management",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            }
+          ],
+          "mediaPreFinal": 2.5,
+          "mediaPosFinal": 0,
+          "reprovadoPorFalta": false
+        }
+      ]
+    },
+    {
+      "topic": "Engenharia de Software e Sistemas",
+      "semester": 2,
+      "year": 2024,
+      "enrollments": [
+        {
+          "studentCPF": "22222222222",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MPA"
+            }
+          ],
+          "mediaPreFinal": 8.0,
+          "mediaPosFinal": 8.0,
+          "reprovadoPorFalta": false
+        },
+        {
+          "studentCPF": "33333333333",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            }
+          ],
+          "mediaPreFinal": 7.5,
+          "mediaPosFinal": 7.5,
+          "reprovadoPorFalta": false
+        }
+      ]
+    },
+    {
+      "topic": "Engenharia de Software e Sistemas",
+      "semester": 1,
       "year": 2025,
       "enrollments": [
         {
@@ -84,7 +186,10 @@
               "goal": "Refactoring",
               "grade": "MA"
             }
-          ]
+          ],
+          "mediaPreFinal": 8.5,
+          "mediaPosFinal": 8.5,
+          "reprovadoPorFalta": false
         },
         {
           "studentCPF": "55555555555",
@@ -113,7 +218,10 @@
               "goal": "Tests",
               "grade": "MPA"
             }
-          ]
+          ],
+          "mediaPreFinal": 6.5,
+          "mediaPosFinal": 5.5,
+          "reprovadoPorFalta": false
         },
         {
           "studentCPF": "22222222222",
@@ -130,65 +238,10 @@
               "goal": "Project Management",
               "grade": "MPA"
             }
-          ]
-        },
-        {
-          "studentCPF": "44444444444",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MPA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "66666666666",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
+          ],
+          "mediaPreFinal": 5.0,
+          "mediaPosFinal": 0,
+          "reprovadoPorFalta": true
         }
       ]
     },
@@ -224,7 +277,10 @@
               "goal": "Tests",
               "grade": "MA"
             }
-          ]
+          ],
+          "mediaPreFinal": 9.0,
+          "mediaPosFinal": 9.0,
+          "reprovadoPorFalta": false
         },
         {
           "studentCPF": "33333333333",
@@ -253,654 +309,10 @@
               "goal": "Refactoring",
               "grade": "MA"
             }
-          ]
-        },
-        {
-          "studentCPF": "11111111111",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "77777777777",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "88888888888",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MPA"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "topic": "Engenharia de Software e Sistemas",
-      "semester": 1,
-      "year": 2024,
-      "enrollments": [
-        {
-          "studentCPF": "11111111111",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MANA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "55555555555",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "99999999999",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MANA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "10101010101",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "topic": "Engenharia de Software e Sistemas",
-      "semester": 2,
-      "year": 2024,
-      "enrollments": [
-        {
-          "studentCPF": "11111111111",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MANA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "22222222222",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "33333333333",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MPA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "44444444444",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "77777777777",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "88888888888",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MPA"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "topic": "Engenharia de Software e Sistemas",
-      "semester": 1,
-      "year": 2026,
-      "enrollments": [
-        {
-          "studentCPF": "11111111111",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "33333333333",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "55555555555",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MPA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "66666666666",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "99999999999",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MANA"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "topic": "Engenharia de Software e Sistemas",
-      "semester": 2,
-      "year": 2026,
-      "enrollments": [
-        {
-          "studentCPF": "22222222222",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "55555555555",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MPA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "66666666666",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "88888888888",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MANA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "10101010101",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
+          ],
+          "mediaPreFinal": 4.5,
+          "mediaPosFinal": 3.5,
+          "reprovadoPorFalta": false
         }
       ]
     },
@@ -910,6 +322,22 @@
       "year": 2023,
       "enrollments": [
         {
+          "studentCPF": "11111111111",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            }
+          ],
+          "mediaPreFinal": 7.2,
+          "mediaPosFinal": 7.2,
+          "reprovadoPorFalta": false
+        },
+        {
           "studentCPF": "22222222222",
           "evaluations": [
             {
@@ -918,13 +346,12 @@
             },
             {
               "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
               "grade": "MANA"
             }
-          ]
+          ],
+          "mediaPreFinal": 2.8,
+          "mediaPosFinal": 0,
+          "reprovadoPorFalta": false
         },
         {
           "studentCPF": "33333333333",
@@ -932,86 +359,176 @@
             {
               "goal": "Requirements",
               "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
             }
-          ]
-        },
+          ],
+          "mediaPreFinal": 5.0,
+          "mediaPosFinal": 4.0,
+          "reprovadoPorFalta": false
+        }
+      ]
+    },
+    {
+      "topic": "Engenharia de Software e Sistemas",
+      "semester": 2,
+      "year": 2023,
+      "enrollments": [
         {
-          "studentCPF": "77777777777",
+          "studentCPF": "11111111111",
           "evaluations": [
             {
               "goal": "Requirements",
               "grade": "MA"
             },
             {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
               "goal": "Design",
               "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
             }
-          ]
+          ],
+          "mediaPreFinal": 8.0,
+          "mediaPosFinal": 8.0,
+          "reprovadoPorFalta": false
         },
         {
-          "studentCPF": "99999999999",
+          "studentCPF": "22222222222",
           "evaluations": [
             {
               "goal": "Requirements",
               "grade": "MPA"
             },
             {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
+              "goal": "Design",
+              "grade": "MA"
+            }
+          ],
+          "mediaPreFinal": 6.5,
+          "mediaPosFinal": 5.5,
+          "reprovadoPorFalta": false
+        },
+        {
+          "studentCPF": "55555555555",
+          "evaluations": [
             {
-              "goal": "Project Management",
+              "goal": "Requirements",
+              "grade": "MANA"
+            }
+          ],
+          "mediaPreFinal": 3.5,
+          "mediaPosFinal": 4.5,
+          "reprovadoPorFalta": false
+        }
+      ]
+    },
+    {
+      "topic": "Engenharia de Software e Sistemas",
+      "semester": 1,
+      "year": 2022,
+      "enrollments": [
+        {
+          "studentCPF": "11111111111",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            }
+          ],
+          "mediaPreFinal": 9.0,
+          "mediaPosFinal": 9.0,
+          "reprovadoPorFalta": false
+        },
+        {
+          "studentCPF": "33333333333",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            }
+          ],
+          "mediaPreFinal": 7.5,
+          "mediaPosFinal": 7.5,
+          "reprovadoPorFalta": false
+        },
+        {
+          "studentCPF": "22222222222",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MANA"
+            }
+          ],
+          "mediaPreFinal": 4.0,
+          "mediaPosFinal": 3.0,
+          "reprovadoPorFalta": false
+        },
+        {
+          "studentCPF": "55555555555",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            }
+          ],
+          "mediaPreFinal": 5.0,
+          "mediaPosFinal": 0,
+          "reprovadoPorFalta": true
+        }
+      ]
+    },
+    {
+      "topic": "Engenharia de Software e Sistemas",
+      "semester": 2,
+      "year": 2022,
+      "enrollments": [
+        {
+          "studentCPF": "11111111111",
+          "evaluations": [
+            {
+              "goal": "Requirements",
               "grade": "MA"
             },
             {
               "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
               "grade": "MPA"
-            },
+            }
+          ],
+          "mediaPreFinal": 8.5,
+          "mediaPosFinal": 8.5,
+          "reprovadoPorFalta": false
+        },
+        {
+          "studentCPF": "22222222222",
+          "evaluations": [
             {
-              "goal": "Refactoring",
+              "goal": "Requirements",
               "grade": "MA"
             }
-          ]
+          ],
+          "mediaPreFinal": 7.0,
+          "mediaPosFinal": 7.0,
+          "reprovadoPorFalta": false
+        },
+        {
+          "studentCPF": "33333333333",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MANA"
+            }
+          ],
+          "mediaPreFinal": 2.5,
+          "mediaPosFinal": 0,
+          "reprovadoPorFalta": false
+        },
+        {
+          "studentCPF": "55555555555",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            }
+          ],
+          "mediaPreFinal": 6.0,
+          "mediaPosFinal": 5.0,
+          "reprovadoPorFalta": false
         }
       ]
     }

@@ -2,6 +2,7 @@ node_modules/
 server/dist/
 client/build/
 
+feature/
 temp
 
 # Cucumber test reports

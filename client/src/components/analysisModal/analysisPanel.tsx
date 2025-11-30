@@ -1,5 +1,6 @@
 import { Class } from "../../types/Class";
 import ClassService from "../../services/ClassService";
+import ClassSumary from "./classSumary";
 import React, { useEffect, useState, useMemo } from "react";
 import { ClassFailureChart, ChartData } from "./classFailuresChart";
 
@@ -27,6 +28,9 @@ const AnalysisPanel: React.FC<{ classTopic: string; onClose: () => void }> = ({
   // Estados para o modo "Reprovações"
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [expandedClasses, setExpandedClasses] = useState<Set<string>>(new Set());
+
+  // Estados para o modo "Análise de Desempenho"
+  const [selectedPeriods, setSelectedPeriods] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchClassData = async () => {
@@ -139,6 +143,53 @@ const AnalysisPanel: React.FC<{ classTopic: string; onClose: () => void }> = ({
   const clearAllSelections = () => {
     setSelectedStudents(new Set());
   };
+
+  // Funções para o modo "Análise de Desempenho"
+  const availablePeriods = useMemo(() => {
+    if (!classData || classData.length === 0) return [];
+    
+    const periods = classData.map(c => ({
+      id: `${c.year}.${c.semester}`,
+      year: c.year,
+      semester: c.semester,
+      studentsCount: c.enrollments.length
+    }));
+    
+    // Ordenar por ano e semestre
+    return periods.sort((a, b) => {
+      if (a.year !== b.year) return a.year - b.year;
+      return a.semester - b.semester;
+    });
+  }, [classData]);
+
+  const togglePeriodSelection = (periodId: string) => {
+    const newSelected = new Set(selectedPeriods);
+    if (newSelected.has(periodId)) {
+      newSelected.delete(periodId);
+    } else {
+      newSelected.add(periodId);
+    }
+    setSelectedPeriods(newSelected);
+  };
+
+  const selectAllPeriods = () => {
+    setSelectedPeriods(new Set(availablePeriods.map(p => p.id)));
+  };
+
+  const clearAllPeriods = () => {
+    setSelectedPeriods(new Set());
+  };
+
+  // Filtrar dados de classe baseado nos períodos selecionados
+  const filteredClassData = useMemo(() => {
+    if (!classData || selectedPeriods.size === 0) {
+      return classData; // Se nenhum período selecionado, mostra todos
+    }
+    return classData.filter(c => {
+      const periodId = `${c.year}.${c.semester}`;
+      return selectedPeriods.has(periodId);
+    });
+  }, [classData, selectedPeriods]);
 
   return (
     <>
@@ -288,8 +339,8 @@ const AnalysisPanel: React.FC<{ classTopic: string; onClose: () => void }> = ({
                                     selectAllFromClass(classInfo);
                                   }}
                                   style={{
-                                    padding: '0.25rem 0.4rem',
-                                    fontSize: '0.65rem',
+                                    padding: '0.25rem 0.5rem',
+                                    fontSize: '0.7rem',
                                     backgroundColor: '#10b981',
                                     color: 'white',
                                     border: 'none',
@@ -373,15 +424,116 @@ const AnalysisPanel: React.FC<{ classTopic: string; onClose: () => void }> = ({
                   <>
                     {/* Sidebar do modo "Análise de Desempenho" */}
                     <div style={{
-                      padding: '1rem',
-                      backgroundColor: '#fef3c7',
-                      borderRadius: '6px',
-                      border: '1px solid #fbbf24',
-                      fontSize: '0.85rem',
-                      color: '#92400e',
-                      textAlign: 'center'
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem'
                     }}>
-                      🚧 Sidebar da Análise de Desempenho será implementada aqui
+
+                      {/* Controles de seleção */}
+                      <div style={{
+                        display: 'flex',
+                        gap: '0.1rem',
+                        marginBottom: '0.2rem',
+                      }}>
+                        <button
+                          onClick={selectAllPeriods}
+                          style={{
+                            padding: '0.2rem 0.6rem',
+                            fontSize: '0.75rem',
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            flex: 1,
+                            fontWeight: '500'
+                          }}
+                        >
+                          Selecionar Todos
+                        </button>
+                        <button
+                          onClick={clearAllPeriods}
+                          style={{
+                            padding: '0.2rem 0.6rem',
+                            fontSize: '0.75rem',
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            flex: 1,
+                            fontWeight: '500'
+                          }}
+                        >
+                          Limpar
+                        </button>
+                      </div>
+
+                      {/* Contador de seleção */}
+                      <div style={{
+                        fontSize: '0.875rem',
+                        color: '#6b7280',
+                        marginBottom: '0.5rem',
+                        fontWeight: '500'
+                      }}>
+                        {selectedPeriods.size > 0
+                          ? `${selectedPeriods.size} Turma(s) selecionado(s)`
+                          : 'Selecione turmas para filtrar'}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#374151' }}>
+                          Turmas:
+                        </h4>
+                        {/* Lista de períodos */}
+                        {availablePeriods.length > 0 ? (
+                          availablePeriods.map((period) => {
+                            const isSelected = selectedPeriods.has(period.id);
+                            return (
+                              <div
+                                key={period.id}
+                                style={{
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '6px',
+                                  overflow: 'hidden',
+                                  backgroundColor: 'white'
+                                }}
+                              >
+                                <div
+                                  onClick={() => togglePeriodSelection(period.id)}
+                                  style={{
+                                    padding: '0.75rem',
+                                    backgroundColor: '#e0f2fe',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    fontWeight: '600',
+                                    fontSize: '0.85rem',
+                                    color: '#0c4a6e'
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={() => {}}
+                                      style={{ accentColor: '#3b82f6' }}
+                                    />
+                                    <span>
+                                      {period.id} ({period.studentsCount} aluno{period.studentsCount !== 1 ? 's' : ''})
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <p style={{ fontSize: '0.8rem', color: '#6b7280', textAlign: 'center' }}>
+                            Nenhum período disponível
+                          </p>
+                        )}
+                      </div>
+
                     </div>
                   </>
                 )}
@@ -400,26 +552,25 @@ const AnalysisPanel: React.FC<{ classTopic: string; onClose: () => void }> = ({
                   )
                 ) : (
                   // Modo: Análise de Desempenho
-                  <div style={{
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: 'white',
-                    padding: '2rem',
-                    borderRadius: '8px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexDirection: 'column',
-                    gap: '1rem'
-                  }}>
-                    <h3 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#374151' }}>
-                      Análise de Desempenho
-                    </h3>
-                    <p style={{ fontSize: '1rem', color: '#6b7280' }}>
-                      🚧 Este gráfico será implementado aqui
-                    </p>
-                  </div>
+                  classData && classData.length > 0 ? (
+                    <ClassSumary 
+                      data={filteredClassData} 
+                      discipline={classTopic}
+                      selectedPeriodsCount={selectedPeriods.size}
+                      totalPeriodsCount={availablePeriods.length}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#6b7280'
+                    }}>
+                      <p>No data found for this class.</p>
+                    </div>
+                  )
                 )}
               </div>
             </div>
