@@ -1,9 +1,15 @@
-node_modules
-server/dist
-client/build
+node_modules/
+server/dist/
+client/build/
 
 temp
 
 # Cucumber test reports
 client/reports/
 cucumber-report.*
+
+# jest coverage directory
+coverage/
+
+# multer folder
+tmp_data/
