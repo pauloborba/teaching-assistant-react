@@ -242,7 +242,6 @@ export const loadStudentsExamsFromFile = (): void => {
 export const saveGenerationsToFile = (): void => {
   try {
     const data = { generations: examGenerations };
-    // Reutilizando sua função ensureDataDirectory se ela for exportada ou estiver no escopo
     const dataDir = path.dirname(generationsFile);
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
     
