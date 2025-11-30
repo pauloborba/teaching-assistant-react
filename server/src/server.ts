@@ -282,6 +282,17 @@ app.get('/api/classes', (req: Request, res: Response) => {
   }
 });
 
+app.get('/api/classes/:classTopic', (req: Request, res: Response) => {
+  try {
+    const { classTopic } = req.params;
+
+    const filteredClasses = classes.findClassesByTopic(classTopic);
+    res.json(filteredClasses.map(c => c.toJSON()));
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
 // POST /api/classes - Add a new class
 app.post('/api/classes', (req: Request, res: Response) => {
   try {

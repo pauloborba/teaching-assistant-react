@@ -3,12 +3,6 @@
 
 import React from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
-import {
- Card,
- CardContent,
- CardHeader,
- CardTitle,
-} from "../ui/card";
 
 // 1. Tipo dos dados que o gráfico espera receber
 export type ChartData = {
@@ -21,13 +15,14 @@ interface ClassFailureChartProps {
 }
 
 export const ClassFailureChart: React.FC<ClassFailureChartProps> = ({ data }) => {
+ console.log("Rendering ClassFailureChart with data:", data);
  return (
-  <Card style={{ width: '100%' }}>
-   <CardHeader style={{ display: 'flex', justifyContent: 'center' }}>
-    <CardTitle>Número de Reprovações por Aluno</CardTitle>
-   </CardHeader>
-   <CardContent>
-    <ResponsiveContainer width="100%" height={300}>
+  <div style={{ width: '100%', height: '100%', backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column' }}>
+   <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
+    <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#374151' }}>Número de Reprovações por Aluno</h3>
+   </div>
+   <div style={{ width: '100%', flex: 1, minHeight: 0 }}>
+    <ResponsiveContainer width="100%" height="100%">
      <BarChart data={data}>
       <XAxis
        dataKey="name"
@@ -60,7 +55,7 @@ export const ClassFailureChart: React.FC<ClassFailureChartProps> = ({ data }) =>
       />
      </BarChart>
     </ResponsiveContainer>
-   </CardContent>
-  </Card>
+   </div>
+  </div>
  );
 };

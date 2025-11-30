@@ -307,7 +307,23 @@ const Classes: React.FC<ClassesProps> = ({
 
       {/* Classes List */}
       <div className="classes-list">
-        <h3>Existing Classes ({classes.length})</h3>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '16px',
+          flexDirection: 'row'
+        }}>
+          <h3>Existing Classes ({classes.length})</h3>
+          <button
+            className="enroll-btn"
+            onClick={() => handleOpenClassListPanel(classes)}
+            title="Analyze Classes"
+          >
+            Analyze Classes
+          </button>
+        </div>
+
 
         {classes.length === 0 ? (
           <div className="no-classes">
