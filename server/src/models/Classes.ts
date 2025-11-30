@@ -106,11 +106,6 @@ export class Classes {
     return this.classes.filter(c => c.getYear() === year);
   }
 
-  // Find classes by topic
-  findClassesByTopic(topic: string): Class[] {
-    return this.classes.filter(c => c.getTopic().toLowerCase().includes(topic.toLowerCase()));
-  }
-
   // Get all students enrolled in any class
   getAllEnrolledStudents(): Student[] {
     const students: Student[] = [];
