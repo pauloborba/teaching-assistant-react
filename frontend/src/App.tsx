@@ -14,8 +14,6 @@ import CloneGoalsForm from './components/CloneGoalsForm';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import './App.css';
 
-type TabType = 'students' | 'evaluations' | 'classes';
-
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
@@ -23,7 +21,6 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>('students');
 
   const loadStudents = useCallback(async () => {
     try {

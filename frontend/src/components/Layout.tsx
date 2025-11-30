@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 
 const Layout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   return (
@@ -11,9 +11,9 @@ const Layout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
       <div className="app-body">
         <nav className="sidebar">
           <ul>
-            <li><Link to="/students">Students</Link></li>
-            <li><Link to="/classes">Classes</Link></li>
-            <li><Link to="/evaluations">Evaluations</Link></li>
+            <li><NavLink to="/students" className={({ isActive }) => isActive ? 'active' : ''}>Students</NavLink></li>
+            <li><NavLink to="/classes" className={({ isActive }) => isActive ? 'active' : ''}>Classes</NavLink></li>
+            <li><NavLink to="/evaluations" className={({ isActive }) => isActive ? 'active' : ''}>Evaluations</NavLink></li>
           </ul>
         </nav>
 
