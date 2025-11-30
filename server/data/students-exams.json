@@ -4,6 +4,7 @@
       "id": 1,
       "studentCPF": "11111111111",
       "examId": 1,
+      "grade": 10,
       "answers": [
         {
           "questionId": 1,
@@ -20,6 +21,7 @@
       "id": 1763335095690.867,
       "studentCPF": "11111111111",
       "examId": 2,
+      "grade": 5,
       "answers": [
         {
           "questionId": 14,
@@ -39,6 +41,7 @@
       "id": 1763335095690.2686,
       "studentCPF": "55555555555",
       "examId": 2,
+      "grade": 0,
       "answers": [
         {
           "questionId": 14,
@@ -58,6 +61,7 @@
       "id": 1763335095690.9746,
       "studentCPF": "22222222222",
       "examId": 2,
+      "grade": 3,
       "answers": [
         {
           "questionId": 12,

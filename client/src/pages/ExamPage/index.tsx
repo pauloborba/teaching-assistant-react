@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import CustomButton from "../../components/CustomButton";
@@ -17,6 +17,7 @@ const columns: Column[] = [
   { id: "qtdAberta", label: "Quantidade Aberta", align: "right" },
   { id: "qtdFechada", label: "Quantidade Fechada", align: "right" },
   { id: "ativo", label: "Ativo", align: "right" },
+  { id: "grade", label: "Nota", align: "right" },
 ];
 
 const detailColumns: DetailColumn[] = [
@@ -65,6 +66,7 @@ const loadAllData = useCallback(async () => {
       ExamsService.getStudentsWithExamsForClass(classID),
     ]);
 
+    console.log("Students Response:", studentsResponse);
     setExams(examsResponse.data || []);
     setStudents(studentsResponse.data || []);
     setRows(studentsResponse.data || []);
