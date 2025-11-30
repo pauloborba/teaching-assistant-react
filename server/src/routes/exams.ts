@@ -332,10 +332,18 @@ router.post("/", (req: Request, res: Response) => {
   }
 });
 
-router.get('/v1/exams/:examId', (req: Request, res: Response) => {
+router.get('/:examId', (req: Request, res: Response) => {
   try {
     const { examId } = req.params;
-    const exam = (examsManager as any).find((e: any) => String(e.id) === examId || e.title === examId);
+        const examIdNum = parseInt(examId, 10);
+        let exam: any | undefined;
+        if (!isNaN(examIdNum)) {
+          exam = examsManager.getExamById(examIdNum);
+        }
+        if (!exam) {
+          // fallback: search by title
+          exam = examsManager.getAllExams().find(e => e.title === examId || String(e.id) === examId);
+        }
 
     if (!exam) {
       return res.status(404).json({ error: 'Exam not found' });
@@ -351,10 +359,17 @@ router.get('/v1/exams/:examId', (req: Request, res: Response) => {
  * GET /api/v1/exams/:examId/questions
  * Return question objects for an exam
  */
-router.get('/v1/exams/:examId/questions', (req: Request, res: Response) => {
+router.get('/:examId/questions', (req: Request, res: Response) => {
   try {
     const { examId } = req.params;
-    const exam = (examsManager as any).find((e: any) => String(e.id) === examId || e.title === examId);
+    const examIdNum = parseInt(examId, 10);
+    let exam: any | undefined;
+    if (!isNaN(examIdNum)) {
+      exam = examsManager.getExamById(examIdNum);
+    }
+    if (!exam) {
+      exam = examsManager.getAllExams().find(e => e.title === examId || String(e.id) === examId);
+    }
     if (!exam) {
       return res.status(404).json({ error: 'Exam not found' });
     }
@@ -371,7 +386,7 @@ router.get('/v1/exams/:examId/questions', (req: Request, res: Response) => {
  * GET /api/v1/exams/:examId/responses
  * Return responses submitted for an exam (teachers/professors)
  */
-router.get('/v1/exams/:examId/responses', (req: Request, res: Response) => {
+router.get('/:examId/responses', (req: Request, res: Response) => {
   try {
     const { examId } = req.params;
     const auth = (req.headers.authorization || '') as string;
@@ -386,13 +401,20 @@ router.get('/v1/exams/:examId/responses', (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const exam = (examsManager as any).find((e: any) => String(e.id) === examId || e.title === examId);
+    const examIdNumParsed = parseInt(examId, 10);
+    let exam: any | undefined;
+    if (!isNaN(examIdNumParsed)) {
+      exam = examsManager.getExamById(examIdNumParsed);
+    }
+    if (!exam) {
+      exam = examsManager.getAllExams().find(e => e.title === examId || String(e.id) === examId);
+    }
     if (!exam) {
       return res.status(404).json({ error: 'Exam not found' });
     }
 
     const examIdNum = (exam as any).id;
-    const allStudentExams = (examsManager as any).getAllStudentExams ? (examsManager as any).getAllStudentExams() : [];
+    const allStudentExams = examsManager.getAllStudentExams ? examsManager.getAllStudentExams() : [];
     const responses = allStudentExams.filter((se: any) => se.examId === examIdNum);
     res.json(responses);
   } catch (error) {
@@ -404,7 +426,7 @@ router.get('/v1/exams/:examId/responses', (req: Request, res: Response) => {
  * POST /api/v1/exams/:examId/responses
  * Submit student responses for an exam
  */
-router.post('/v1/exams/:examId/responses', (req: Request, res: Response) => {
+router.post('/:examId/responses', (req: Request, res: Response) => {
   try {
     const { examId } = req.params;
     const auth = (req.headers.authorization || '') as string;
@@ -419,7 +441,14 @@ router.post('/v1/exams/:examId/responses', (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const exam = (examsManager as any).find((e: any) => String(e.id) === examId || e.title === examId);
+    const examIdNumParsed = parseInt(examId, 10);
+    let exam: any | undefined;
+    if (!isNaN(examIdNumParsed)) {
+      exam = examsManager.getExamById(examIdNumParsed);
+    }
+    if (!exam) {
+      exam = examsManager.getAllExams().find(e => e.title === examId || String(e.id) === examId);
+    }
     if (!exam) {
       return res.status(404).json({ error: 'Exam not found' });
     }
@@ -442,7 +471,7 @@ router.post('/v1/exams/:examId/responses', (req: Request, res: Response) => {
     }
 
     // Persist student exam using examsManager helpers
-    const allStudentExams = (examsManager as any).getAllStudentExams ? (examsManager as any).getAllStudentExams() : [];
+    const allStudentExams = examsManager.getAllStudentExams ? examsManager.getAllStudentExams() : [];
     const nextId = allStudentExams.length > 0 ? Math.max(...allStudentExams.map((se: any) => se.id)) + 1 : 1;
 
     const studentExam = {

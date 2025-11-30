@@ -3,36 +3,58 @@ import ResponseService from '../../services/ResponseService';
 import Header from '../../components/Header';
 import CustomButton from '../../components/CustomButton';
 
-export default function ExamResponse({ examId = 1 as any } : { examId?: number | string }) {
+export default function ExamResponse({ examId: propExamId = undefined as any } : { examId?: number | string }) {
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [studentCpf, setStudentCpf] = useState('');
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [message, setMessage] = useState('');
+  const [examId, setExamId] = useState<string | number | undefined>(propExamId);
+  const [loadedExamId, setLoadedExamId] = useState<string | number | undefined>(undefined);
 
+  // Load questions only when user requests (by clicking 'Carregar Prova') or when propExamId provided
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const qs = await ResponseService.getQuestions(examId);
-        setQuestions(qs);
-      } catch (err) {
-        console.error('Failed to load questions', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [examId]);
+    if (!propExamId) return;
+    setExamId(propExamId);
+  }, [propExamId]);
 
   const handleChange = (questionId: number, value: any) => {
     setAnswers(prev => ({ ...prev, [String(questionId)]: value }));
+  };
+
+  const handleLoadExam = async () => {
+    setMessage('');
+    if (!examId && examId !== 0) {
+      setMessage('Informe o ID da prova antes de carregar.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const qs = await ResponseService.getQuestions(examId as any);
+      setQuestions(qs);
+      setLoadedExamId(examId);
+      // Reset previous answers
+      setAnswers({});
+    } catch (err) {
+      console.error('Failed to load questions', err);
+      setMessage('Não foi possível carregar a prova. Verifique o ID.');
+      setQuestions([]);
+      setLoadedExamId(undefined);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async () => {
     setMessage('');
     if (!studentCpf) {
       setMessage('Informe o CPF do aluno antes de enviar.');
+      return;
+    }
+
+    if (!loadedExamId) {
+      setMessage('Carregue a prova antes de enviar as respostas.');
       return;
     }
 
@@ -49,7 +71,8 @@ export default function ExamResponse({ examId = 1 as any } : { examId?: number |
     try {
       // Simulate a student token in Authorization header
       const token = 'student-token';
-      await ResponseService.submitResponse(examId, studentCpf, payload, token);
+      // use loadedExamId which is guaranteed to be set when submitting
+      await ResponseService.submitResponse(loadedExamId as string | number, studentCpf, payload, token);
       setMessage('Respostas enviadas com sucesso.');
       setAnswers({});
     } catch (err: any) {
@@ -61,7 +84,13 @@ export default function ExamResponse({ examId = 1 as any } : { examId?: number |
   return (
     <div style={{ padding: 16 }}>
       <Header />
-      <h2>Responder Prova (Exame {String(examId)})</h2>
+      <h2>Responder Prova {loadedExamId ? `(Exame ${String(loadedExamId)})` : ''}</h2>
+      <div style={{ marginBottom: 12 }}>
+        <label>ID da prova:</label>
+        <input value={examId ?? ''} onChange={e => setExamId(e.target.value)} placeholder="ID da prova" />
+        <button style={{ marginLeft: 8 }} onClick={handleLoadExam}>Carregar Prova</button>
+      </div>
+
       {loading && <div>Carregando questões...</div>}
 
       <div style={{ marginBottom: 12 }}>

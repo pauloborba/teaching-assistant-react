@@ -14,10 +14,10 @@ router.use(healthRoutes);
 router.use(statsRoutes);
 
 
-// Exams routes
-router.use('/exams', examsRoutes);
+// Exams routes (v1)
+router.use('/v1/exams', examsRoutes);
 router.use(correctionRoutes);
-router.use('/exams', examPdfRoutes);
+router.use('/v1/exams', examPdfRoutes);
 
 export default router;
 

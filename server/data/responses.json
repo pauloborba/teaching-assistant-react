@@ -1,0 +1,84 @@
+{
+  "responses": [
+    {
+      "id": 1763335095696.9746,
+      "studentCPF": "98765432100",
+      "examId": 1,
+      "answers": [
+        {
+          "questionId": 1,
+          "answer": "2"
+        },
+        {
+          "questionId": 2,
+          "answer": "Resposta teste"
+        }
+      ],
+      "timestamp": "2025-11-30T20:20:22.680Z"
+    },
+    {
+      "id": 1763335095697.9746,
+      "studentCPF": "11111111111",
+      "examId": 1,
+      "answers": [
+        {
+          "questionId": 1,
+          "answer": "1"
+        },
+        {
+          "questionId": 2,
+          "answer": "Weeee"
+        }
+      ],
+      "timestamp": "2025-11-30T20:21:58.176Z"
+    },
+    {
+      "id": 1763335095698.9746,
+      "studentCPF": "22222222222",
+      "examId": 1,
+      "answers": [
+        {
+          "questionId": 1,
+          "answer": "2"
+        },
+        {
+          "questionId": 2,
+          "answer": "Oi"
+        }
+      ],
+      "timestamp": "2025-11-30T20:26:26.488Z"
+    },
+    {
+      "id": 1763335095691.9746,
+      "studentCPF": "22222222222",
+      "examId": 1,
+      "answers": [
+        {
+          "questionId": 1,
+          "answer": "1"
+        },
+        {
+          "questionId": 2,
+          "answer": "aerawe"
+        }
+      ],
+      "timestamp": "2025-11-30T20:29:33.237Z"
+    },
+    {
+      "id": 1763335095692.9746,
+      "studentCPF": "11111111111",
+      "examId": 1,
+      "answers": [
+        {
+          "questionId": 1,
+          "answer": "2"
+        },
+        {
+          "questionId": 2,
+          "answer": "sla"
+        }
+      ],
+      "timestamp": "2025-11-30T20:32:31.185Z"
+    }
+  ]
+}

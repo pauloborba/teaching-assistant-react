@@ -28,12 +28,14 @@ export const studentSet = new StudentSet();
 export const classes = new Classes();
 export const examsManager = new Exams();
 export const questions: Question[] = [];
+export const responses: any[] = [];
 
 // File paths
 export const dataFile = path.resolve('./data/app-data.json');
 export const examsFile = path.resolve('./data/exams.json');
 export const questionsFile = path.resolve('./data/questions.json');
 export const studentsExamsFile = path.resolve('./data/students-exams.json');
+export const responsesFile = path.resolve('./data/responses.json');
 
 // Persistence functions
 const ensureDataDirectory = (filePath: string): void => {
@@ -103,6 +105,19 @@ export const saveStudentsExamsToFile = (): void => {
     fs.writeFileSync(studentsExamsFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
     console.error('Error saving students exams to file:', error);
+  }
+};
+
+export const saveResponsesToFile = (): void => {
+  try {
+    const data = {
+      responses: responses
+    };
+
+    ensureDataDirectory(responsesFile);
+    fs.writeFileSync(responsesFile, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error saving responses to file:', error);
   }
 };
 
@@ -218,12 +233,29 @@ export const loadStudentsExamsFromFile = (): void => {
   }
 };
 
+export const loadResponsesFromFile = (): void => {
+  try {
+    if (fs.existsSync(responsesFile)) {
+      const fileContent = fs.readFileSync(responsesFile, 'utf-8');
+      const data = JSON.parse(fileContent);
+
+      if (data.responses && Array.isArray(data.responses)) {
+        responses.length = 0;
+        responses.push(...data.responses);
+      }
+    }
+  } catch (error) {
+    console.error('Error loading responses from file:', error);
+  }
+};
+
 // Load all data files
 export const loadAllData = (): void => {
   loadDataFromFile();
   loadExamsFromFile();
   loadQuestionsFromFile();
   loadStudentsExamsFromFile();
+  loadResponsesFromFile();
 };
 
 // Trigger save after any modification (async to not block operations)
@@ -246,8 +278,16 @@ export const triggerSaveQuestions = (): void => {
 };
 
 export const triggerSaveStudentsExams = (): void => {
+  // Deprecated: keep function for compatibility but persist responses only
   setImmediate(() => {
-    saveStudentsExamsToFile();
+    // Save to responses.json instead of students-exams.json
+    saveResponsesToFile();
+  });
+};
+
+export const triggerSaveResponses = (): void => {
+  setImmediate(() => {
+    saveResponsesToFile();
   });
 };
 
@@ -291,6 +331,19 @@ export const deleteExam = (examId: number): boolean => {
 
 export const addStudentExam = (studentExam: StudentExamRecord): void => {
   examsManager.addStudentExam(studentExam);
+  try {
+    // store a simplified response record in responses.json
+    responses.push({
+      id: studentExam.id,
+      studentCPF: studentExam.studentCPF,
+      examId: studentExam.examId,
+      answers: studentExam.answers,
+      timestamp: new Date().toISOString()
+    });
+    triggerSaveResponses();
+  } catch (error) {
+    console.error('Error adding student exam to responses:', error);
+  }
 };
 
 export const updateStudentExamAnswers = (
