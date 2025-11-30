@@ -22,8 +22,36 @@ export class Student {
   }
 
   private validateEmail(email: string): void {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Check for empty or whitespace-only strings
+    if (!email || email.trim().length === 0) {
+      throw new Error('Invalid email format');
+    }
+
+    // Check for any whitespace in the email (including leading/trailing)
+    if (email !== email.trim() || /\s/.test(email)) {
+      throw new Error('Invalid email format');
+    }
+
+    // More comprehensive email validation regex
+    // Requirements:
+    // - Local part: alphanumeric, dots, hyphens, underscores, plus signs (not starting/ending with dot)
+    // - @ symbol required
+    // - Domain: alphanumeric, hyphens (not starting/ending with hyphen), dots between labels
+    // - TLD: at least 2 characters
+    const emailRegex = /^[a-zA-Z0-9]+([._+-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$/;
+    
     if (!emailRegex.test(email)) {
+      throw new Error('Invalid email format');
+    }
+
+    // Additional checks for edge cases
+    if (email.includes('..') || email.includes('@.') || email.includes('.@')) {
+      throw new Error('Invalid email format');
+    }
+
+    // Check for hyphen at start or end of domain parts
+    const domainPart = email.split('@')[1];
+    if (domainPart && (domainPart.startsWith('-') || domainPart.includes('.-') || domainPart.includes('-.'))) {
       throw new Error('Invalid email format');
     }
   }
