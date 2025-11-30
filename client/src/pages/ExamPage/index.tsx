@@ -8,6 +8,9 @@ import CollapsibleTable, {
 } from "../../components/CollapsibleTable";
 import Dropdown from "../../components/DropDown";
 import ExamsService from "../../services/ExamsService";
+import ModelSelectionModal from "../../components/ModelSelectionModal";
+import SuccessModal from "../../components/SuccessModal";
+import AICorrectionService from "../../services/AICorrectionService";
 
 import "./ExamPage.css";
 import ExamCreatePopup from "./ExamPagePopup";
@@ -38,6 +41,14 @@ export default function ExamPage() {
   const [exams, setExams] = useState<any[]>([]);
 
   const [selectedExam, setSelectedExam] = useState("Todas as provas");
+
+  // Estados para correção de IA
+  const [modelSelectionModalOpen, setModelSelectionModalOpen] = useState(false);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [correctionLoading, setCorrectionLoading] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [correctionResult, setCorrectionResult] = useState<any>(null);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   // -------------------------------
   // Carrega provas + tabela (todas)
@@ -140,6 +151,61 @@ export default function ExamPage() {
     }
   };
 
+  // -------------------------------------------
+  // Correção de IA
+  // -------------------------------------------
+  const handleStartAICorrection = () => {
+    if (!classID) {
+      alert("ID da turma não encontrado");
+      return;
+    }
+    setErrorMessage("");
+    setModelSelectionModalOpen(true);
+  };
+
+  const handleModelSelect = async (model: string) => {
+    // Validação: não permite confirmar sem selecionar um modelo
+    if (!model || model === "" || model === "Selecione um modelo") {
+      setErrorMessage("Você deve selecionar um modelo de IA para continuar");
+      setModelSelectionModalOpen(false);
+      return;
+    }
+
+    setSelectedModel(model);
+    setModelSelectionModalOpen(false);
+    setErrorMessage("");
+
+    // Inicia o processo de correção
+    try {
+      setCorrectionLoading(true);
+
+      if (!classID) {
+        throw new Error("ID da turma não encontrado");
+      }
+
+      const response = await AICorrectionService.triggerAICorrection(
+        classID,
+        model
+      );
+
+      // Sucesso: mostra modal de sucesso
+      setCorrectionResult({
+        ...response,
+        model: model // Adiciona o modelo selecionado à resposta
+      });
+      setSuccessModalOpen(true);
+    } catch (error) {
+      // Erro: mostra mensagem de erro
+      const errorMsg = error instanceof Error 
+        ? error.message 
+        : "Erro ao iniciar a correção. Por favor, tente novamente.";
+      setErrorMessage("Erro ao iniciar a correção. Por favor, tente novamente.");
+      alert("Erro ao iniciar a correção. Por favor, tente novamente.");
+    } finally {
+      setCorrectionLoading(false);
+    }
+  };
+
   // opções do dropdown (somente strings)
   const dropdownOptions = useMemo(() => {
     return ["Todas as provas", ...exams.map((e) => e.title)];
@@ -175,6 +241,13 @@ export default function ExamPage() {
           initialText={selectedExam}
         />
 
+        {/* Botão de Correção de IA */}
+        <CustomButton
+          label="Corrigir com IA"
+          onClick={handleStartAICorrection}
+          disabled={correctionLoading || !classID}
+        />
+
         {/* Botão alinhado à direita */}
         <div style={{ marginLeft: "auto" }}>
           <CustomButton
@@ -183,6 +256,22 @@ export default function ExamPage() {
           />
         </div>
       </div>
+
+      {/* Mensagem de erro de validação */}
+      {errorMessage && (
+        <div
+          style={{
+            padding: "12px",
+            margin: "10px 0",
+            backgroundColor: "#fee",
+            border: "1px solid #fcc",
+            borderRadius: "6px",
+            color: "#c33",
+          }}
+        >
+          {errorMessage}
+        </div>
+      )}
 
       {/* TABELA */}
       {tableLoading ? (
@@ -204,13 +293,40 @@ export default function ExamPage() {
         />
       )}
 
-      {/* POPUP */}
+      {/* POPUP Criar Prova */}
       <ExamCreatePopup
         isOpen={popupOpen}
         onClose={() => setPopupOpen(false)}
         onSubmit={handleCreateExam}
         loading={loading}
       />
+
+      {/* Modal de Seleção de Modelo */}
+      <ModelSelectionModal
+        isOpen={modelSelectionModalOpen}
+        onClose={() => {
+          setModelSelectionModalOpen(false);
+          setErrorMessage("");
+        }}
+        onSelect={handleModelSelect}
+        selectedModel={selectedModel}
+      />
+
+      {/* Modal de Sucesso */}
+      {correctionResult && (
+        <SuccessModal
+          isOpen={successModalOpen}
+          onClose={() => {
+            setSuccessModalOpen(false);
+            setCorrectionResult(null);
+          }}
+          model={correctionResult.model || selectedModel}
+          estimatedTime={correctionResult.estimatedTime || ""}
+          totalStudentExams={correctionResult.totalStudentExams || 0}
+          totalOpenQuestions={correctionResult.totalOpenQuestions || 0}
+          queuedMessages={correctionResult.queuedMessages || 0}
+        />
+      )}
     </div>
   );
 }
