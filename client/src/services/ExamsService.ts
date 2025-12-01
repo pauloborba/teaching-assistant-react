@@ -68,11 +68,10 @@ class ExamsService {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        codigoProva: examData.codProva,
         nomeProva: examData.nomeProva,
-        tema: examData.temas,
         quantidadeAberta: parseInt(examData.abertas, 10),
         quantidadeFechada: parseInt(examData.fechadas, 10),
+        questionIds: examData.questionIds || [],
         classId: classId,
       }),
     });
