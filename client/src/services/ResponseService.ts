@@ -1,5 +1,5 @@
 class ResponseService {
-  private readonly baseUrl = 'http://localhost:3005/api/v1/exams';
+  private readonly baseUrl = 'http://localhost:3005/api/exams';
 
   async getQuestions(examId: string | number): Promise<any[]> {
     const res = await fetch(`${this.baseUrl}/${encodeURIComponent(String(examId))}/questions`);

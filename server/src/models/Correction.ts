@@ -4,7 +4,14 @@ import path from "path";
 type Question = {
   id: number;
   type: "open" | "closed";
+  grade?: number;
+  options?: Options[];
 };
+
+type Options = {
+  id: number;
+  isCorrect: boolean;
+}
 
 type Exam = {
   id: number;
@@ -21,22 +28,14 @@ type ResponseItem = {
   id: number;
   studentCPF: string;
   examId: number;
-  answers: Answer[];
-};
-
-type StudentExam = {
-  id: number;
-  studentCPF: string;
-  examId: number;
-  answers: Answer[]; // existing stored answers (do NOT overwrite whole array)
   grade?: number;
+  answers: Answer[];
 };
 
 export class Correction {
   private static examsPath = path.join(__dirname, "../../data/exams.json");
   private static questionsPath = path.join(__dirname, "../../data/questions.json");
-  private static responsesPath = path.join(__dirname, "../../data/response.json");
-  private static studentsExamsPath = path.join(__dirname, "../../data/students-exams.json");
+  private static responsesPath = path.join(__dirname, "../../data/responses.json");
 
   private static loadJson(filePath: string) {
     return JSON.parse(fs.readFileSync(filePath, "utf-8"));
@@ -50,54 +49,54 @@ export class Correction {
   const examsData = this.loadJson(this.examsPath);
   const questionsData = this.loadJson(this.questionsPath);
   const responsesData = this.loadJson(this.responsesPath);
-  const studentsExamsData = this.loadJson(this.studentsExamsPath);
 
   const exam: Exam = examsData.exams.find((e: Exam) => e.id === examId);
   if (!exam) throw new Error("Exam not found");
 
-  const answerKey: ResponseItem = responsesData.responses
+  const response: ResponseItem = responsesData.responses
     .find((r: ResponseItem) => r.examId === examId && r.studentCPF === studentCPF);
 
-  if (!answerKey) throw new Error("Answer key not found for this exam");
+  if (!response) throw new Error("Answer key not found for this exam");
 
-  const studentExam: StudentExam = studentsExamsData.studentsExams.find(
-    (se: StudentExam) => se.studentCPF === studentCPF && se.examId === examId
-  );
+  let gradeSum = 0;
+  let totalQuestions = 0;
 
-  if (!studentExam) throw new Error("Student exam not found");
+  response.answers.forEach((studentAnswer) => {
+    let totalCorrectOpt = 0;
+    let correctCount = 0;
 
-  const closedStudentAnswers = studentExam.answers.filter((a) => {
-    const question = questionsData.questions.find((q: Question) => q.id === a.questionId);
-    return question && question.type === "closed";
-  });
-
-  const totalClosed = closedStudentAnswers.length;
-  let correctCount = 0;
-
-  closedStudentAnswers.forEach((answer) => {
-    const studentAnswer = answer;
-
-    const keyAnswer = answerKey.answers.find(
-      (a) => a.questionId === answer.questionId
+    const question = questionsData.questions.find(
+      (a: Question) => a.id === studentAnswer.questionId && a.type === "closed"
     );
 
-    if (studentAnswer && keyAnswer &&
-        studentAnswer.answer.trim() === keyAnswer.answer.trim()) {
-      correctCount++;
-    }
+    if (!question) return;
+
+    totalQuestions++;
+
+    question.options.forEach((opt: Options) => {
+      if (opt.isCorrect) {
+        totalCorrectOpt++;
+      }
+
+      if (opt.isCorrect && opt.id.toString() === studentAnswer.answer) {
+        correctCount++;
+      }
+    });
+
+    const questionGrade = totalCorrectOpt > 0 ? (correctCount / totalCorrectOpt) * 100 : 0;
+    gradeSum += questionGrade;
+    studentAnswer.grade = questionGrade;
   });
+  
+  const finalGrade = totalQuestions > 0 ? (gradeSum / totalQuestions) : 0;
 
-  const finalGrade = totalClosed > 0 ? (correctCount / totalClosed) * 10 : 0;
+  response.grade = finalGrade;
 
-  studentExam.grade = finalGrade;
-
-  this.saveJson(this.studentsExamsPath, studentsExamsData);
+  this.saveJson(this.responsesPath, responsesData);
 
   return {
     studentCPF,
     examId,
-    correctCount,
-    totalClosed,
     finalGrade,
   };
 }
