@@ -60,4 +60,9 @@ export class StudentSet {
   getCount(): number {
     return this.students.length;
   }
+
+  // Clear all students (for testing)
+  clear(): void {
+    this.students = [];
+  }
 }

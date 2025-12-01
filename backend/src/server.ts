@@ -29,8 +29,8 @@ if (fs.existsSync(frontendBuildPath)) {
 }
 
 // In-memory storage with file persistence
-const studentSet = new StudentSet();
-const classes = new Classes();
+let studentSet = new StudentSet();
+let classes = new Classes();
 const dataFile = process.env.APP_DATA_FILE
   ? path.resolve(process.env.APP_DATA_FILE)
   : process.env.NODE_ENV === 'test'
@@ -128,6 +128,13 @@ const triggerSave = (): void => {
 
 // Load existing data on startup
 loadDataFromFile();
+
+// Reset server state (for testing)
+export const resetServerState = (): void => {
+  studentSet = new StudentSet();
+  classes = new Classes();
+  // Do not load data - tests start with clean state
+};
 
 // Helper function to clean CPF
 const cleanCPF = (cpf: string): string => {

@@ -122,4 +122,9 @@ export class Classes {
 
     return students;
   }
+
+  // Clear all classes (for testing)
+  clear(): void {
+    this.classes = [];
+  }
 }
