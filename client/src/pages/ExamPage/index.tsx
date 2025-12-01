@@ -162,6 +162,49 @@ export default function ExamPage() {
     }
   };
 
+  // -------------------------------------------
+  // Deletar prova
+  // -------------------------------------------
+  const handleDeleteExam = async () => {
+    if (!classID) return;
+
+    const examId = getExamIdByTitle(selectedExam);
+    if (!examId) return;
+
+    // Confirmação antes de deletar
+    const confirmed = window.confirm(
+      `Tem certeza que deseja deletar a prova "${selectedExam}"? Esta ação não pode ser desfeita.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+
+      await ExamsService.deleteExam(Number(examId), classID);
+
+      setAlertConfig({
+        open: true,
+        message: `Prova "${selectedExam}" deletada com sucesso!`,
+        severity: "success",
+      });
+
+      // Resetar para "Todas as provas" e recarregar
+      setSelectedExam("Todas as provas");
+      await loadAllData();
+    } catch (err) {
+      setAlertConfig({
+        open: true,
+        message:
+          err instanceof Error ? err.message : "Erro ao deletar prova",
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // opções do dropdown (somente strings)
   const dropdownOptions = useMemo(() => {
     return ["Todas as provas", ...exams.map((e) => e.title)];
   }, [exams]);
@@ -205,57 +248,74 @@ export default function ExamPage() {
         )}
 
         <div style={{ marginLeft: "auto" }}>
-          <CustomButton
-            label="Criar Prova"
-            onClick={() => setPopupOpen(true)}
-            data-testid="open-create-exam"
-          />
+          {/* Botão alinhado à direita */}
+          <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
+            {/* Botão de deletar - só aparece quando uma prova específica está selecionada */}
+            {selectedExam !== "Todas as provas" && (
+              <CustomButton
+                label="Deletar Prova"
+                onClick={handleDeleteExam}
+                data-testid="delete-exam-button"
+                style={{
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                }}
+                disabled={loading}
+              />
+            )}
+
+            <CustomButton
+              label="Criar Prova"
+              onClick={() => setPopupOpen(true)}
+              data-testid="open-create-exam"
+            />
+          </div>
         </div>
+
+        {tableLoading ? (
+          <p style={{ padding: "20px", textAlign: "center" }}>Carregando...</p>
+        ) : rows.length === 0 ? (
+          <p style={{ padding: "20px", textAlign: "center" }}>
+            Nenhuma prova encontrada.
+          </p>
+        ) : (
+          <CollapsibleTable
+            data-testid="exam-table"
+            columns={columns}
+            detailColumns={detailColumns}
+            rows={rows}
+            detailTitle="Questões"
+            computeDetailRow={(detail) => ({
+              ...detail,
+              total: detail.tipoQuestao === "Aberta" ? 2 : 1,
+            })}
+          />
+        )}
+        <ExamCreatePopup
+          isOpen={popupOpen}
+          onClose={() => setPopupOpen(false)}
+          onSubmit={handleCreateExam}
+          loading={loading}
+        />
+        {classID && (
+          <GeneratePDFButton
+            open={pdfDialogOpen}
+            onClose={() => setPdfDialogOpen(false)}
+            examId={selectedExamIdForPdf}
+            classId={classID}
+            defaultQuantity={rows.length > 0 ? rows.length : 30}
+          />
+        )}
+
+        <Alert //Alerta para criação da prova com exito ou não
+          data-testid={alertConfig.severity === "success" ? "alert-success" : "alert-error"}
+          message={alertConfig.message}
+          severity={alertConfig.severity}
+          autoHideDuration={3000}
+          open={alertConfig.open}
+          onClose={handleCloseAlert}
+        />
       </div>
-
-      {tableLoading ? (
-        <p style={{ padding: "20px", textAlign: "center" }}>Carregando...</p>
-      ) : rows.length === 0 ? (
-        <p style={{ padding: "20px", textAlign: "center" }}>
-          Nenhuma prova encontrada.
-        </p>
-      ) : (
-        <CollapsibleTable
-          data-testid="exam-table"
-          columns={columns}
-          detailColumns={detailColumns}
-          rows={rows}
-          detailTitle="Questões"
-          computeDetailRow={(detail) => ({
-            ...detail,
-            total: detail.tipoQuestao === "Aberta" ? 2 : 1,
-          })}
-        />
-      )}
-      <ExamCreatePopup
-        isOpen={popupOpen}
-        onClose={() => setPopupOpen(false)}
-        onSubmit={handleCreateExam}
-        loading={loading}
-      />
-      {classID && (
-        <GeneratePDFButton
-          open={pdfDialogOpen}
-          onClose={() => setPdfDialogOpen(false)}
-          examId={selectedExamIdForPdf}
-          classId={classID}
-          defaultQuantity={rows.length > 0 ? rows.length : 30}
-        />
-      )}
-
-      <Alert //Alerta para criação da prova com exito ou não
-        data-testid={alertConfig.severity === "success" ? "alert-success" : "alert-error"}
-        message={alertConfig.message}
-        severity={alertConfig.severity}
-        autoHideDuration={3000}
-        open={alertConfig.open}
-        onClose={handleCloseAlert}
-      />
     </div>
   );
 }
