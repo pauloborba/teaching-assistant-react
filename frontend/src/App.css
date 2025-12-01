@@ -84,9 +84,9 @@ body {
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #1a1a1a;
-  font-weight: 500;
-  font-size: 0.9rem;
+  color: #000000;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
 .form-group input {
@@ -260,20 +260,22 @@ table {
 
 th {
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  padding: 1rem;
+  padding: 1.25rem;
   text-align: left;
-  font-weight: 600;
+  font-weight: 700;
   color: #ffffff;
   border-bottom: 2px solid #dc2626;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   text-transform: uppercase;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.05em;
 }
 
 td {
-  padding: 1rem;
+  padding: 1.25rem;
   border-bottom: 1px solid #e2e8f0;
   color: #1a1a1a;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 tbody tr:hover {
@@ -442,9 +444,10 @@ tbody tr:last-child td {
 .class-form-container {
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background-color: #f8fafc;
+  background-color: #ffffff;
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 2px solid #dc2626;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .class-form {

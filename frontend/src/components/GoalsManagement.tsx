@@ -111,23 +111,44 @@ const GoalsManagement: React.FC<Props> = ({ classId }) => {
   return (
     <div className="goals-management">
       <div className="goals-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-        <h3>📋 Goals Management</h3>
+        <h3 style={{ fontSize: '2rem', fontWeight: '700', color: '#ffffff', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>📋 Goals Management</h3>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           {goals.length > 0 && (
             <>
               <div className="total-weight" style={{ 
-                padding: '8px 16px', 
+                padding: '12px 20px', 
                 backgroundColor: totalWeight === 100 ? '#22c55e' : totalWeight > 100 ? '#ef4444' : '#f59e0b',
                 color: 'white',
                 borderRadius: '8px',
-                fontWeight: 'bold'
+                fontWeight: '700',
+                fontSize: '1.1rem',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
               }}>
                 Total Weight: {totalWeight}%
               </div>
+              <a
+                href="/classes/manage"
+                style={{
+                  padding: '10px 20px',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                  transition: 'all 0.3s ease'
+                }}
+                title="Manage class enrollments"
+              >
+                👥 Gerenciar Matrículas
+              </a>
               <button
                 onClick={handleResetAll}
                 style={{
-                  padding: '8px 16px',
+                  padding: '10px 20px',
                   fontSize: '14px',
                   fontWeight: 'bold',
                   borderRadius: '8px',
@@ -151,36 +172,36 @@ const GoalsManagement: React.FC<Props> = ({ classId }) => {
 
       <div className="goals-list">
         {goals.length === 0 ? (
-          <div className="empty-state" style={{ padding: '30px', textAlign: 'center', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-            <p style={{ fontSize: '16px', marginBottom: '10px' }}>📝 No goals defined for this class yet.</p>
-            <p style={{ fontSize: '14px', color: '#666' }}>Add your first goal below to get started!</p>
+          <div className="empty-state" style={{ padding: '40px', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '12px', border: '2px dashed #dc2626' }}>
+            <p style={{ fontSize: '1.3rem', marginBottom: '10px', fontWeight: '700', color: '#1a1a1a' }}>📝 No goals defined for this class yet.</p>
+            <p style={{ fontSize: '1.1rem', color: '#4b5563', fontWeight: '500' }}>Add your first goal below to get started!</p>
           </div>
         ) : (
-          <table className="goals-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="goals-table" style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
             <thead>
               <tr>
-                <th style={{ textAlign: 'left', padding: '12px' }}>Description</th>
-                <th style={{ textAlign: 'center', padding: '12px' }}>Weight</th>
-                <th style={{ textAlign: 'center', padding: '12px' }}>Created</th>
-                <th style={{ textAlign: 'center', padding: '12px' }}>Actions</th>
+                <th style={{ textAlign: 'left', padding: '16px', fontSize: '1.1rem', fontWeight: '700', width: '40%' }}>DESCRIPTION</th>
+                <th style={{ textAlign: 'center', padding: '16px', fontSize: '1.1rem', fontWeight: '700', width: '15%' }}>WEIGHT</th>
+                <th style={{ textAlign: 'center', padding: '16px', fontSize: '1.1rem', fontWeight: '700', width: '20%' }}>CREATED</th>
+                <th style={{ textAlign: 'center', padding: '16px', fontSize: '1.1rem', fontWeight: '700', width: '25%' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {goals.map(g => (
                 <tr key={g.id} className="goal-item">
                   {editingId === g.id ? (
-                    <td colSpan={4}>
+                    <td colSpan={4} style={{ backgroundColor: '#ffffff' }}>
                       <form onSubmit={handleUpdate} className="edit-goal-form" style={{
                         display: 'flex',
                         gap: '10px',
                         alignItems: 'center',
-                        padding: '10px'
+                        padding: '15px'
                       }}>
                         <input 
                           value={editDesc} 
                           onChange={e => setEditDesc(e.target.value)}
                           placeholder="Description"
-                          style={{ flex: 2 }}
+                          style={{ flex: 2, padding: '10px', fontSize: '1rem', border: '2px solid #1a1a1a', borderRadius: '6px', color: '#1a1a1a', fontWeight: '600' }}
                           required
                         />
                         <input 
@@ -188,26 +209,28 @@ const GoalsManagement: React.FC<Props> = ({ classId }) => {
                           value={editWeight} 
                           onChange={e => setEditWeight(parseInt(e.target.value) || 0)}
                           placeholder="Weight"
-                          style={{ flex: 1, maxWidth: '100px' }}
+                          style={{ flex: 1, maxWidth: '120px', padding: '10px', fontSize: '1rem', border: '2px solid #1a1a1a', borderRadius: '6px', color: '#1a1a1a', fontWeight: '600' }}
                           min="0"
                           max="100"
                           required
                         />
-                        <button type="submit" style={{ backgroundColor: '#22c55e' }}>💾 Save</button>
-                        <button type="button" onClick={cancelEdit} style={{ backgroundColor: '#6b7280' }}>❌ Cancel</button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button type="submit" style={{ backgroundColor: '#22c55e', padding: '10px 20px', fontSize: '0.95rem', fontWeight: '700', whiteSpace: 'nowrap' }}>💾 SAVE</button>
+                          <button type="button" onClick={cancelEdit} style={{ backgroundColor: '#6b7280', padding: '10px 20px', fontSize: '0.95rem', fontWeight: '700', whiteSpace: 'nowrap' }}>❌ CANCEL</button>
+                        </div>
                       </form>
                     </td>
                   ) : (
                     <>
-                      <td style={{ padding: '12px' }}><strong>{g.description}</strong></td>
-                      <td style={{ textAlign: 'center', padding: '12px', fontWeight: 'bold', color: '#dc2626' }}>{g.weight}%</td>
-                      <td style={{ textAlign: 'center', padding: '12px', fontSize: '12px', color: '#666' }}>
+                      <td style={{ padding: '16px', fontSize: '1.1rem', fontWeight: '700', color: '#ffffff', backgroundColor: '#2d2d2d' }}>{g.description}</td>
+                      <td style={{ textAlign: 'center', padding: '16px', fontWeight: '900', fontSize: '1.5rem', color: '#ff4444', backgroundColor: '#2d2d2d' }}>{g.weight}%</td>
+                      <td style={{ textAlign: 'center', padding: '16px', fontSize: '1rem', color: '#e5e7eb', fontWeight: '600', backgroundColor: '#2d2d2d' }}>
                         {new Date(g.createdAt).toLocaleDateString('pt-BR')}
                       </td>
-                      <td style={{ textAlign: 'center', padding: '12px' }}>
-                        <div style={{ display: 'flex', gap: '5px', justifyContent: 'center' }}>
-                          <button onClick={() => startEdit(g)} style={{ padding: '4px 8px', fontSize: '12px' }}>✏️ Edit</button>
-                          <button onClick={() => handleDelete(g.id)} style={{ padding: '4px 8px', fontSize: '12px', backgroundColor: '#ef4444' }}>🗑️ Delete</button>
+                      <td style={{ textAlign: 'center', padding: '16px', backgroundColor: '#2d2d2d' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                          <button onClick={() => startEdit(g)} style={{ padding: '10px 12px', fontSize: '0.9rem', fontWeight: '700', whiteSpace: 'nowrap' }}>✏️ EDIT</button>
+                          <button onClick={() => handleDelete(g.id)} style={{ padding: '10px 12px', fontSize: '0.9rem', fontWeight: '700', backgroundColor: '#ef4444', whiteSpace: 'nowrap' }}>🗑️ DELETE</button>
                         </div>
                       </td>
                     </>
@@ -219,21 +242,21 @@ const GoalsManagement: React.FC<Props> = ({ classId }) => {
         )}
       </div>
 
-      <div className="goals-create" style={{ marginTop: '30px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-        <h4 style={{ marginBottom: '15px' }}>➕ Add New Goal</h4>
+      <div className="goals-create" style={{ marginTop: '30px', padding: '20px', backgroundColor: '#ffffff', borderRadius: '12px', border: '2px solid #dc2626', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' }}>
+        <h4 style={{ marginBottom: '15px', fontSize: '1.3rem', fontWeight: '700', color: '#1a1a1a' }}>➕ Add New Goal</h4>
         <form onSubmit={handleAdd} className="add-goal-form" style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
           <div style={{ flex: 2 }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '700', fontSize: '1rem', color: '#1a1a1a' }}>Description</label>
             <input 
               placeholder="e.g., Requirements Analysis" 
               value={createDesc} 
               onChange={e => setCreateDesc(e.target.value)} 
               required 
-              style={{ width: '100%' }}
+              style={{ width: '100%', padding: '10px', fontSize: '1rem', border: '2px solid #1a1a1a', borderRadius: '6px' }}
             />
           </div>
           <div style={{ flex: 1, maxWidth: '150px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Weight (%)</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '700', fontSize: '1rem', color: '#1a1a1a' }}>Weight (%)</label>
             <input 
               type="number" 
               placeholder="0-100" 
@@ -242,10 +265,10 @@ const GoalsManagement: React.FC<Props> = ({ classId }) => {
               required 
               min="0"
               max="100"
-              style={{ width: '100%' }}
+              style={{ width: '100%', padding: '10px', fontSize: '1rem', border: '2px solid #1a1a1a', borderRadius: '6px' }}
             />
           </div>
-          <button type="submit" style={{ padding: '10px 20px' }}>➕ Add Goal</button>
+          <button type="submit" style={{ padding: '12px 24px', fontSize: '1rem', fontWeight: '700' }}>➕ ADD GOAL</button>
         </form>
       </div>
     </div>
