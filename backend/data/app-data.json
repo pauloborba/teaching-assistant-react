@@ -19,6 +19,11 @@
       "name": "Joana Refatoração",
       "cpf": "55555555555",
       "email": "jr@gmail.com"
+    },
+    {
+      "name": "Filipe Fernando da Silva Balbino",
+      "cpf": "15912315475",
+      "email": "ffsb@cin.ufpe.br"
     }
   ],
   "classes": [
@@ -113,35 +118,43 @@
               "grade": "MA"
             }
           ]
+        },
+        {
+          "studentCPF": "33333333333",
+          "evaluations": []
+        },
+        {
+          "studentCPF": "15912315475",
+          "evaluations": []
         }
       ],
       "goals": [
         {
-          "id": "goal-1-req",
+          "id": "8ad28460-3484-4e1c-a156-e82066215399",
           "description": "Requirements Analysis",
           "weight": 20,
           "createdAt": "2025-01-15T10:00:00.000Z"
         },
         {
-          "id": "goal-1-design",
+          "id": "f84bf42c-9b2f-4f86-8fff-33c48c825775",
           "description": "Software Design",
           "weight": 25,
           "createdAt": "2025-01-15T10:05:00.000Z"
         },
         {
-          "id": "goal-1-tests",
+          "id": "a1fc9556-2b41-4c20-8f27-7b98b054544c",
           "description": "Testing & Quality",
           "weight": 20,
           "createdAt": "2025-01-15T10:10:00.000Z"
         },
         {
-          "id": "goal-1-refact",
+          "id": "3be4512f-d269-40ff-b26f-da9c88ef7940",
           "description": "Refactoring",
           "weight": 15,
           "createdAt": "2025-01-15T10:15:00.000Z"
         },
         {
-          "id": "goal-1-config",
+          "id": "9c1f456f-833f-4ba6-b603-db14764d0501",
           "description": "Configuration Management",
           "weight": 20,
           "createdAt": "2025-01-15T10:20:00.000Z"
@@ -214,31 +227,31 @@
       ],
       "goals": [
         {
-          "id": "1a2c4f73-9426-42f8-8c69-771162cfb9a0",
+          "id": "0f2dfee3-13d3-4dd8-873a-5a70d31176bc",
           "description": "Requirements Analysis",
           "weight": 20,
           "createdAt": "2025-01-15T10:00:00.000Z"
         },
         {
-          "id": "7d7a2c1b-1066-4aa6-82c5-8abda2d35471",
+          "id": "8a8eb833-4214-4b71-932f-9e19990dbf59",
           "description": "Software Design",
           "weight": 25,
           "createdAt": "2025-01-15T10:05:00.000Z"
         },
         {
-          "id": "49a692d7-b258-4e3b-a63e-26f64ee7c2d3",
+          "id": "77fee3bb-5241-4f8c-967c-647f20d6afef",
           "description": "Testing & Quality",
           "weight": 20,
           "createdAt": "2025-01-15T10:10:00.000Z"
         },
         {
-          "id": "6c880342-72ab-42c8-95b7-59af28d348d5",
+          "id": "061d3a81-088e-4c26-8cbb-ffb18640e36a",
           "description": "Refactoring",
           "weight": 15,
           "createdAt": "2025-01-15T10:15:00.000Z"
         },
         {
-          "id": "e53371ec-edb7-4892-9156-2d4ebcff10d1",
+          "id": "c73c11f0-3517-4bf6-b295-e04fa81e74e0",
           "description": "Configuration Management",
           "weight": 20,
           "createdAt": "2025-01-15T10:20:00.000Z"
