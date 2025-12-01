@@ -10,7 +10,6 @@ import {
   triggerSaveExams,
   generateStudentExams,
   getQuestionById,
-  getQuestionsByTopic,
   addExamGeneration,
   getGenerationsForExam,
   ExamGenerationRecord,
@@ -18,6 +17,7 @@ import {
   shuffleArray,
   getQuestionsByIds,
   QuestionRecord,
+  examsManager,
   deleteExam,
   getExamById,
   triggerSaveStudentsExams,
@@ -387,48 +387,106 @@ router.post("/:examId/generate", (req: Request, res: Response) => {
 router.get('/:id/zip', handleGetExamZIP);
 router.get('/:id/generations', handleGetGenerations);
 
+/**
+ * POST /api/exams
+ * Create a new exam
+ * Body parameters:
+ *   - nomeProva: Exam name (required)
+ *   - classId: Class ID (required)
+ *   - quantidadeAberta: Number of open questions (required, non-negative integer)
+ *   - quantidadeFechada: Number of closed questions (required, non-negative integer)
+ *   - questionIds: Array of question IDs to include in the exam (required)
+ */
 router.post("/", (req: Request, res: Response) => {
   try {
     const {
-      codigoProva,
       nomeProva,
       classId,
-      tema,
       quantidadeAberta,
       quantidadeFechada,
+      questionIds,
     } = req.body;
 
-    if (!codigoProva || typeof codigoProva !== "string") return res.status(400).json({ error: "codigoProva required" });
-    if (!nomeProva || typeof nomeProva !== "string") return res.status(400).json({ error: "nomeProva required" });
-    if (!classId || typeof classId !== "string") return res.status(400).json({ error: "classId required" });
-    if (!tema || typeof tema !== "string") return res.status(400).json({ error: "tema required" });
-    if (quantidadeAberta === undefined || quantidadeAberta < 0) return res.status(400).json({ error: "qtdAberta invalid" });
-    if (quantidadeFechada === undefined || quantidadeFechada < 0) return res.status(400).json({ error: "qtdFechada invalid" });
-    if (quantidadeAberta === 0 && quantidadeFechada === 0) return res.status(400).json({ error: "At least one question required" });
-
-    const allExams = getExamsForClass(classId);
-    if (allExams.some((exam) => exam.id.toString() === codigoProva)) {
-      return res.status(409).json({ error: "Exam code exists" });
-    }
-
-    const examId = parseInt(codigoProva, 10) || Date.now();
-
-    // Get questions by topic (tema)
-    const questionsByTopic = getQuestionsByTopic(tema);
-
-
-    if (questionsByTopic.length === 0) {
+    // Validate required fields
+    if (!nomeProva || typeof nomeProva !== "string") {
       return res.status(400).json({
-        error: `No questions found for topic: ${tema}`,
+        error: "nomeProva is required and must be a string",
       });
     }
 
-    const openQuestionsAvailable = questionsByTopic.filter(q => q.type === 'open').length;
-    const closedQuestionsAvailable = questionsByTopic.filter(q => q.type === 'closed').length;
+    if (!classId || typeof classId !== "string") {
+      return res.status(400).json({
+        error: "classId is required and must be a string",
+      });
+    }
 
-    if (openQuestionsAvailable < quantidadeAberta) return res.status(400).json({ error: `Not enough open questions` });
-    if (closedQuestionsAvailable < quantidadeFechada) return res.status(400).json({ error: `Not enough closed questions` });
+    // Validate questionIds is provided
+    if (!questionIds || !Array.isArray(questionIds) || questionIds.length === 0) {
+      return res.status(400).json({
+        error: "questionIds is required and must be a non-empty array",
+      });
+    }
 
+    // Validate question quantities
+    if (
+      quantidadeAberta === undefined ||
+      !Number.isInteger(quantidadeAberta) ||
+      quantidadeAberta < 0
+    ) {
+      return res.status(400).json({
+        error: "quantidadeAberta is required and must be a non-negative integer",
+      });
+    }
+
+    if (
+      quantidadeFechada === undefined ||
+      !Number.isInteger(quantidadeFechada) ||
+      quantidadeFechada < 0
+    ) {
+      return res.status(400).json({
+        error: "quantidadeFechada is required and must be a non-negative integer",
+      });
+    }
+
+    // Validate that at least one question type is required
+    if (quantidadeAberta === 0 && quantidadeFechada === 0) {
+      return res.status(400).json({
+        error: "At least one question is required (quantidadeAberta or quantidadeFechada must be > 0)",
+      });
+    }
+
+    // Generate sequential ID
+    const allExamsGlobal = examsManager.getAllExams();
+    const maxId = allExamsGlobal.reduce((max, exam) => Math.max(max, exam.id), 0);
+    const examId = maxId + 1;
+
+    // Validate that all provided question IDs exist
+    const questions = getQuestionsByIds(questionIds);
+
+    if (questions.length !== questionIds.length) {
+      return res.status(400).json({
+        error: "Some question IDs do not exist",
+      });
+    }
+
+    // Count open and closed questions in the provided list
+    const openQuestionsProvided = questions.filter((q: any) => q.type === 'open').length;
+    const closedQuestionsProvided = questions.filter((q: any) => q.type === 'closed').length;
+
+    // Validate that the provided questions match the required quantities
+    if (openQuestionsProvided < quantidadeAberta) {
+      return res.status(400).json({
+        error: `Not enough open questions in questionIds. Required: ${quantidadeAberta}, Provided: ${openQuestionsProvided}`,
+      });
+    }
+
+    if (closedQuestionsProvided < quantidadeFechada) {
+      return res.status(400).json({
+        error: `Not enough closed questions in questionIds. Required: ${quantidadeFechada}, Provided: ${closedQuestionsProvided}`,
+      });
+    }
+
+    // Create new exam object
     const newExam = {
       id: examId,
       classId: classId,
@@ -436,7 +494,7 @@ router.post("/", (req: Request, res: Response) => {
       isValid: true,
       openQuestions: quantidadeAberta,
       closedQuestions: quantidadeFechada,
-      questions: questionsByTopic.map(q => q.id), // All question IDs from this topic
+      questions: questionIds,
     };
 
     addExam(newExam);
