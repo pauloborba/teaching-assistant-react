@@ -204,8 +204,22 @@ const Classes: React.FC<ClassesProps> = ({
 
   return (
     <div className="classes-container">
-      <h2>Class Management</h2>
-      
+      <div style={{ 
+        background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+        padding: '2rem',
+        borderRadius: '16px',
+        marginBottom: '2rem',
+        boxShadow: '0 8px 16px rgba(220, 38, 38, 0.4)',
+        border: '2px solid #ffffff'
+      }}>
+        <h2 style={{ color: 'white', margin: 0, fontSize: '2rem', fontWeight: '700' }}>
+          👥 Gerenciar Turmas e Matrículas
+        </h2>
+        <p style={{ color: 'rgba(255, 255, 255, 0.9)', margin: '0.5rem 0 0 0', fontSize: '1.1rem' }}>
+          Adicione turmas e matricule alunos usando o botão "Enroll" na tabela abaixo
+        </p>
+      </div>
+
       {/* Class Form */}
       <div className="class-form-container">
         <h3>{editingClass ? 'Edit Class' : 'Add New Class'}</h3>
@@ -271,7 +285,7 @@ const Classes: React.FC<ClassesProps> = ({
 
       {/* Classes List */}
       <div className="classes-list">
-        <h3>Existing Classes ({classes.length})</h3>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#ffffff', padding: '1.5rem 2rem' }}>Existing Classes ({classes.length})</h3>
         
         {classes.length === 0 ? (
           <div className="no-classes">
@@ -292,32 +306,37 @@ const Classes: React.FC<ClassesProps> = ({
               <tbody>
                 {classes.map((classObj) => (
                   <tr key={getClassId(classObj)}>
-                    <td><strong>{classObj.topic}</strong></td>
-                    <td><strong>{classObj.year}</strong></td>
-                    <td><strong>{classObj.semester === 1 ? '1st Semester' : '2nd Semester'}</strong></td>
-                    <td>{classObj.enrollments.length}</td>
+                    <td style={{ fontSize: '1.1rem', fontWeight: '700', color: '#ffffff' }}>{classObj.topic}</td>
+                    <td style={{ fontSize: '1.1rem', fontWeight: '700', color: '#60a5fa', textAlign: 'center' }}>{classObj.year}</td>
+                    <td style={{ fontSize: '1.05rem', fontWeight: '600', color: '#ffffff', textAlign: 'center' }}>{classObj.semester === 1 ? '1st Semester' : '2nd Semester'}</td>
+                    <td style={{ fontSize: '1.3rem', fontWeight: '900', color: '#34d399', textAlign: 'center' }}>{classObj.enrollments.length}</td>
                     <td>
-                      <button
-                        className="edit-btn"
-                        onClick={() => handleEdit(classObj)}
-                        title="Edit class"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDelete(classObj)}
-                        title="Delete class"
-                      >
-                        Delete
-                      </button>
-                      <button
-                        className="enroll-btn"
-                        onClick={() => handleOpenEnrollmentPanel(classObj)}
-                        title="Enroll students"
-                      >
-                        Enroll
-                      </button>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', maxWidth: '400px' }}>
+                        <button
+                          className="edit-btn"
+                          onClick={() => handleEdit(classObj)}
+                          title="Edit class"
+                          style={{ margin: 0, fontSize: '0.9rem', fontWeight: '700' }}
+                        >
+                          ✏️ EDIT
+                        </button>
+                        <button
+                          className="delete-btn"
+                          onClick={() => handleDelete(classObj)}
+                          title="Delete class"
+                          style={{ margin: 0, fontSize: '0.9rem', fontWeight: '700' }}
+                        >
+                          🗑️ DELETE
+                        </button>
+                        <button
+                          className="enroll-btn"
+                          onClick={() => handleOpenEnrollmentPanel(classObj)}
+                          title="Enroll students"
+                          style={{ margin: 0, fontSize: '0.9rem', fontWeight: '700' }}
+                        >
+                          👥 ENROLL
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

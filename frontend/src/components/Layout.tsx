@@ -13,6 +13,7 @@ const Layout: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
           <ul>
             <li><NavLink to="/students" className={({ isActive }) => isActive ? 'active' : ''}>Students</NavLink></li>
             <li><NavLink to="/classes" className={({ isActive }) => isActive ? 'active' : ''}>Classes</NavLink></li>
+            <li><NavLink to="/classes/manage" className={({ isActive }) => isActive ? 'active' : ''}>👥 Gerenciar Turmas</NavLink></li>
             <li><NavLink to="/evaluations" className={({ isActive }) => isActive ? 'active' : ''}>Evaluations</NavLink></li>
           </ul>
         </nav>
