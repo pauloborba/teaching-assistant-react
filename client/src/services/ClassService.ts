@@ -1,4 +1,5 @@
 import { Class } from '../types/Class';
+import { ReportData } from '../types/Report';
 
 const API_BASE_URL = 'http://localhost:3005';
 
@@ -78,6 +79,23 @@ class ClassService {
       throw error;
     }
   }
+
+  static async getClassReport(classId: string): Promise<ReportData> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/classes/${classId}/report`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch class report');
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching class report:', error);
+      throw error;
+    }
+  }
+
 }
 
 export default ClassService;

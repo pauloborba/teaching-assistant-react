@@ -5,8 +5,10 @@ import { Student } from './models/Student';
 import { Evaluation } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
+import { Report } from './models/Report';
 import * as fs from 'fs';
 import * as path from 'path';
+import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
 
 // usado para ler arquivos em POST
 const multer = require('multer');
@@ -46,6 +48,7 @@ const saveDataToFile = (): void => {
         topic: classObj.getTopic(),
         semester: classObj.getSemester(),
         year: classObj.getYear(),
+        especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
         enrollments: classObj.getEnrollments().map(enrollment => ({
           studentCPF: enrollment.getStudent().getCPF(),
           evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
@@ -89,7 +92,7 @@ const loadDataFromFile = (): void => {
       if (data.classes && Array.isArray(data.classes)) {
         data.classes.forEach((classData: any) => {
           try {
-            const classObj = new Class(classData.topic, classData.semester, classData.year);
+            const classObj = new Class(classData.topic, classData.semester, classData.year, EspecificacaoDoCalculoDaMedia.fromJSON(classData.especificacaoDoCalculoDaMedia));
             classes.addClass(classObj);
 
             // Load enrollments for this class
@@ -133,15 +136,22 @@ const loadDataFromFile = (): void => {
   }
 };
 
+// Test mode flag to disable file persistence
+const isTestMode = process.env.NODE_ENV === 'test';
+
 // Trigger save after any modification (async to not block operations)
 const triggerSave = (): void => {
-  setImmediate(() => {
-    saveDataToFile();
-  });
+  if (!isTestMode) {
+    setImmediate(() => {
+      saveDataToFile();
+    });
+  }
 };
 
-// Load existing data on startup
-loadDataFromFile();
+// Load existing data on startup (only in non-test mode)
+if (!isTestMode) {
+  loadDataFromFile();
+}
 
 // Helper function to clean CPF
 const cleanCPF = (cpf: string): string => {
@@ -291,7 +301,7 @@ app.post('/api/classes', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Topic, semester, and year are required' });
     }
 
-    const classObj = new Class(topic, semester, year);
+    const classObj = new Class(topic, semester, year, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA);
     const newClass = classes.addClass(classObj);
     triggerSave(); // Save to file after adding class
     res.status(201).json(newClass.toJSON());
@@ -489,6 +499,30 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
   res.status(501).json({ error: "Endpoint ainda não implementado." });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// GET /api/classes/:classId/report - Generate statistics report for a class
+app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
+  try {
+    const { classId } = req.params;
+    
+    const classObj = classes.findClassById(classId);
+    if (!classObj) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    const report = new Report(classObj);
+    res.json(report.toJSON());
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
 });
+
+
+// Export the app for testing
+export { app, studentSet, classes };
+
+// Only start the server if this file is run directly (not imported for testing)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
