@@ -6,6 +6,7 @@ client/build/
 client/reports/
 cucumber-report.*
 
+# ignore server assets folder
 # jest coverage directory
 coverage/
 
