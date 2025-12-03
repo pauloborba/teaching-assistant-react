@@ -98,7 +98,7 @@ describe('Grade Import API - /api/classes/gradeImport/:classId', () => {
       // Backend now validates file type and should return 400
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');
-      expect(response.body.error).toMatch(/inválido|arquivo|CSV|XLSX/i);
+      expect(response.body.error).toMatch(/Invalid file type|CSV|XLSX/i);
     });
   });
 
