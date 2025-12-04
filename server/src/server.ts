@@ -8,6 +8,23 @@ import { Class } from './models/Class';
 import { Report } from './models/Report';
 import * as fs from 'fs';
 import * as path from 'path';
+import EventEmitter from 'node:events';
+import { notesUpdatesender } from './services/notifications';
+
+// EventEmitter global único
+const eventEmitter = new EventEmitter();
+
+// Configurar listener para o evento UPDATED_NOTES
+eventEmitter.on('UPDATED_NOTES', (data) => {
+  
+  notesUpdatesender({
+    emailAluno: data.students[0].email,
+    professor: 'Professor X',
+
+  });
+
+  // console.log('📚 Students updated:', JSON.stringify(data.students, null, 2));
+});
 
 // usado para ler arquivos em POST
 const multer = require('multer');
@@ -56,6 +73,9 @@ const saveDataToFile = (): void => {
     
     ensureDataDirectory();
     fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
+    
+    const {students} = data;
+    eventEmitter.emit('UPDATED_NOTES', {students});
   } catch (error) {
     console.error('Error saving students to file:', error);
   }
@@ -514,6 +534,26 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
   }
 });
 
+app.get('/api/event-emmiter', (req: Request, res: Response) => {
+  console.log('🚀 Endpoint /api/event-emmiter called');
+  
+  // Usar o EventEmitter global em vez de criar um novo
+  console.log('📡 Emitting UPDATED_NOTES event...');
+
+  eventEmitter.emit('UPDATED_NOTES', {
+    students: [
+      {cpf: '12345678900', email: 'teste@test.com', name: 'Aluno Teste'},
+      {cpf: '12345678999', email: 'teste2@test.com', name: 'Aluno Teste 2'},
+    ]
+  });
+
+  console.log('✅ Event emitted successfully');
+
+  return res.json({ 
+    message: 'Event emitted successfully',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Export the app for testing
 export { app, studentSet, classes };

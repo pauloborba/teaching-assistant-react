@@ -11,3 +11,7 @@ coverage/
 
 # multer folder
 tmp_data/
+
+
+# dotenv environment variables file
+.env
