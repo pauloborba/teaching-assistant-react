@@ -2,12 +2,16 @@ import { Task } from "./Task";
 import { Grade } from "./Evaluation";
 
 export class TaskAnswer {
+  public id: string;
   public task: Task;
+  public answer?: string;
   private grade?: Grade;
   public comments?: string;
 
-  constructor(task: Task, grade?: Grade, comments?: string) {
+  constructor(id: string, task: Task, answer?: string, grade?: Grade, comments?: string) {
+    this.id = id;
     this.task = task;
+    this.answer = answer;
     this.grade = grade;
     this.comments = comments;
   }
@@ -18,20 +22,23 @@ export class TaskAnswer {
 
   toJSON() {
     return {
+      id: this.id,
       task: this.task.toJSON(),
+      answer: this.answer,
       grade: this.grade ? this.grade : undefined,
       comments: this.comments
     };
   }
 
-  update(data: Partial<{task: any; grade: any; comments: any }>) {
+  update(data: Partial<{task: any; answer : any; grade: any; comments: any }>) {
     if (data.task) this.task = Task.fromJSON(data.task);
+    if (data.answer) this.answer = data.answer;
     if (data.grade !== undefined) this.grade = data.grade;
     if (data.comments !== undefined) this.comments = data.comments;
   }
 
   static fromJSON(obj: any): TaskAnswer {
-    return new TaskAnswer(obj.task, obj.grade, obj.comments);
+    return new TaskAnswer(obj.id, obj.task, obj.answer, obj.grade, obj.comments);
   }
 
   getGrade(): Grade | undefined {

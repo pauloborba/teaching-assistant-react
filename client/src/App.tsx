@@ -3,6 +3,7 @@ import './App.css';
 import Classes from './components/Classes';
 import Evaluations from './components/Evaluations';
 import ScriptsPage from './components/scripts/ScriptsPage';
+import GradingPage from './components/ScriptGrading/GradingPage'
 import StudentForm from './components/StudentForm';
 import StudentList from './components/StudentList';
 import ClassService from './services/ClassService';
@@ -10,7 +11,7 @@ import { studentService } from './services/StudentService';
 import { Class } from './types/Class';
 import { Student } from './types/Student';
 
-type TabType = 'students' | 'evaluations' | 'classes' | 'scripts';
+type TabType = 'students' | 'evaluations' | 'classes' | 'scripts' | 'Script Grading';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -153,6 +154,12 @@ const App: React.FC = () => {
           >
             Scripts
           </button>
+          <button
+            className={`tab-button ${activeTab === 'Script Grading' ? 'active' : ''}`}
+            onClick={() => setActiveTab('Script Grading')}
+          >
+            Script Grading
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -225,6 +232,10 @@ const App: React.FC = () => {
 
           {activeTab === 'scripts' && (
             <ScriptsPage onError={handleError} />
+          )}
+
+          {activeTab == 'Script Grading' && (
+            <GradingPage onError={handleError} />
           )}
         </div>
       </main>
