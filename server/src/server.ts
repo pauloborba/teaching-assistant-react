@@ -604,6 +604,9 @@ app.put('/api/scripts/:id', (req: Request, res: Response) => {
   res.json(script.toJSON());
 });
 
+/* API endpoints for ScriptAnswers and TaskAnswers */
+
+// POST /api/scriptAnswers - Create a new ScriptAnswer
 
 app.post('/api/scriptAnswers', (req: Request, res: Response) => {
   try {
@@ -614,6 +617,8 @@ app.post('/api/scriptAnswers', (req: Request, res: Response) => {
   }
 });
 
+// GET /api/scriptAnswers - Get all ScriptAnswers
+
 app.get('/api/scriptAnswers', (req: Request, res: Response) => {
   try {
     res.json(scriptAnswerSet.getAll());
@@ -622,14 +627,14 @@ app.get('/api/scriptAnswers', (req: Request, res: Response) => {
   }
 });
 
-
+// GET /api/scriptAnswers/student/:studentId - Get ScriptAnswers for a specific student
 app.get('/api/scriptAnswers/student/:studentId', (req: Request, res: Response) => {
   const { studentId } = req.params;
   const answers = scriptAnswerSet.findByStudentId(studentId);
   res.json(answers);
 });
 
-
+// PUT /api/scriptAnswers/:id/grade - Update only the grade of a ScriptAnswer
 app.put('/api/scriptAnswers/:id/grade', (req: Request, res: Response) => {
   const { id } = req.params;
   const { grade } = req.body;
@@ -640,6 +645,8 @@ app.put('/api/scriptAnswers/:id/grade', (req: Request, res: Response) => {
   res.json(updated);
 });
 
+
+// PUT /api/taskAnswers/:taskAnswerId - Update one TaskAnswer: grade and/or comments
 app.put('/api/scriptAnswers/:id/grade', (req: Request, res: Response) => {
   const { id } = req.params;
   const { grade } = req.body;
@@ -649,6 +656,8 @@ app.put('/api/scriptAnswers/:id/grade', (req: Request, res: Response) => {
 
   res.json(updated);
 });
+
+
 
 app.put('/api/taskAnswers/:taskAnswerId', (req: Request, res: Response) => {
   const { taskAnswerId } = req.params;
