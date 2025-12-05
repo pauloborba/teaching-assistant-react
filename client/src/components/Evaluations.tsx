@@ -158,6 +158,9 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                   {evaluationGoals.map(goal => (
                     <th key={goal} className="goal-header">{goal}</th>
                   ))}
+                <th className="average-header">Average</th>
+                <th className="final-header">Final</th>
+                <th className="final-average-header">Final Average</th>
                 </tr>
               </thead>
               <tbody>
@@ -169,6 +172,9 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                     acc[evaluation.goal] = evaluation.grade;
                     return acc;
                   }, {} as {[goal: string]: string});
+
+                  // Final exam grade is stored as an evaluation with goal 'Final'
+                  const currentFinalGrade = studentEvaluations['Final'] || '';
 
                   return (
                     <tr key={student.cpf} className="student-row">
@@ -191,6 +197,28 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                           </td>
                         );
                       })}
+                      <td className="average-cell">
+                        {typeof enrollment.mediaPreFinal === 'number' && !isNaN(enrollment.mediaPreFinal)
+                          ? enrollment.mediaPreFinal.toFixed(1)
+                          : '-'}
+                      </td>
+                      <td className="final-cell">
+                        <select
+                          value={currentFinalGrade}
+                          onChange={(e) => handleEvaluationChange(student.cpf, 'Final', e.target.value)}
+                          className={`evaluation-select ${currentFinalGrade ? `grade-${currentFinalGrade.toLowerCase()}` : ''}`}
+                        >
+                          <option value="">-</option>
+                          <option value="MANA">MANA</option>
+                          <option value="MPA">MPA</option>
+                          <option value="MA">MA</option>
+                        </select>
+                      </td>
+                      <td className="average-cell">
+                        {typeof enrollment.mediaPosFinal === 'number' && !isNaN(enrollment.mediaPosFinal)
+                          ? enrollment.mediaPosFinal.toFixed(1)
+                          : '-'}
+                      </td>
                     </tr>
                   );
                 })}
