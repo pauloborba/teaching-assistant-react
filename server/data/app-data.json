@@ -19,11 +19,6 @@
       "name": "Joana Refatoração",
       "cpf": "55555555555",
       "email": "jr@gmail.com"
-    },
-    {
-      "name": "Test Student",
-      "cpf": "12345678901",
-      "email": "test.student@email.cm"
     }
   ],
   "classes": [
@@ -58,18 +53,6 @@
             {
               "goal": "Project Management",
               "grade": "MANA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
             }
           ]
         },
@@ -87,18 +70,6 @@
             {
               "goal": "Project Management",
               "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
             }
           ]
         },
@@ -106,16 +77,8 @@
           "studentCPF": "22222222222",
           "evaluations": [
             {
-              "goal": "Configuration Management",
-              "grade": "MANA"
-            },
-            {
               "goal": "Requirements",
               "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
             }
           ]
         }
@@ -143,7 +106,7 @@
           "evaluations": [
             {
               "goal": "Requirements",
-              "grade": "MPA"
+              "grade": "MANA"
             },
             {
               "goal": "Configuration Management",

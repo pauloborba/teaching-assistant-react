@@ -146,7 +146,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
         <div className="evaluation-table-container">
           {/*Componente de importacao de notas de uma planilha, vai reagir as mudacas do classId */}
           <div>
-            <ImportGradeComponent classID={selectedClassId} />
+            <ImportGradeComponent classID={selectedClassId} toReset={loadClasses} />
           </div>
           <h4>{selectedClass.topic} ({selectedClass.year}/{selectedClass.semester})</h4>
           
