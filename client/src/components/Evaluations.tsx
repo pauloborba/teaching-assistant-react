@@ -18,15 +18,10 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Predefined evaluation goals
-  const evaluationGoals = [
-    'Requirements',
-    'Configuration Management', 
-    'Project Management',
-    'Design',
-    'Tests',
-    'Refactoring'
-  ];
+  // Use metas provided by the selected class; fallback to empty array
+  const evaluationGoals = selectedClass && Array.isArray(selectedClass.metas) && selectedClass.metas.length > 0
+    ? selectedClass.metas
+    : [];
 
   const loadClasses = useCallback(async () => {
     try {
@@ -127,7 +122,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
         </div>
       )}
 
-      {selectedClass && selectedClass.enrollments.length === 0 && (
+  {selectedClass && selectedClass.enrollments.length === 0 && (
         <div style={{ 
           padding: '20px', 
           border: '2px dashed #ccc', 
@@ -142,7 +137,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
         </div>
       )}
 
-      {selectedClass && selectedClass.enrollments.length > 0 && (
+  {selectedClass && selectedClass.enrollments.length > 0 && (
         <div className="evaluation-table-container">
           {/*Componente de importacao de notas de uma planilha, vai reagir as mudacas do classId */}
           <div>
@@ -155,9 +150,13 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
               <thead>
                 <tr>
                   <th className="student-name-header">Student</th>
-                  {evaluationGoals.map(goal => (
-                    <th key={goal} className="goal-header">{goal}</th>
-                  ))}
+                  {evaluationGoals.length > 0 ? (
+                    evaluationGoals.map(goal => (
+                      <th key={goal} className="goal-header">{goal}</th>
+                    ))
+                  ) : (
+                    <th className="goal-header">No metas defined</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -173,7 +172,8 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                   return (
                     <tr key={student.cpf} className="student-row">
                       <td className="student-name-cell">{student.name}</td>
-                      {evaluationGoals.map(goal => {
+                      {evaluationGoals.length > 0 ? (
+                        evaluationGoals.map(goal => {
                         const currentGrade = studentEvaluations[goal] || '';
                         
                         return (
@@ -190,7 +190,10 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                             </select>
                           </td>
                         );
-                      })}
+                        })
+                      ) : (
+                        <td className="evaluation-cell">No metas</td>
+                      )}
                     </tr>
                   );
                 })}

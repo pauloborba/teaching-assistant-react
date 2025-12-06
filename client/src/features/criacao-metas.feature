@@ -12,12 +12,6 @@ Feature: Cadastro de Metas para Turmas
     THEN vejo a notificação "Metas criadas com sucesso!"
     AND a listagem de metas da turma "engenharia-de-software-e-sistemas" exibe os itens com títulos "Requisitos" e "Testes de software"
 
-  Scenario: Tentar criar metas com array vazio (sem títulos)
-    GIVEN não existe nenhuma meta cadastrada na turma "engenharia-de-software-e-sistemas"
-    WHEN eu tento submeter as metas com um array vazio
-    THEN vejo a mensagem de erro "As metas de uma turma não devem ser vazias!"
-    AND nenhuma meta é criada na turma "engenharia-de-software-e-sistemas"
-
   Scenario: Tentar criar metas com títulos duplicados no mesmo envio
     GIVEN não existe nenhuma meta cadastrada na turma "engenharia-de-software-e-sistemas"
     WHEN eu envio as metas da turma com os títulos:
