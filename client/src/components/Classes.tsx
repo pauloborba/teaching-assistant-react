@@ -517,15 +517,22 @@ const Classes: React.FC<ClassesProps> = ({
         </div>
       )}
 
-      {/* Metas Modal (separate from enrollment modal) */}
+      {/* Metas Modal reusing enrollment modal design */}
       {metaPanelClass && (
-        <div className="metas-overlay">
-          <div className="metas-modal">
-            <div className="metas-modal-header">
+        <div className="enrollment-overlay">
+          <div className="enrollment-modal">
+            <div className="enrollment-modal-header">
               <h3>Metas for {metaPanelClass.topic}</h3>
-              <button className="close-modal-btn" onClick={() => setMetaPanelClass(null)}>×</button>
+              <button 
+                className="close-modal-btn" 
+                onClick={() => setMetaPanelClass(null)}
+                title="Close"
+              >
+                ×
+              </button>
             </div>
-            <div className="metas-modal-content">
+
+            <div className="enrollment-modal-content">
               {metaPanelClass.metas && metaPanelClass.metas.length > 0 ? (
                 <div className="existing-metas">
                   <h4>Existing Metas</h4>
@@ -536,9 +543,6 @@ const Classes: React.FC<ClassesProps> = ({
                       </li>
                     ))}
                   </ul>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                    <button type="button" className="cancel-btn" onClick={() => setMetaPanelClass(null)}>Close</button>
-                  </div>
                 </div>
               ) : (
                 <>
@@ -577,13 +581,19 @@ const Classes: React.FC<ClassesProps> = ({
                       ))
                     )}
                   </ul>
-
-                  <div className="metas-actions">
-                    <button type="button" className="meta-create-btn" onClick={() => handleCreateMetasOnServer(metaPanelClass)} disabled={localMetas.length === 0}>Create Metas</button>
-                    <button type="button" className="cancel-btn" onClick={() => setMetaPanelClass(null)}>Close</button>
-                  </div>
                 </>
               )}
+
+              <div className="enrollment-actions">
+                {metaPanelClass.metas && metaPanelClass.metas.length > 0 ? (
+                  <button type="button" className="cancel-btn" onClick={() => setMetaPanelClass(null)}>Close</button>
+                ) : (
+                  <>
+                    <button type="button" className="meta-create-btn" onClick={() => handleCreateMetasOnServer(metaPanelClass)} disabled={localMetas.length === 0}>Create Metas</button>
+                    <button type="button" className="cancel-btn" onClick={() => setMetaPanelClass(null)}>Close</button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
