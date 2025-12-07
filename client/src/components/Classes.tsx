@@ -15,6 +15,14 @@ interface ClassesProps {
   onError: (errorMessage: string) => void;
 }
 
+const DEFAULT_FORM_DATA: CreateClassRequest = {
+  topic: '',
+  semester: 1,
+  year: new Date().getFullYear()
+};
+
+const MAX_COMPARISON_SELECTION = 6;
+
 const Classes: React.FC<ClassesProps> = ({ 
   classes, 
   onClassAdded, 
@@ -22,11 +30,7 @@ const Classes: React.FC<ClassesProps> = ({
   onClassDeleted, 
   onError 
 }) => {
-  const [formData, setFormData] = useState<CreateClassRequest>({
-    topic: '',
-    semester: 1,
-    year: new Date().getFullYear()
-  });
+  const [formData, setFormData] = useState<CreateClassRequest>(DEFAULT_FORM_DATA);
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -47,6 +51,18 @@ const Classes: React.FC<ClassesProps> = ({
   const [isLoadingComparison, setIsLoadingComparison] = useState(false);
   const [comparisonError, setComparisonError] = useState<string | null>(null);
   const [comparisonViewType, setComparisonViewType] = useState<'table' | 'charts'>('charts');
+
+  // Helper to reset form data
+  const resetFormData = () => setFormData(DEFAULT_FORM_DATA);
+
+  // Helper to reset enrollment panel state
+  const resetEnrollmentPanel = () => {
+    setEnrollmentPanelClass(null);
+    setSelectedStudentsForEnrollment(new Set());
+  };
+
+  // Helper to clear comparison error
+  const clearComparisonError = () => setComparisonError(null);
 
   // Load all students for enrollment dropdown
   const loadAllStudents = useCallback(async () => {
@@ -80,8 +96,7 @@ const Classes: React.FC<ClassesProps> = ({
       await Promise.all(enrollmentPromises);
       
       // Reset enrollment panel
-      setSelectedStudentsForEnrollment(new Set());
-      setEnrollmentPanelClass(null);
+      resetEnrollmentPanel();
       
       // Refresh class data
       onClassUpdated();
@@ -102,8 +117,7 @@ const Classes: React.FC<ClassesProps> = ({
 
   // Handle closing enrollment panel
   const handleCloseEnrollmentPanel = () => {
-    setEnrollmentPanelClass(null);
-    setSelectedStudentsForEnrollment(new Set());
+    resetEnrollmentPanel();
   };
 
   // Handle student selection toggle
@@ -146,6 +160,7 @@ const Classes: React.FC<ClassesProps> = ({
     } catch (error) {
       onError((error as Error).message);
       setReportPanelClass(null);
+      clearComparisonError();
     } finally {
       setIsLoadingReport(false);
     }
@@ -153,32 +168,31 @@ const Classes: React.FC<ClassesProps> = ({
 
   // Handle class selection for comparison
   const handleClassSelectionToggle = (classId: string) => {
-    const MAX_SELECTION = 6;
     const newSelection = new Set(selectedClassesForComparison);
 
     if (newSelection.has(classId)) {
       newSelection.delete(classId);
       setSelectedClassesForComparison(newSelection);
-      setComparisonError(null);
+      clearComparisonError();
       return;
     }
 
     // Trying to add
-    if (newSelection.size >= MAX_SELECTION) {
-      setComparisonError('You are not allowed to select more than 6 classes for comparison');
+    if (newSelection.size >= MAX_COMPARISON_SELECTION) {
+      setComparisonError(`You are not allowed to select more than ${MAX_COMPARISON_SELECTION} classes for comparison`);
       return;
     }
 
     newSelection.add(classId);
     setSelectedClassesForComparison(newSelection);
-    setComparisonError(null); // Clear error on new selection
+    clearComparisonError(); // Clear error on new selection
   };
 
   // Handle comparison button click
   const handleCompareClasses = async () => {
     const selectedIds = Array.from(selectedClassesForComparison);
     setIsLoadingComparison(true);
-    setComparisonError(null);
+    clearComparisonError();
     // Pre-check: ensure at least 2 selected
     if (selectedIds.length < 2) {
       setComparisonError('Please select at least 2 classes to compare');
@@ -214,12 +228,13 @@ const Classes: React.FC<ClassesProps> = ({
 
     setComparisonReports(result.reports);
     setIsLoadingComparison(false);
+    clearComparisonError();
   };
 
   // Handle closing comparison view
   const handleCloseComparison = () => {
     setComparisonReports({});
-    setComparisonError(null);
+    clearComparisonError();
   };
 
   // Additional comparison modal helpers
@@ -249,9 +264,8 @@ const Classes: React.FC<ClassesProps> = ({
 
   const handleAddClassToComparison = async () => {
     if (!addClassToComparison) return;
-    const MAX_SELECTION = 6;
-    if (selectedClassesForComparison.size >= MAX_SELECTION) {
-      setComparisonError('You cannot add more than 6 classes to the comparison');
+    if (selectedClassesForComparison.size >= MAX_COMPARISON_SELECTION) {
+      setComparisonError(`You cannot add more than ${MAX_COMPARISON_SELECTION} classes to the comparison`);
       return;
     }
 
@@ -263,7 +277,7 @@ const Classes: React.FC<ClassesProps> = ({
     try {
       const report = await ClassService.getClassReport(addClassToComparison);
       setComparisonReports(prev => ({ ...prev, [addClassToComparison]: report }));
-      setComparisonError(null);
+      clearComparisonError();
       setAddClassToComparison('');
     } catch (err) {
       setComparisonError((err as Error).message || 'Failed to load report for the added class');
@@ -293,6 +307,7 @@ const Classes: React.FC<ClassesProps> = ({
     setComparisonReports({});
     setPendingRemoveClassId(null);
     setShowRemovalDecision(false);
+    clearComparisonError();
   };
 
   const handleCancelRemovalDecision = () => {
@@ -312,6 +327,7 @@ const Classes: React.FC<ClassesProps> = ({
   const handleCloseReportPanel = () => {
     setReportPanelClass(null);
     setReportData(null);
+    clearComparisonError();
   };
 
   // Handle form input changes
@@ -347,11 +363,7 @@ const Classes: React.FC<ClassesProps> = ({
       }
       
       // Reset form
-      setFormData({
-        topic: '',
-        semester: 1,
-        year: new Date().getFullYear()
-      });
+      resetFormData();
     } catch (error) {
       onError((error as Error).message);
     } finally {
@@ -362,21 +374,13 @@ const Classes: React.FC<ClassesProps> = ({
   // Handle edit button click
   const handleEdit = (classObj: Class) => {
     setEditingClass(classObj);
-    setFormData({
-      topic: classObj.topic,
-      semester: classObj.semester,
-      year: classObj.year
-    });
+    setFormData(classObj);
   };
 
   // Handle cancel edit
   const handleCancelEdit = () => {
     setEditingClass(null);
-    setFormData({
-      topic: '',
-      semester: 1,
-      year: new Date().getFullYear()
-    });
+    resetFormData();
   };
 
   // Handle delete
