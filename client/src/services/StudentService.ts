@@ -3,7 +3,7 @@ import { Student, CreateStudentRequest, UpdateStudentRequest } from '../types/St
 export class StudentService {
   private readonly baseUrl = 'http://localhost:3005/api/students';
 
-  // Get all students
+  
   async getAllStudents(): Promise<Student[]> {
     try {
       const response = await fetch(this.baseUrl);
@@ -17,7 +17,7 @@ export class StudentService {
     }
   }
 
-  // Get student by CPF
+  
   async getStudentByCPF(cpf: string): Promise<Student> {
     try {
       const response = await fetch(`${this.baseUrl}/${encodeURIComponent(cpf)}`);
@@ -31,7 +31,7 @@ export class StudentService {
     }
   }
 
-  // Create a new student
+  
   async createStudent(student: CreateStudentRequest): Promise<Student> {
     try {
       const response = await fetch(this.baseUrl, {
@@ -54,7 +54,7 @@ export class StudentService {
     }
   }
 
-  // Update student by CPF
+  
   async updateStudent(cpf: string, updates: UpdateStudentRequest): Promise<Student> {
     try {
       const response = await fetch(`${this.baseUrl}/${encodeURIComponent(cpf)}`, {
@@ -77,7 +77,7 @@ export class StudentService {
     }
   }
 
-  // Delete student by CPF
+  
   async deleteStudent(cpf: string): Promise<void> {
     try {
       const response = await fetch(`${this.baseUrl}/${encodeURIComponent(cpf)}`, {
@@ -94,7 +94,7 @@ export class StudentService {
     }
   }
 
-  // Update evaluation for a specific student and goal
+  
   async updateEvaluation(cpf: string, goal: string, grade: string): Promise<Student> {
     try {
       const response = await fetch(`${this.baseUrl}/${encodeURIComponent(cpf)}/evaluation`, {
@@ -118,5 +118,5 @@ export class StudentService {
   }
 }
 
-// Export a singleton instance
+
 export const studentService = new StudentService();

@@ -8,13 +8,15 @@ import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
 import './App.css';
-import ClassStatusPage from './components/ClassStatusPage';
-import UpdateEvaluationPage from './components/UpdateEvaluationPage';
-import MyStatusPage from './components/MyStatusPage';
 
+// ---- FLASHCARDS ----
+import FlashcardForm from "./components/FlashcardForm";
+import FlashcardList from "./components/FlashcardList";
+import { FlashcardService } from "./services/FlashcardService";
+const flashcardService = new FlashcardService();
+// ---------------------
 
-
-type TabType = 'students' | 'evaluations' | 'classes' | 'update-eval' | 'my-status';
+type TabType = 'students' | 'evaluations' | 'classes' | 'flashcards';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -24,6 +26,24 @@ const App: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('students');
+
+  // FLASHCARDS STATE
+  const [flashcards, setFlashcards] = useState([]);
+
+  const loadFlashcards = async () => {
+    const data = await flashcardService.getAll();
+    setFlashcards(data);
+  };
+
+  const addFlashcard = async (front: string, back: string) => {
+    await flashcardService.add(front, back);
+    loadFlashcards();
+  };
+
+  const deleteFlashcard = async (id: number) => {
+    await flashcardService.delete(id);
+    loadFlashcards();
+  };
 
   const loadStudents = useCallback(async () => {
     try {
@@ -53,11 +73,10 @@ const App: React.FC = () => {
   }, []);
 
   const updateSelectedClass = useCallback((classesData: Class[]) => {
-    // Update selectedClass if it exists to reflect new enrollments
     if (selectedClass) {
-      const updatedSelectedClass = classesData.find(c => 
-        c.topic === selectedClass.topic && 
-        c.year === selectedClass.year && 
+      const updatedSelectedClass = classesData.find(c =>
+        c.topic === selectedClass.topic &&
+        c.year === selectedClass.year &&
         c.semester === selectedClass.semester
       );
       if (updatedSelectedClass) {
@@ -66,53 +85,11 @@ const App: React.FC = () => {
     }
   }, [selectedClass]);
 
-  // Load students and classes on component mount
   useEffect(() => {
     loadStudents();
     loadClasses();
+    loadFlashcards(); // << carregar flashcards ao iniciar
   }, [loadStudents, loadClasses]);
-
-  const handleStudentAdded = async () => {
-    loadStudents(); // Reload the list when a new student is added
-    const updatedClasses = await loadClasses(); // Also reload classes to update enrollment info
-    updateSelectedClass(updatedClasses); // Update selected class with new data
-  };
-
-  const handleStudentDeleted = async () => {
-    loadStudents(); // Reload the list when a student is deleted
-    const updatedClasses = await loadClasses(); // Also reload classes to update enrollment info
-    updateSelectedClass(updatedClasses); // Update selected class with new data
-  };
-
-  const handleStudentUpdated = () => {
-    setEditingStudent(null);
-    loadStudents(); // Reload the list when a student is updated
-  };
-
-  const handleClassAdded = () => {
-    loadClasses(); // Reload classes when a new class is added
-  };
-
-  const handleClassUpdated = () => {
-    loadClasses(); // Reload classes when a class is updated
-  };
-
-  const handleClassDeleted = () => {
-    loadClasses(); // Reload classes when a class is deleted
-    setSelectedClass(null); // Clear selection if deleted class was selected
-  };
-
-  const handleEditClick = (student: Student) => {
-    setEditingStudent(student);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingStudent(null);
-  };
-
-  const handleError = (errorMessage: string) => {
-    setError(errorMessage);
-  };
 
   return (
     <div className="App">
@@ -128,116 +105,56 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Tab Navigation */}
+        {}
         <div className="tab-navigation">
-          <button
-            className={`tab-button ${activeTab === 'students' ? 'active' : ''}`}
-            onClick={() => setActiveTab('students')}
-          >
+          <button className={`tab-button ${activeTab === 'students' ? 'active' : ''}`} onClick={() => setActiveTab('students')}>
             Students
           </button>
-          <button
-            className={`tab-button ${activeTab === 'evaluations' ? 'active' : ''}`}
-            onClick={() => setActiveTab('evaluations')}
-          >
+
+          <button className={`tab-button ${activeTab === 'evaluations' ? 'active' : ''}`} onClick={() => setActiveTab('evaluations')}>
             Evaluations
           </button>
-          <button
-            className={`tab-button ${activeTab === 'classes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('classes')}
-          >
+
+          <button className={`tab-button ${activeTab === 'classes' ? 'active' : ''}`} onClick={() => setActiveTab('classes')}>
             Classes
           </button>
-          <button
-            className={`tab-button ${activeTab === 'update-eval' ? 'active' : ''}`}
-            onClick={() => setActiveTab('update-eval')}
-          >
-          Registrar Avaliação
 
+          {}
+          <button className={`tab-button ${activeTab === 'flashcards' ? 'active' : ''}`} onClick={() => setActiveTab('flashcards')}>
+            Flashcards
           </button>
-          <button
-            className={`tab-button ${activeTab === 'my-status' ? 'active' : ''}`}
-            onClick={() => setActiveTab('my-status')}
-          >
-           Meu Status
-          </button>
-
-
         </div>
 
-        {/* Tab Content */}
+        {}
         <div className="tab-content">
+
           {activeTab === 'students' && (
             <>
-              {/* Class Selection */}
-              <div className="class-selection">
-                <label htmlFor="class-select">Filter by Class:</label>
-                <select
-                  id="class-select"
-                  value={selectedClass ? `${selectedClass.topic}-${selectedClass.year}-${selectedClass.semester}` : ''}
-                  onChange={(e) => {
-                    const classId = e.target.value;
-                    if (classId) {
-                      const classObj = classes.find(c => `${c.topic}-${c.year}-${c.semester}` === classId);
-                      setSelectedClass(classObj || null);
-                    } else {
-                      setSelectedClass(null);
-                    }
-                  }}
-                  className="class-selector"
-                >
-                  <option value="">All Students</option>
-                  {classes.map((classObj) => (
-                    <option 
-                      key={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
-                      value={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
-                    >
-                      {classObj.topic} ({classObj.year}/{classObj.semester})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <StudentForm
-                onStudentAdded={handleStudentAdded}
-                onStudentUpdated={handleStudentUpdated}
-                onError={handleError}
-                onCancel={editingStudent ? handleCancelEdit : undefined}
-                editingStudent={editingStudent}
-                selectedClass={selectedClass}
-              />
-
-              <StudentList
-                students={selectedClass ? selectedClass.enrollments.map(e => e.student) : students}
-                onStudentDeleted={handleStudentDeleted}
-                onEditStudent={handleEditClick}
-                onError={handleError}
-                loading={loading}
-              />
+              {}
             </>
           )}
 
-          {activeTab === 'evaluations' && (
-            <Evaluations 
-              onError={handleError}
+          {activeTab === 'evaluations' && <Evaluations onError={setError} />}
+
+          {activeTab === 'classes' && (
+            <Classes
+              classes={classes}
+              onClassAdded={loadClasses}
+              onClassUpdated={loadClasses}
+              onClassDeleted={loadClasses}
+              onError={setError}
             />
           )}
 
-          {activeTab === 'classes' && (
-    <div>
-      {/* Página do Cenário 1 */}
-      <ClassStatusPage />
-    </div>
-         )}
+          {activeTab === 'flashcards' && (
+            <div style={{ padding: "20px" }}>
+              <h2>Flashcards</h2>
 
-         {activeTab === 'update-eval' && (
-    <UpdateEvaluationPage />
-)}
+              <FlashcardForm onAdd={addFlashcard} />
 
-         {activeTab === 'my-status' && (
-    <MyStatusPage />
-)}
-
+              <FlashcardList flashcards={flashcards} onDelete={deleteFlashcard} />
+            </div>
+          )}
 
         </div>
       </main>

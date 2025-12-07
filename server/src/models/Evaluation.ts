@@ -28,13 +28,11 @@ export class Evaluation {
     };
   }
 
-  // Create Evaluation from JSON object
   public static fromJSON(data: { goal: string; grade: Grade }): Evaluation {
     return new Evaluation(data.goal, data.grade);
   }
 }
 
-// Predefined evaluation goals
 export const EVALUATION_GOALS = [
   'Requirements',
   'Configuration Management', 

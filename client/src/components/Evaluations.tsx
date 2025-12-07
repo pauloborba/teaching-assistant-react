@@ -12,13 +12,13 @@ interface EvaluationsProps {
 const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   const [classes, setClasses] = useState<Class[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>(() => {
-    // Load previously selected class from localStorage
+    
     return localStorage.getItem('evaluations-selected-class') || '';
   });
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Predefined evaluation goals
+  
   const evaluationGoals = [
     'Requirements',
     'Configuration Management', 
@@ -40,12 +40,12 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     }
   }, [onError]);
 
-  // Load all classes on component mount
+  
   useEffect(() => {
     loadClasses();
   }, [loadClasses]);
 
-  // Update selected class when selectedClassId changes
+  
   useEffect(() => {
     if (selectedClassId) {
       const classObj = classes.find(c => c.id === selectedClassId);
@@ -57,7 +57,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
 
   const handleClassSelection = (classId: string) => {
     setSelectedClassId(classId);
-    // Save selected class to localStorage for persistence
+    
     if (classId) {
       localStorage.setItem('evaluations-selected-class', classId);
     } else {
@@ -73,7 +73,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
 
     try {
       await EnrollmentService.updateEvaluation(selectedClass.id, studentCPF, goal, grade);
-      // Reload classes to get updated enrollment data
+      
       await loadClasses();
     } catch (error) {
       onError(`Failed to update evaluation: ${(error as Error).message}`);

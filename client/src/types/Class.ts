@@ -20,7 +20,7 @@ export interface UpdateClassRequest {
   year?: number;
 }
 
-// Helper function to generate class ID
+
 export const getClassId = (classObj: { topic: string; year: number; semester: number }): string => {
   return `${classObj.topic}-${classObj.year}-${classObj.semester}`;
 };

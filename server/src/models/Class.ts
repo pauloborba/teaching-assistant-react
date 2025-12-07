@@ -14,7 +14,7 @@ export class Class {
     this.enrollments = enrollments;
   }
 
-  // Getters
+  
   getTopic(): string {
     return this.topic;
   }
@@ -28,15 +28,15 @@ export class Class {
   }
 
   getEnrollments(): Enrollment[] {
-    return [...this.enrollments]; // Return copy to prevent external modification
+    return [...this.enrollments]; 
   }
 
-  // Generate unique class ID
+ 
   getClassId(): string {
     return `${this.topic}-${this.year}-${this.semester}`;
   }
 
-  // Setters for editing
+ 
   setTopic(topic: string): void {
     this.topic = topic;
   }
@@ -49,9 +49,9 @@ export class Class {
     this.year = year;
   }
 
-  // Enrollment management
+  
   addEnrollment(student: Student): Enrollment {
-    // Check if student is already enrolled
+    
     const existingEnrollment = this.findEnrollmentByStudentCPF(student.getCPF());
     if (existingEnrollment) {
       throw new Error('Student is already enrolled in this class');
@@ -81,12 +81,12 @@ export class Class {
     );
   }
 
-  // Get all enrolled students
+  
   getEnrolledStudents(): Student[] {
     return this.enrollments.map(enrollment => enrollment.getStudent());
   }
 
-  // Convert to JSON for API responses
+ 
   toJSON() {
     return {
       id: this.getClassId(),
@@ -97,7 +97,7 @@ export class Class {
     };
   }
 
-  // Create Class from JSON object
+ 
   static fromJSON(data: { topic: string; semester: number; year: number; enrollments: any[] }, allStudents: Student[]): Class {
     const enrollments = data.enrollments
       ? data.enrollments.map((enrollmentData: any) => {

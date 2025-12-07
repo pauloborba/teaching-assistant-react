@@ -67,13 +67,14 @@ const StudentList: React.FC<StudentListProps> = ({
           </thead>
           <tbody>
             {students.map((student) => (
-              <tr key={student.cpf}>
-                <td>{student.name}</td>
-                <td>{student.cpf}</td>
-                <td>{student.email}</td>
+              <tr key={student.cpf} data-testid={`student-row-${student.cpf}`}>
+                <td data-testid="student-name">{student.name}</td>
+                <td data-testid="student-cpf">{student.cpf}</td>
+                <td data-testid="student-email">{student.email}</td>
                 <td>
                   <button
                     className="edit-btn"
+                    data-testid={`edit-student-${student.cpf}`}
                     onClick={() => handleEdit(student)}
                     title="Edit student"
                   >
@@ -81,6 +82,7 @@ const StudentList: React.FC<StudentListProps> = ({
                   </button>
                   <button
                     className="delete-btn"
+                    data-testid={`delete-student-${student.cpf}`}
                     onClick={() => handleDelete(student)}
                     title="Delete student"
                   >

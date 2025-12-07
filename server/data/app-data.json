@@ -19,11 +19,6 @@
       "name": "Joana Refatoração",
       "cpf": "55555555555",
       "email": "jr@gmail.com"
-    },
-    {
-      "name": "l",
-      "cpf": "66666666666",
-      "email": "l@cin.ufpe.br"
     }
   ],
   "classes": [
@@ -58,10 +53,6 @@
             {
               "goal": "Refactoring",
               "grade": "MA"
-            },
-            {
-              "goal": "requisitos",
-              "grade": "MPA"
             }
           ]
         },
@@ -173,15 +164,6 @@
             {
               "goal": "Refactoring",
               "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "66666666666",
-          "evaluations": [
-            {
-              "goal": "requisitos",
-              "grade": "MPA"
             }
           ]
         }

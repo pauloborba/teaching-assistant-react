@@ -1,4 +1,4 @@
-/* Global Styles */
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -16,7 +16,7 @@ body {
   line-height: 1.6;
 }
 
-/* App Container */
+
 .App {
   max-width: 1200px;
   margin: 0 auto;
@@ -46,7 +46,7 @@ body {
   padding: 2rem;
 }
 
-/* Error Message */
+
 .error-message {
   background-color: #fee;
   color: #c53030;
@@ -59,7 +59,7 @@ body {
   gap: 0.5rem;
 }
 
-/* Student Form */
+
 .student-form {
   background: white;
   padding: 2rem;
@@ -116,7 +116,7 @@ body {
   margin-top: 1.5rem;
 }
 
-/* Buttons */
+
 button {
   padding: 0.75rem 1.5rem;
   border: none;
@@ -136,7 +136,7 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Primary Button */
+
 button[type="submit"] {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -147,7 +147,7 @@ button[type="submit"]:hover:not(:disabled) {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-/* Secondary Button */
+
 button[type="button"] {
   background-color: #e2e8f0;
   color: #4a5568;
@@ -157,7 +157,7 @@ button[type="button"]:hover:not(:disabled) {
   background-color: #cbd5e0;
 }
 
-/* Students List */
+
 .students-list {
   background: white;
   border-radius: 12px;
@@ -190,7 +190,7 @@ button[type="button"]:hover:not(:disabled) {
   font-size: 1.1rem;
 }
 
-/* Table */
+
 .table-container {
   overflow-x: auto;
 }
@@ -225,7 +225,7 @@ tbody tr:last-child td {
   border-bottom: none;
 }
 
-/* Action Buttons */
+
 .edit-btn {
   background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
   color: white;
@@ -253,7 +253,7 @@ tbody tr:last-child td {
   box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
 }
 
-/* Responsive Design */
+
 @media (max-width: 768px) {
   .App-main {
     padding: 1rem;
@@ -280,19 +280,19 @@ tbody tr:last-child td {
     font-size: 2rem;
   }
   
-  /* Responsive evaluations table */
+  
   .evaluations-table {
     font-size: 0.8rem;
   }
   
   .evaluations-table th:first-child {
-    width: 150px; /* Smaller width for student names on mobile */
+    width: 150px; 
   }
   
   .evaluations-table th:not(:first-child),
   .evaluations-table td:not(:first-child) {
     width: calc((100% - 150px) / 6);
-    min-width: 80px; /* Smaller minimum width on mobile */
+    min-width: 80px; 
   }
   
   .grade-select {
@@ -301,7 +301,7 @@ tbody tr:last-child td {
   }
 }
 
-/* Tab Navigation */
+
 .tab-navigation {
   display: flex;
   background: white;
@@ -342,7 +342,7 @@ tbody tr:last-child td {
   min-height: 400px;
 }
 
-/* Class Selection */
+
 .class-selection {
   margin-bottom: 2rem;
   padding: 1rem;
@@ -375,7 +375,7 @@ tbody tr:last-child td {
   border-color: #667eea;
 }
 
-/* Classes Form */
+
 .classes-container {
   max-width: 1000px;
 }
@@ -483,7 +483,7 @@ tbody tr:last-child td {
   border: 1px solid #e5e7eb;
 }
 
-/* Classes table specific styling */
+
 .classes-list table th:nth-child(2),
 .classes-list table th:nth-child(3) {
   font-size: 1rem;
@@ -505,7 +505,7 @@ tbody tr:last-child td {
   color: #059669;
 }
 
-/* Modern Enrollment Panel */
+
 .enrollment-overlay {
   position: fixed;
   top: 0;
@@ -752,7 +752,7 @@ tbody tr:last-child td {
   cursor: not-allowed;
 }
 
-/* Update enroll button in table */
+
 .enroll-btn {
   background-color: #3b82f6;
   color: white;
@@ -771,12 +771,12 @@ tbody tr:last-child td {
   background-color: #2563eb;
 }
 
-/* Evaluations Table */
+
 .evaluations-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
-  table-layout: fixed; /* Force uniform column widths */
+  table-layout: fixed; 
 }
 
 .evaluations-table th,
@@ -796,14 +796,14 @@ tbody tr:last-child td {
   text-align: left;
   background-color: #667eea;
   color: white;
-  width: 200px; /* Fixed width for student name column */
+  width: 200px; 
 }
 
-/* Goal columns - uniform width */
+
 .evaluations-table th:not(:first-child),
 .evaluations-table td:not(:first-child) {
-  width: calc((100% - 200px) / 6); /* Distribute remaining width equally among 6 goal columns */
-  min-width: 120px; /* Minimum width to ensure readability */
+  width: calc((100% - 200px) / 6); 
+  min-width: 120px; 
 }
 
 .grade-cell {
@@ -882,7 +882,7 @@ tbody tr:last-child td {
   background-color: #f9fafb;
 }
 
-/* Evaluation table styles */
+
 .evaluation-table {
   margin-top: 1rem;
 }
@@ -955,7 +955,7 @@ tbody tr:last-child td {
   background-color: #2563eb;
 }
 
-/* Enhanced Evaluation Matrix Styles */
+
 .class-selection-container {
   margin-bottom: 2rem;
   padding: 1.5rem;
@@ -1013,7 +1013,7 @@ tbody tr:last-child td {
   border-collapse: collapse;
   background: white;
   min-width: 800px;
-  table-layout: fixed; /* Fixed layout for uniform column widths */
+  table-layout: fixed; 
 }
 
 .student-name-header {
@@ -1026,7 +1026,7 @@ tbody tr:last-child td {
   position: sticky;
   left: 0;
   z-index: 10;
-  width: 200px; /* Fixed width for student column */
+  width: 200px; 
   font-size: 1rem;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
@@ -1040,7 +1040,7 @@ tbody tr:last-child td {
   font-weight: 700;
   font-size: 0.9rem;
   border: 1px solid #047857;
-  width: calc((100% - 200px) / 6); /* Equal width for all 6 goal columns */
+  width: calc((100% - 200px) / 6); 
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
   vertical-align: middle;
@@ -1089,7 +1089,7 @@ tbody tr:last-child td {
   padding: 12px 8px;
   text-align: center;
   border: 1px solid #cbd5e1;
-  width: calc((100% - 200px) / 6); /* Equal width for all goal columns */
+  width: calc((100% - 200px) / 6); 
   vertical-align: middle;
 }
 
@@ -1117,7 +1117,7 @@ tbody tr:last-child td {
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
-  text-align-last: center; /* Center text in select for all browsers */
+  text-align-last: center; 
 }
 
 .evaluation-select:hover {
@@ -1132,7 +1132,7 @@ tbody tr:last-child td {
   transform: scale(1.05);
 }
 
-/* Grade-specific colors */
+
 .evaluation-select.grade-ma {
   background: linear-gradient(135deg, #10b981 0%, #047857 100%);
   color: white;

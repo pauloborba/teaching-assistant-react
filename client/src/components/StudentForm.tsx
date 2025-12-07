@@ -5,12 +5,12 @@ import { studentService } from '../services/StudentService';
 import EnrollmentService from '../services/EnrollmentService';
 
 interface StudentFormProps {
-  onStudentAdded: () => void;      // Callback when student is successfully added
-  onStudentUpdated: () => void;    // Callback when student is successfully updated
+  onStudentAdded: () => void;      
+  onStudentUpdated: () => void;    
   onCancel?: () => void;
   editingStudent?: Student | null;
-  onError: (error: string) => void; // Callback for error handling
-  selectedClass?: Class | null;     // Currently selected class for auto-enrollment
+  onError: (error: string) => void; 
+  selectedClass?: Class | null;     
 }
 
 const StudentForm: React.FC<StudentFormProps> = ({ 
@@ -29,7 +29,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Update form data when editingStudent changes
+  
   useEffect(() => {
     if (editingStudent) {
       setFormData({
@@ -38,7 +38,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
         email: editingStudent.email
       });
     } else {
-      // Reset form for new student
+      
       setFormData({
         name: '',
         cpf: '',
@@ -53,27 +53,27 @@ const StudentForm: React.FC<StudentFormProps> = ({
     
     try {
       if (editingStudent) {
-        // Update existing student
+        
         await studentService.updateStudent(editingStudent.cpf, {
           name: formData.name,
           email: formData.email
         });
         onStudentUpdated();
       } else {
-        // Add new student
+        
         const newStudent = await studentService.createStudent(formData);
         
-        // Auto-enroll in selected class if one is selected
+        
         if (selectedClass) {
           try {
             await EnrollmentService.enrollStudent(selectedClass.id, newStudent.cpf);
             console.log(`Student ${newStudent.name} enrolled in ${selectedClass.topic}`);
           } catch (enrollmentError) {
-            // Student was created but enrollment failed - show warning
+            
             onError(`Student created successfully, but enrollment failed: ${(enrollmentError as Error).message}`);
-            setFormData({ name: '', cpf: '', email: '' }); // Clear form anyway
-            onStudentAdded(); // Still refresh the list
-            return; // Exit early to avoid showing success message
+            setFormData({ name: '', cpf: '', email: '' }); 
+            onStudentAdded(); 
+            return; 
           }
         }
         
@@ -96,10 +96,10 @@ const StudentForm: React.FC<StudentFormProps> = ({
   };
 
   const formatCPF = (value: string) => {
-    // Remove non-digits
+    
     const digits = value.replace(/\D/g, '');
     
-    // Apply CPF mask (000.000.000-00)
+    
     if (digits.length <= 11) {
       return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
     }
@@ -115,7 +115,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="student-form">
+    <form onSubmit={handleSubmit} className="student-form" data-testid="student-form">
       <h2>
         {editingStudent ? (
           <>
@@ -170,7 +170,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
           required
           placeholder="000.000.000-00"
           maxLength={14}
-          disabled={!!editingStudent} // Disable CPF editing for existing students
+          disabled={!!editingStudent} 
         />
       </div>
 
@@ -188,7 +188,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
       </div>
 
       <div className="form-buttons">
-        <button type="submit" disabled={isSubmitting}>
+        <button type="submit" disabled={isSubmitting} data-testid="submit-student-button">
           {isSubmitting ? 'Saving...' : (editingStudent ? 'Update Student' : 'Add Student')}
         </button>
         {onCancel && (

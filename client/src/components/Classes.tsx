@@ -28,13 +28,13 @@ const Classes: React.FC<ClassesProps> = ({
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Student enrollment state
+
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [enrollmentPanelClass, setEnrollmentPanelClass] = useState<Class | null>(null);
   const [selectedStudentsForEnrollment, setSelectedStudentsForEnrollment] = useState<Set<string>>(new Set());
   const [isEnrolling, setIsEnrolling] = useState(false);
 
-  // Load all students for enrollment dropdown
+  
   const loadAllStudents = useCallback(async () => {
     try {
       const students = await studentService.getAllStudents();
@@ -48,7 +48,7 @@ const Classes: React.FC<ClassesProps> = ({
     loadAllStudents();
   }, [loadAllStudents]);
 
-  // Handle enrollment form submission
+  
   const handleBulkEnrollStudents = async () => {
     if (!enrollmentPanelClass || selectedStudentsForEnrollment.size === 0) {
       onError('Please select students to enroll');
@@ -58,21 +58,21 @@ const Classes: React.FC<ClassesProps> = ({
     setIsEnrolling(true);
     
     try {
-      // Enroll each selected student
+      
       const enrollmentPromises = Array.from(selectedStudentsForEnrollment).map(studentCPF =>
         EnrollmentService.enrollStudent(enrollmentPanelClass.id, studentCPF)
       );
       
       await Promise.all(enrollmentPromises);
       
-      // Reset enrollment panel
+      
       setSelectedStudentsForEnrollment(new Set());
       setEnrollmentPanelClass(null);
       
-      // Refresh class data
+      
       onClassUpdated();
       
-      onError(''); // Clear any previous errors
+      onError(''); 
     } catch (error) {
       onError((error as Error).message);
     } finally {
@@ -80,19 +80,19 @@ const Classes: React.FC<ClassesProps> = ({
     }
   };
 
-  // Handle opening enrollment panel for a specific class
+  
   const handleOpenEnrollmentPanel = (classObj: Class) => {
     setEnrollmentPanelClass(classObj);
     setSelectedStudentsForEnrollment(new Set());
   };
 
-  // Handle closing enrollment panel
+  
   const handleCloseEnrollmentPanel = () => {
     setEnrollmentPanelClass(null);
     setSelectedStudentsForEnrollment(new Set());
   };
 
-  // Handle student selection toggle
+  
   const handleStudentToggle = (studentCPF: string) => {
     const newSelection = new Set(selectedStudentsForEnrollment);
     if (newSelection.has(studentCPF)) {
@@ -103,7 +103,7 @@ const Classes: React.FC<ClassesProps> = ({
     setSelectedStudentsForEnrollment(newSelection);
   };
 
-  // Handle select all/none
+  
   const handleSelectAll = () => {
     if (!enrollmentPanelClass) return;
     
@@ -115,13 +115,13 @@ const Classes: React.FC<ClassesProps> = ({
     setSelectedStudentsForEnrollment(new Set());
   };
 
-  // Get students not enrolled in a specific class
+  
   const getAvailableStudentsForClass = (classObj: Class): Student[] => {
     const enrolledStudentCPFs = new Set(classObj.enrollments.map(enrollment => enrollment.student.cpf));
     return allStudents.filter(student => !enrolledStudentCPFs.has(student.cpf));
   };
 
-  // Handle form input changes
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -130,7 +130,7 @@ const Classes: React.FC<ClassesProps> = ({
     }));
   };
 
-  // Handle form submission
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -143,17 +143,17 @@ const Classes: React.FC<ClassesProps> = ({
     
     try {
       if (editingClass) {
-        // Update existing class
+        
         await ClassService.updateClass(editingClass.id, formData);
         onClassUpdated();
         setEditingClass(null);
       } else {
-        // Add new class
+        
         await ClassService.addClass(formData);
         onClassAdded();
       }
       
-      // Reset form
+      
       setFormData({
         topic: '',
         semester: 1,
@@ -166,7 +166,7 @@ const Classes: React.FC<ClassesProps> = ({
     }
   };
 
-  // Handle edit button click
+  
   const handleEdit = (classObj: Class) => {
     setEditingClass(classObj);
     setFormData({
@@ -176,7 +176,7 @@ const Classes: React.FC<ClassesProps> = ({
     });
   };
 
-  // Handle cancel edit
+  
   const handleCancelEdit = () => {
     setEditingClass(null);
     setFormData({
@@ -186,7 +186,7 @@ const Classes: React.FC<ClassesProps> = ({
     });
   };
 
-  // Handle delete
+  
   const handleDelete = async (classObj: Class) => {
     if (window.confirm(`Are you sure you want to delete the class "${classObj.topic} (${classObj.year}/${classObj.semester})"?`)) {
       try {
@@ -198,7 +198,7 @@ const Classes: React.FC<ClassesProps> = ({
     }
   };
 
-  // Generate current year options
+  
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 

@@ -5,7 +5,7 @@ export interface Evaluation {
   grade: Grade;
 }
 
-// Predefined evaluation goals
+
 export const EVALUATION_GOALS = [
   'Requirements',
   'Configuration Management', 

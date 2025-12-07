@@ -106,6 +106,17 @@ const loadDataFromFile = (): void => {
                       enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
                     });
                   }
+                    
+                    // Load medias and attendance status if provided in the data file
+                    if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
+                      enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
+                    }
+                    if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
+                      enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
+                    }
+                    if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
+                      enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
+                    }
                 } else {
                   console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
                 }
@@ -122,15 +133,22 @@ const loadDataFromFile = (): void => {
   }
 };
 
+// Test mode flag to disable file persistence
+const isTestMode = process.env.NODE_ENV === 'test';
+
 // Trigger save after any modification (async to not block operations)
 const triggerSave = (): void => {
-  setImmediate(() => {
-    saveDataToFile();
-  });
+  if (!isTestMode) {
+    setImmediate(() => {
+      saveDataToFile();
+    });
+  }
 };
 
-// Load existing data on startup
-loadDataFromFile();
+// Load existing data on startup (only in non-test mode)
+if (!isTestMode) {
+  loadDataFromFile();
+}
 
 // Helper function to clean CPF
 const cleanCPF = (cpf: string): string => {
@@ -402,6 +420,35 @@ app.get('/api/classes/:classId/enrollments', (req: Request, res: Response) => {
   }
 });
 
+// GET /api/classes/:classId/enrollments/:studentCPF/evaluation - Get the student's average and final average for a class
+app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
+  try {
+    const { classId, studentCPF } = req.params;
+
+    const classObj = classes.findClassById(classId);
+    if (!classObj) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    const cleanedCPF = cleanCPF(studentCPF);
+    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
+    if (!enrollment) {
+      return res.status(404).json({ error: 'Student not enrolled in this class' });
+    }
+
+    const mediaPreFinal = enrollment.getMediaPreFinal();
+    const mediaPosFinal = enrollment.getMediaPosFinal();
+
+    res.json({
+      student: enrollment.getStudent().toJSON(),
+      average: mediaPreFinal,
+      final_average: mediaPosFinal
+    });
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
 // PUT /api/classes/:classId/enrollments/:studentCPF/evaluation - Update evaluation for an enrolled student
 app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
   try {
@@ -449,6 +496,46 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
   res.status(501).json({ error: "Endpoint ainda não implementado." });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// --------------------------------------------
+// SEÇÃO ADICIONADA: FLASHCARDS
+// --------------------------------------------
+import { FlashcardSet } from "./models/FlashcardSet";
+
+const flashcardSet = new FlashcardSet();
+
+// GET all flashcards
+app.get("/api/flashcards", (req, res) => {
+  res.json(flashcardSet.getAll());
 });
+
+// POST create flashcard
+app.post("/api/flashcards", (req, res) => {
+  const { front, back } = req.body;
+  if (!front || !back) {
+    return res.status(400).json({ error: "Front and back are required" });
+  }
+  const card = flashcardSet.add(front, back);
+  res.status(201).json(card);
+});
+
+// DELETE flashcard
+app.delete("/api/flashcards/:id", (req, res) => {
+  const id = Number(req.params.id);
+  if (flashcardSet.delete(id)) {
+    return res.status(200).json({ success: true });
+  }
+  res.status(404).json({ error: "Flashcard not found" });
+});
+
+
+// --------------------------------------------
+
+// Export the app for testing
+export { app, studentSet, classes };
+
+// Only start the server if this file is run directly (not imported for testing)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}

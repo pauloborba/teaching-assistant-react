@@ -78,68 +78,6 @@ class ClassService {
       throw error;
     }
   }
-
-  // --------------------------------------
-  // NOVAS FUNÇÕES PARA OS 3 CENÁRIOS  
-  // --------------------------------------
-
-  // CENÁRIO 1 (professor visualiza status da turma)
-  static async getEnrollments(classId: string) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/classes/${classId}/enrollments`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch enrollments");
-      }
-
-      return response.json();
-    } catch (error) {
-      console.error("Error fetching enrollments:", error);
-      throw error;
-    }
-  }
-
-  // CENÁRIO 2 (atualização da autoavaliação / avaliação)
-  static async updateEvaluation(classId: string, studentCPF: string, goal: string, grade: string) {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/classes/${classId}/enrollments/${studentCPF}/evaluation`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ goal, grade }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update evaluation");
-      }
-
-      return response.json();
-    } catch (error) {
-      console.error("Error updating evaluation:", error);
-      throw error;
-    }
-  }
-
-  // CENÁRIO 3 (aluno visualiza próprio status)
-  static async getStudent(cpf: string) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/students/${cpf}`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch student");
-      }
-
-      return response.json();
-    } catch (error) {
-      console.error("Error fetching student:", error);
-      throw error;
-    }
-  }
 }
 
 export default ClassService;
