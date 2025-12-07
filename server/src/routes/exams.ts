@@ -15,7 +15,9 @@ import {
   getGenerationsForExam,
   ExamGenerationRecord,
   ExamVersionMap,
-  shuffleArray
+  shuffleArray,
+  getQuestionsByIds,
+  QuestionRecord     
 } from "../services/dataService";
 
 const formatDateExtended = (dateString: string) => {
@@ -37,16 +39,6 @@ const formatDateExtended = (dateString: string) => {
 
 const router = Router();
 
-
-interface Question {
-  id: number;
-  question: string;
-  topic: string;
-  type: 'open' | 'closed';
-  options?: { id: number; option: string; isCorrect: boolean }[];
-  answer?: string;
-}
-
 /**
  * Gera o documento PDF (Visual)
  */
@@ -55,7 +47,7 @@ const generateExamPDF = (
     teacherName: string,
     examTitle: string,
     versionNumber: number, 
-    questions: Question[], 
+    questions: QuestionRecord[], 
     isGabarito: boolean,
     dateString: string
 ): InstanceType<typeof PDFDocument> => {
@@ -121,6 +113,7 @@ const generateExamPDF = (
             doc.font(FONT_REGULAR).text(q.answer || 'Sem resposta cadastrada.');
             doc.moveDown(1.5);
         } else {
+            // Verifica espaço para as linhas de resposta
             if (doc.y > 600) doc.addPage();
 
             doc.moveDown(0.5);
@@ -150,7 +143,6 @@ const generateExamPDF = (
       doc.switchToPage(i); 
 
       const oldBottomMargin = doc.page.margins.bottom;
-      
       doc.page.margins.bottom = 0;
 
       const bottom = doc.page.height - 30;
@@ -213,12 +205,14 @@ const handleGetExamZIP = async (req: Request, res: Response) => {
     archive.on('error', (err) => { throw err; });
     archive.pipe(res);
 
-    const originalQuestionsPool = questions.filter(q => examDef.questions.includes(q.id));
+    const originalQuestionsPool = getQuestionsByIds(examDef.questions);
 
     for (let i = 1; i <= quantity; i++) {
         
-        let versionQuestions: Question[] = JSON.parse(JSON.stringify(originalQuestionsPool));
+        // Deep copy das questões para poder embaralhar
+        let versionQuestions: QuestionRecord[] = JSON.parse(JSON.stringify(originalQuestionsPool));
         versionQuestions = shuffleArray(versionQuestions);
+        
         versionQuestions.forEach(q => {
             if (q.type === 'closed' && q.options && q.options.length > 0) {
                 q.options = shuffleArray(q.options);
@@ -434,7 +428,7 @@ router.post("/", (req: Request, res: Response) => {
       isValid: true,
       openQuestions: quantidadeAberta,
       closedQuestions: quantidadeFechada,
-      questions: questionsByTopic.map(q => q.id),
+      questions: questionsByTopic.map(q => q.id), // All question IDs from this topic
     };
 
     addExam(newExam);

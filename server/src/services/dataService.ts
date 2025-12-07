@@ -13,7 +13,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Type definitions for new data structures
+// Type definitions
 export interface QuestionOption {
   id: number;
   option: string;
@@ -141,13 +141,11 @@ export const loadDataFromFile = (): void => {
       // Load students
       if (data.students && Array.isArray(data.students)) {
         data.students.forEach((studentData: any) => {
-          // Create student with basic info only - evaluations handled through enrollments
           const student = new Student(
             studentData.name,
             studentData.cpf,
             studentData.email
           );
-          
           try {
             studentSet.addStudent(student);
           } catch (error) {
@@ -156,29 +154,25 @@ export const loadDataFromFile = (): void => {
         });
       }
 
-      // Load classes with enrollments
+      // Load classes
       if (data.classes && Array.isArray(data.classes)) {
         data.classes.forEach((classData: any) => {
           try {
             const classObj = new Class(classData.topic, classData.semester, classData.year);
             classes.addClass(classObj);
 
-            // Load enrollments for this class
             if (classData.enrollments && Array.isArray(classData.enrollments)) {
               classData.enrollments.forEach((enrollmentData: any) => {
                 const student = studentSet.findStudentByCPF(enrollmentData.studentCPF);
                 if (student) {
                   const enrollment = classObj.addEnrollment(student);
                   
-                  // Load evaluations for this enrollment
                   if (enrollmentData.evaluations && Array.isArray(enrollmentData.evaluations)) {
                     enrollmentData.evaluations.forEach((evalData: any) => {
                       const evaluation = Evaluation.fromJSON(evalData);
                       enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
                     });
                   }
-                } else {
-                  console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
                 }
               });
             }
@@ -281,49 +275,21 @@ export const loadAllData = (): void => {
   loadGenerationsFromFile();
 };
 
-// Trigger save after any modification (async to not block operations)
-export const triggerSave = (): void => {
-  setImmediate(() => {
-    saveDataToFile();
-  });
-};
+export const triggerSave = (): void => { setImmediate(() => { saveDataToFile(); }); };
+export const triggerSaveExams = (): void => { setImmediate(() => { saveExamsToFile(); }); };
+export const triggerSaveQuestions = (): void => { setImmediate(() => { saveQuestionsToFile(); }); };
+export const triggerSaveStudentsExams = (): void => { setImmediate(() => { saveStudentsExamsToFile(); }); };
 
-export const triggerSaveExams = (): void => {
-  setImmediate(() => {
-    saveExamsToFile();
-  });
-};
-
-export const triggerSaveQuestions = (): void => {
-  setImmediate(() => {
-    saveQuestionsToFile();
-  });
-};
-
-export const triggerSaveStudentsExams = (): void => {
-  setImmediate(() => {
-    saveStudentsExamsToFile();
-  });
-};
-
-// Helper function to clean CPF
-export const cleanCPF = (cpf: string): string => {
-  return cpf.replace(/[.-]/g, '');
-};
+export const cleanCPF = (cpf: string): string => { return cpf.replace(/[.-]/g, ''); };
 
 // Helper functions for Exams manager
 export const getExamsForClass = (classId: string): ExamRecord[] => {
   return examsManager.getExamsByClassId(classId);
 };
 
-export const getStudentsWithExamsForClass = (
-  classId: string,
-  examId?: number
-): any[] => {
+export const getStudentsWithExamsForClass = (classId: string, examId?: number): any[] => {
   const classObj = classes.findClassById(classId);
-  if (!classObj) {
-    return [];
-  }
+  if (!classObj) return [];
   const enrolledStudents = classObj.getEnrolledStudents();
   return examsManager.getStudentsWithExams(classId, enrolledStudents, examId);
 };
@@ -348,10 +314,7 @@ export const addStudentExam = (studentExam: StudentExamRecord): void => {
   examsManager.addStudentExam(studentExam);
 };
 
-export const updateStudentExamAnswers = (
-  studentExamId: number,
-  answers: Array<{ questionId: number; answer: string }>
-): boolean => {
+export const updateStudentExamAnswers = (studentExamId: number, answers: Array<{ questionId: number; answer: string }>): boolean => {
   return examsManager.updateStudentExamAnswers(studentExamId, answers);
 };
 
@@ -368,94 +331,56 @@ export const getGenerationsForExam = (examId: number, classId: string): ExamGene
   return examGenerations.filter(g => g.examId === examId && g.classId === classId);
 };
 
-/**
- * Generate randomized student exams with different questions for each student
- * @param examId - The exam ID
- * @param classId - The class ID
- * @returns Array of generated student exam records
- */
 export const generateStudentExams = (examId: number, classId: string): StudentExamRecord[] => {
   try {
     const exam = examsManager.getExamById(examId);
-    if (!exam || exam.classId !== classId) {
-      throw new Error(`Exam ${examId} not found in class ${classId}`);
-    }
-
+    if (!exam || exam.classId !== classId) throw new Error(`Exam ${examId} not found in class ${classId}`);
+    
     const classObj = classes.findClassById(classId);
-    if (!classObj) {
-      throw new Error(`Class ${classId} not found`);
-    }
+    if (!classObj) throw new Error(`Class ${classId} not found`);
 
     const enrolledStudents = classObj.getEnrolledStudents();
     const generatedExams: StudentExamRecord[] = [];
-
-    // Get available questions
     const availableQuestions = questionsManager.getQuestionsByIds(exam.questions);
 
-    if (availableQuestions.length === 0) {
-      throw new Error(`No questions found for exam ${examId}`);
-    }
+    if (availableQuestions.length === 0) throw new Error(`No questions found for exam ${examId}`);
 
-    // Separate questions by type
     const openQuestions = availableQuestions.filter(q => q.type === 'open');
     const closedQuestions = availableQuestions.filter(q => q.type === 'closed');
 
-    // Validate we have enough questions
-    if (openQuestions.length < exam.openQuestions) {
-      throw new Error(
-        `Not enough open questions. Required: ${exam.openQuestions}, Available: ${openQuestions.length}`
-      );
-    }
+    if (openQuestions.length < exam.openQuestions) throw new Error(`Not enough open questions.`);
+    if (closedQuestions.length < exam.closedQuestions) throw new Error(`Not enough closed questions.`);
 
-    if (closedQuestions.length < exam.closedQuestions) {
-      throw new Error(
-        `Not enough closed questions. Required: ${exam.closedQuestions}, Available: ${closedQuestions.length}`
-      );
-    }
-
-    // Generate exam for each student
     enrolledStudents.forEach((student) => {
       const studentCPF = student.getCPF();
-      
-      // Check if student already has this exam
       const existingExam = examsManager.getAllStudentExams().find(
         se => se.examId === examId && se.studentCPF === studentCPF
       );
 
       if (existingExam) {
-        // Return existing exam without creating duplicate
         generatedExams.push(existingExam);
         return;
       }
 
-      // Shuffle and select random questions of each type
       const shuffledOpenQuestions = [...openQuestions].sort(() => Math.random() - 0.5);
       const shuffledClosedQuestions = [...closedQuestions].sort(() => Math.random() - 0.5);
+      const selectedQuestions = [
+          ...shuffledOpenQuestions.slice(0, exam.openQuestions), 
+          ...shuffledClosedQuestions.slice(0, exam.closedQuestions)
+      ];
 
-      const selectedOpenQuestions = shuffledOpenQuestions.slice(0, exam.openQuestions);
-      const selectedClosedQuestions = shuffledClosedQuestions.slice(0, exam.closedQuestions);
-
-      const selectedQuestions = [...selectedOpenQuestions, ...selectedClosedQuestions];
-
-      // Create student exam record
       const studentExamRecord: StudentExamRecord = {
-        id: Date.now() + Math.random(), // Generate unique ID
+        id: Date.now() + Math.random(),
         studentCPF: studentCPF,
         examId: examId,
-        answers: selectedQuestions.map(q => ({
-          questionId: q.id,
-          answer: '',
-        })),
+        answers: selectedQuestions.map(q => ({ questionId: q.id, answer: '' })),
       };
 
-      // Add to manager
       examsManager.addStudentExam(studentExamRecord);
       generatedExams.push(studentExamRecord);
     });
 
-    // Save to file
     triggerSaveStudentsExams();
-
     return generatedExams;
   } catch (error) {
     console.error('Error generating student exams:', error);
@@ -488,58 +413,13 @@ export const createQuestion = (input: CreateQuestionInput): QuestionRecord => {
 
 export const updateQuestion = (id: number, input: UpdateQuestionInput): QuestionRecord | undefined => {
   const updated = questionsManager.updateQuestion(id, input);
-  if (updated) {
-    triggerSaveQuestions();
-  }
+  if (updated) triggerSaveQuestions();
   return updated;
 };
 
 export const deleteQuestion = (id: number): boolean => {
   const removed = questionsManager.deleteQuestion(id);
-  if (removed) {
-    triggerSaveQuestions();
-  }
-  return removed;
-};
-
-export type { QuestionRecord, QuestionOptionRecord } from '../models/Questions';
-
-// Question helpers
-export const getAllQuestions = (): QuestionRecord[] => {
-  return questionsManager.getAllQuestions();
-};
-
-export const getQuestionById = (questionId: number): QuestionRecord | undefined => {
-  return questionsManager.getQuestionById(questionId);
-};
-
-export const getQuestionsByTopic = (topic: string): QuestionRecord[] => {
-  return questionsManager.getQuestionsByTopic(topic);
-};
-
-export const getQuestionsByIds = (ids: number[]): QuestionRecord[] => {
-  return questionsManager.getQuestionsByIds(ids);
-};
-
-export const createQuestion = (input: CreateQuestionInput): QuestionRecord => {
-  const question = questionsManager.addQuestion(input);
-  triggerSaveQuestions();
-  return question;
-};
-
-export const updateQuestion = (id: number, input: UpdateQuestionInput): QuestionRecord | undefined => {
-  const updated = questionsManager.updateQuestion(id, input);
-  if (updated) {
-    triggerSaveQuestions();
-  }
-  return updated;
-};
-
-export const deleteQuestion = (id: number): boolean => {
-  const removed = questionsManager.deleteQuestion(id);
-  if (removed) {
-    triggerSaveQuestions();
-  }
+  if (removed) triggerSaveQuestions();
   return removed;
 };
 
@@ -547,7 +427,6 @@ export function shuffleArray<T>(array: T[]): T[] {
     if (!Array.isArray(array) || array.length <= 1) {
         return array;
     }
-    
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
