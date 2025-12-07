@@ -9,16 +9,32 @@ import {
   addExam,
   triggerSaveExams,
   generateStudentExams,
-  questions, // <--- CORREÇÃO: Importando com o nome original para não quebrar o código do amigo
+  questions,
   addExamGeneration,
   getGenerationsForExam,
   ExamGenerationRecord,
   ExamVersionMap
 } from "../services/dataService";
 
+const formatDateExtended = (dateString: string) => {
+  if (!dateString) return '___ de _________________ de ______';
+  
+  try {
+      const [year, month, day] = dateString.split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      
+      return date.toLocaleDateString('pt-BR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+      });
+  } catch (e) {
+      return dateString;
+  }
+};
+
 const router = Router();
 
-// --- TIPOS E INTERFACES ---
 
 interface Question {
   id: number;
@@ -28,8 +44,6 @@ interface Question {
   options?: { id: number; option: string; isCorrect: boolean }[];
   answer?: string;
 }
-
-// --- SUAS FUNÇÕES AUXILIARES (HELPER FUNCTIONS) ---
 
 function shuffleArray<T>(array: T[]): T[] {
     const newArray = [...array];
@@ -49,16 +63,15 @@ const generateExamPDF = (
     examTitle: string,
     versionNumber: number, 
     questions: Question[], 
-    isGabarito: boolean
+    isGabarito: boolean,
+    dateString: string
 ): InstanceType<typeof PDFDocument> => {
-  // bufferPages: true permite acessar as páginas depois de geradas para por o rodapé
   const doc = new PDFDocument({ margin: 50, size: 'A4', bufferPages: true }); 
   const FONT_REGULAR = 'Times-Roman'; 
   const FONT_BOLD = 'Times-Bold';
 
   doc.font(FONT_REGULAR);
 
-  // --- CABEÇALHO (Página 1) ---
   doc.fontSize(16);
   doc.text(className, { align: 'center' });
   doc.text(examTitle, { align: 'center' });
@@ -70,7 +83,7 @@ const generateExamPDF = (
   doc.text('Universidade Federal de Pernambuco', { align: 'center' });
   doc.moveDown(0.5);
 
-  doc.text('___ de _________________ de ______', { align: 'center' });
+  doc.text(dateString, { align: 'center' });
   doc.moveDown(2);
 
   if (!isGabarito) {
@@ -85,11 +98,9 @@ const generateExamPDF = (
       doc.moveDown(2);
   }
 
-  // --- QUESTÕES ---
   doc.font(FONT_REGULAR).fontSize(12);
 
   questions.forEach((q, index) => {
-    // Se o cursor passou de 650, cria nova página para não quebrar a questão
     if (doc.y > 650) doc.addPage();
 
     doc.font(FONT_BOLD).text(`Questão ${index + 1}.`, { continued: true });
@@ -97,9 +108,8 @@ const generateExamPDF = (
     doc.moveDown(0.5);
 
     if (q.type === 'closed' && q.options) {
-        // Questão Fechada
         q.options.forEach((opt, idx) => {
-            if (doc.y > 720) doc.addPage(); // Verifica quebra nas opções
+            if (doc.y > 720) doc.addPage();
 
             const letra = String.fromCharCode(65 + idx);
             const isRight = isGabarito && opt.isCorrect;
@@ -113,20 +123,17 @@ const generateExamPDF = (
         });
         doc.moveDown(1.5);
     } else {
-        // Questão Aberta
         if (isGabarito) {
             doc.font(FONT_BOLD).text('Resposta Esperada:', { underline: true });
             doc.font(FONT_REGULAR).text(q.answer || 'Sem resposta cadastrada.');
             doc.moveDown(1.5);
         } else {
-            // Verifica espaço para as linhas de resposta
             if (doc.y > 600) doc.addPage();
 
             doc.moveDown(0.5);
             doc.font(FONT_BOLD).text('Resposta:');
             doc.moveDown(0.2);
             
-            // Desenha 5 linhas
             const linhas = 5;
             for(let l = 0; l < linhas; l++) {
                  doc.font(FONT_REGULAR).text('__________________________________________________________________________');
@@ -137,7 +144,6 @@ const generateExamPDF = (
     }
   });
 
-  // --- CAMPO DE NOME (Fim da Prova) ---
   if (!isGabarito) {
       if (doc.y > 700) doc.addPage();
       
@@ -146,48 +152,41 @@ const generateExamPDF = (
       doc.text('Aluno(a): _______________________________________________________________', { align: 'center' });
   }
 
-  // --- RODAPÉ (CORRIGIDO) ---
   const range = doc.bufferedPageRange(); 
   for (let i = 0; i < range.count; i++) {
       doc.switchToPage(i); 
 
-      // 1. Salva a margem atual
       const oldBottomMargin = doc.page.margins.bottom;
       
-      // 2. Zera a margem inferior para permitir escrita no rodapé sem criar nova página
       doc.page.margins.bottom = 0;
 
-      const bottom = doc.page.height - 30; // 30px da borda inferior
-      const right = doc.page.width - 50;   // Alinhado à direita com a margem lateral
+      const bottom = doc.page.height - 30;
+      const right = doc.page.width - 50;
       
       doc.font(FONT_REGULAR).fontSize(10);
       const text = `Tipo de Prova: ${versionNumber}`;
       const width = doc.widthOfString(text);
       
-      // Escreve o texto
       doc.text(text, right - width, bottom, { 
           lineBreak: false 
       });
 
-      // 3. Restaura a margem (boa prática, embora o loop vá para a próxima página logo em seguida)
       doc.page.margins.bottom = oldBottomMargin;
   }
 
   return doc;
 };
 
-// --- HANDLERS DAS SUAS ROTAS NOVAS ---
 
 const handleGetExamZIP = async (req: Request, res: Response) => {
   try {
     const { id } = req.params; 
-    const { classId } = req.query; 
+    const { classId, date } = req.query; 
     const quantity = parseInt(req.query.quantity as string, 10);
 
     if (isNaN(quantity) || quantity <= 0) return res.status(400).json({ error: 'Quantidade inválida.' });
     if (!classId || typeof classId !== 'string') return res.status(400).json({ error: 'classId é obrigatório.' });
 
-    // 1. Busca Definição
     const allExams = getExamsForClass(classId);
     const examIdNum = parseInt(id, 10); 
     const examDef = allExams.find(e => e.id === examIdNum);
@@ -197,14 +196,11 @@ const handleGetExamZIP = async (req: Request, res: Response) => {
         return res.status(400).json({ error: 'Esta prova não possui questões vinculadas.' });
     }
 
-    // --- DADOS PARA O CABEÇALHO ---
-    // Idealmente você buscaria o nome da turma no seu 'classes' service.
-    // Como solicitado na imagem, vou deixar hardcoded o que você pediu ou genérico
-    // Se você tiver o objeto da turma, use: const classObj = classes.find(...)
     const className = "Engenharia de Software e Sistemas"; 
     const teacherName = "Paulo Borba"; 
 
-    // 2. Prepara Registro
+    const formattedDate = formatDateExtended(date as string);
+
     const timestamp = new Date();
     const generationId = `${examIdNum}-${timestamp.getTime()}`; 
     
@@ -217,7 +213,6 @@ const handleGetExamZIP = async (req: Request, res: Response) => {
         versions: [] 
     };
 
-    // 3. ZIP Stream
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', `attachment; filename="Lote_${examDef.title}.zip"`);
 
@@ -227,10 +222,8 @@ const handleGetExamZIP = async (req: Request, res: Response) => {
 
     const originalQuestionsPool = questions.filter(q => examDef.questions.includes(q.id));
 
-    // 4. Loop de Geração
     for (let i = 1; i <= quantity; i++) {
         
-        // Randomização (Deep Copy + Shuffle)
         let versionQuestions: Question[] = JSON.parse(JSON.stringify(originalQuestionsPool));
         versionQuestions = shuffleArray(versionQuestions);
         versionQuestions.forEach(q => {
@@ -239,31 +232,30 @@ const handleGetExamZIP = async (req: Request, res: Response) => {
             }
         });
 
-        // GERA PDF PROVA (Passando os novos parâmetros de cabeçalho)
         const docProva = generateExamPDF(
             className, 
             teacherName, 
             examDef.title, 
             i, 
             versionQuestions, 
-            false
+            false,
+            formattedDate
         );
         archive.append(docProva as unknown as Readable, { name: `Provas/Prova_Tipo_${i}.pdf` });
         docProva.end();
 
-        // GERA PDF GABARITO
         const docGabarito = generateExamPDF(
             className, 
             teacherName, 
             examDef.title, 
             i, 
             versionQuestions, 
-            true
+            true,
+            formattedDate
         );
         archive.append(docGabarito as unknown as Readable, { name: `Gabaritos/Gabarito_Tipo_${i}.pdf` });
         docGabarito.end();
 
-        // Mapeamento
         const mapEntry: ExamVersionMap = {
             versionNumber: i,
             questions: versionQuestions.map((q, idx) => {
@@ -303,9 +295,6 @@ const handleGetGenerations = (req: Request, res: Response) => {
     res.json(generations);
 };
 
-// --- DEFINIÇÃO DAS ROTAS (ANTIGAS E NOVAS) ---
-
-// Rotas do Amigo (Mantidas intactas)
 router.get("/students", (req: Request, res: Response) => {
   try {
     const { classId, examId } = req.query;
@@ -405,11 +394,9 @@ router.post("/:examId/generate", (req: Request, res: Response) => {
   }
 });
 
-// Suas Rotas Novas
 router.get('/:id/zip', handleGetExamZIP);
 router.get('/:id/generations', handleGetGenerations);
 
-// Rota de Criação do Amigo (Agora corrigida com o import certo)
 router.post("/", (req: Request, res: Response) => {
   try {
     const {
@@ -436,7 +423,6 @@ router.post("/", (req: Request, res: Response) => {
 
     const examId = parseInt(codigoProva, 10) || Date.now();
 
-    // CORREÇÃO AQUI: Agora 'questions' existe e funciona!
     const questionsByTopic = questions.filter(q => q.topic === tema);
     
     if (questionsByTopic.length === 0) return res.status(400).json({ error: `No questions for topic: ${tema}` });
