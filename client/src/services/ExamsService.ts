@@ -189,9 +189,9 @@ class ExamsService {
     }
   }
 
-  public static async downloadExamsZIP(examId: string, quantity: number, classId: string): Promise<void> {
+  public static async downloadExamsZIP(examId: string, quantity: number, classId: string, date: string): Promise<void> {
         try {
-            const response = await fetch(`${ExamsService.apiUrl}/exams/${examId}/zip?quantity=${quantity}&classId=${classId}`, {
+            const response = await fetch(`${ExamsService.apiUrl}/exams/${examId}/zip?quantity=${quantity}&classId=${classId}&date=${date}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/zip',
