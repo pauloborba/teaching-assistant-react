@@ -23,7 +23,7 @@ export const ScriptAnswerService = {
 
   /** Fetch ScriptAnswers for a specific student */
   async getScriptAnswersByStudentId(studentId: string): Promise<ScriptAnswer[]> {
-    const res = await fetch(`${API_URL}/scripts/answers/${studentId}`);
+    const res = await fetch(`${API_URL}/scripts/answers/student/${studentId}`);
     if (!res.ok) throw new Error("Failed to fetch scriptAnswers by student");
     return res.json();
   },

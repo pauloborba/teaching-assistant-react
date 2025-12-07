@@ -547,6 +547,21 @@ app.get('/api/scripts/answers', (req: Request, res: Response) => {
   }
 });
 
+// --------------------------------------------------------------
+// GET /api/scripts/answers/student/:studentId → Answers for a student
+// --------------------------------------------------------------
+app.get('/api/scripts/answers/student/:studentId', (req: Request, res: Response) => {
+  const { studentId } = req.params;
+
+  const student = studentSet.findStudentByCPF(studentId);
+  if (!student) {
+    return res.status(404).json({ error: 'Student not found' });
+  }
+
+  const answers = scriptAnswerSet.findByStudentId(studentId);
+  return res.status(200).json(answers);
+});
+
 // GET /api/scripts/answers/:id  → get ONE answer by ID
 app.get('/api/scripts/answers/:id', (req: Request, res: Response) => {
   const { id } = req.params;
@@ -560,20 +575,6 @@ app.get('/api/scripts/answers/:id', (req: Request, res: Response) => {
 });
 
 
-// --------------------------------------------------------------
-// GET /api/scripts/answers/:studentId → Answers for a student
-// --------------------------------------------------------------
-app.get('/api/scripts/answers/:studentId', (req: Request, res: Response) => {
-  const { studentId } = req.params;
-
-  const student = studentSet.findStudentByCPF(studentId);
-  if (!student) {
-    return res.status(404).json({ error: 'Student not found' });
-  }
-
-  const answers = scriptAnswerSet.findByStudentId(studentId);
-  return res.status(200).json(answers);
-});
 
 // --------------------------------------------------------------
 // GET /api/scripts/answers/:id/tasks/:taskId → Get grade of task
@@ -671,6 +672,10 @@ app.put('/api/scripts/answers/:id/tasks/:taskId/comments', (req: Request, res: R
   return res.status(200).json({ taskId, comment });
 });
 
+// --------------------------------------------------------------
+// TASKS endpoints
+// --------------------------------------------------------------
+
 // POST /api/tasks => create new task
 app.post('/api/tasks', (req: Request, res: Response) =>{
   const task = taskset.addTask(req.body);
@@ -704,6 +709,10 @@ app.put('/api/tasks/:id', (req: Request, res: Response) => {
   if (!task) return res.status(404).json({ error: 'Task not found' });
   res.json(task.toJSON());
 });
+
+// --------------------------------------------------------------
+// SCRIPTS endpoints
+// --------------------------------------------------------------
 
 //POST /api/scripts - Create a new script
 app.post('/api/scripts', (req: Request, res: Response) => {
