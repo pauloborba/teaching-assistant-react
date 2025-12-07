@@ -13,6 +13,9 @@ export class ScriptAnswer {
     this.student = student;
     this.answers = answers || [];
     this.grade = grade;
+    if(grade && grade != "MA" && grade != "MPA" && grade != "MANA") {
+      throw new Error('Invalid grade value');
+    }
   }
 
 
@@ -74,6 +77,13 @@ toJSON() {
 
   
 // grade Management
+
+  updateGrade(grade: Grade | undefined) {
+    if(grade && grade != "MA" && grade != "MPA" && grade != "MANA") {
+      throw new Error('Invalid grade value');
+    }
+    this.grade = grade;
+  }
 
  private getNumberOfAnswersWithGrade(grade : Grade): number { 
     if (grade !== 'MANA' && grade !== 'MPA' && grade !== 'MA') {
