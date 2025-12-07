@@ -271,51 +271,51 @@ export default function ExamPage() {
             />
           </div>
         </div>
-
-        {tableLoading ? (
-          <p style={{ padding: "20px", textAlign: "center" }}>Carregando...</p>
-        ) : rows.length === 0 ? (
-          <p style={{ padding: "20px", textAlign: "center" }}>
-            Nenhuma prova encontrada.
-          </p>
-        ) : (
-          <CollapsibleTable
-            data-testid="exam-table"
-            columns={columns}
-            detailColumns={detailColumns}
-            rows={rows}
-            detailTitle="Questões"
-            computeDetailRow={(detail) => ({
-              ...detail,
-              total: detail.tipoQuestao === "Aberta" ? 2 : 1,
-            })}
-          />
-        )}
-        <ExamCreatePopup
-          isOpen={popupOpen}
-          onClose={() => setPopupOpen(false)}
-          onSubmit={handleCreateExam}
-          loading={loading}
-        />
-        {classID && (
-          <GeneratePDFButton
-            open={pdfDialogOpen}
-            onClose={() => setPdfDialogOpen(false)}
-            examId={selectedExamIdForPdf}
-            classId={classID}
-            defaultQuantity={rows.length > 0 ? rows.length : 30}
-          />
-        )}
-
-        <Alert //Alerta para criação da prova com exito ou não
-          data-testid={alertConfig.severity === "success" ? "alert-success" : "alert-error"}
-          message={alertConfig.message}
-          severity={alertConfig.severity}
-          autoHideDuration={3000}
-          open={alertConfig.open}
-          onClose={handleCloseAlert}
-        />
       </div>
+
+      {tableLoading ? (
+        <p style={{ padding: "20px", textAlign: "center" }}>Carregando...</p>
+      ) : rows.length === 0 ? (
+        <p style={{ padding: "20px", textAlign: "center" }}>
+          Nenhuma prova encontrada.
+        </p>
+      ) : (
+        <CollapsibleTable
+          data-testid="exam-table"
+          columns={columns}
+          detailColumns={detailColumns}
+          rows={rows}
+          detailTitle="Questões"
+          computeDetailRow={(detail) => ({
+            ...detail,
+            total: detail.tipoQuestao === "Aberta" ? 2 : 1,
+          })}
+        />
+      )}
+      <ExamCreatePopup
+        isOpen={popupOpen}
+        onClose={() => setPopupOpen(false)}
+        onSubmit={handleCreateExam}
+        loading={loading}
+      />
+      {classID && (
+        <GeneratePDFButton
+          open={pdfDialogOpen}
+          onClose={() => setPdfDialogOpen(false)}
+          examId={selectedExamIdForPdf}
+          classId={classID}
+          defaultQuantity={rows.length > 0 ? rows.length : 30}
+        />
+      )}
+
+      <Alert //Alerta para criação da prova com exito ou não
+        data-testid={alertConfig.severity === "success" ? "alert-success" : "alert-error"}
+        message={alertConfig.message}
+        severity={alertConfig.severity}
+        autoHideDuration={3000}
+        open={alertConfig.open}
+        onClose={handleCloseAlert}
+      />
     </div>
   );
 }
