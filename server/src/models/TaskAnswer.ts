@@ -34,10 +34,17 @@ export class TaskAnswer {
     };
   }
 
+  updateGrade(grade: Grade | undefined) {
+    if(grade && grade != "MA" && grade != "MPA" && grade != "MANA") {
+      throw new Error('Invalid grade value');
+    }
+    this.grade = grade;
+  }
+
   update(data: Partial<{task: any; answer : any; grade: any; comments: any }>) {
     if (data.task) this.task = Task.fromJSON(data.task);
     if (data.answer) this.answer = data.answer;
-    if (data.grade !== undefined) this.grade = data.grade;
+    if (data.grade !== undefined) this.updateGrade(data.grade);
     if (data.comments !== undefined) this.comments = data.comments;
   }
 
