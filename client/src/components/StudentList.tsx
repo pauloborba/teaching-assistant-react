@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Student } from '../types/Student';
 import { StudentStatus } from '../types/StudentStatusColor';
 import { studentService } from '../services/StudentService';
@@ -10,27 +10,16 @@ interface StudentListProps {
   onEditStudent: (student: Student) => void;
   onError: (errorMessage: string) => void;
   loading: boolean;
-  selectedClass?: { id: string } | null;
 }
 
 const StudentList: React.FC<StudentListProps> = ({ 
-  students, 
+  students,
+  studentsStatus,
   onStudentDeleted, 
   onEditStudent, 
   onError, 
   loading 
 }) => {
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalStudentName, setModalStudentName] = useState("");
-  const [modalStatus, setModalStatus] = useState<any>(null);
-
-  const handleOpenDetail = (student: Student, status: any) => {
-    setModalStudentName(student.name);
-    setModalStatus(status);
-    setModalOpen(true);
-  };
-
   const handleDelete = async (student: Student) => {
     if (window.confirm(`Are you sure you want to delete ${student.name}?`)) {
       try {
@@ -46,6 +35,19 @@ const StudentList: React.FC<StudentListProps> = ({
     onEditStudent(student);
   };
 
+  const getBorderColor = (cpf: string): string => {
+    if (!studentsStatus) return 'transparent';
+
+    const status = studentsStatus.find(s => s.student.cpf === cpf);
+    if (!status) return 'transparent';
+
+    if (status.statusColor === 'green') return '#22c55e';
+    if (status.statusColor === 'yellow') return '#eab308';
+    if (status.statusColor === 'red') return '#ef4444';
+
+    return 'transparent';
+  };
+
   if (loading) {
     return (
       <div className="students-list">
@@ -55,21 +57,9 @@ const StudentList: React.FC<StudentListProps> = ({
     );
   }
 
-  if (students.length === 0) {
-    return (
-      <div className="students-list">
-        <h2>Students (0)</h2>
-        <div className="no-students">
-          No students registered yet. Add your first student using the form above.
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="students-list">
       <h2>Students ({students.length})</h2>
-
       <div className="table-container">
         <table>
           <thead>
@@ -78,39 +68,26 @@ const StudentList: React.FC<StudentListProps> = ({
               <th>Name</th>
               <th>CPF</th>
               <th>Email</th>
-              <th>Academic Status</th>
               <th>Actions</th>
             </tr>
           </thead>
-
           <tbody>
             {students.map((student) => (
-              <tr key={student.cpf} data-testid={`student-row-${student.cpf}`}>
-                <td data-testid="student-name">{student.name}</td>
-                <td data-testid="student-cpf">{student.cpf}</td>
-                <td data-testid="student-email">{student.email}</td>
+              <tr 
+                key={student.cpf}
+                style={{ borderLeft: `6px solid ${getBorderColor(student.cpf)}` }}
+              >
+                <td></td>
+                <td>{student.name}</td>
+                <td>{student.cpf}</td>
+                <td>{student.email}</td>
                 <td>
-                  <button
-                    className="edit-btn"
-                    data-testid={`edit-student-${student.cpf}`}
-                    onClick={() => handleEdit(student)}
-                    title="Edit student"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="delete-btn"
-                    data-testid={`delete-student-${student.cpf}`}
-                    onClick={() => handleDelete(student)}
-                    title="Delete student"
-                  >
-                    Delete
-                  </button>
+                  <button className="edit-btn" onClick={() => handleEdit(student)}>Edit</button>
+                  <button className="delete-btn" onClick={() => handleDelete(student)}>Delete</button>
                 </td>
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
     </div>

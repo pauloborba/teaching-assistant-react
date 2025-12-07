@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { StudentSet } from './models/StudentSet';
 import { Student } from './models/Student';
-import { Evaluation, EVALUATION_GOALS } from './models/Evaluation';
+import { Evaluation } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import { Report } from './models/Report';

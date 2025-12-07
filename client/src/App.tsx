@@ -7,7 +7,6 @@ import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
-
 import './App.css';
 import StudentStatusService from './services/StudentStatusColorService';
 import { StudentStatus } from './types/StudentStatusColor';
@@ -161,7 +160,6 @@ const App: React.FC = () => {
                 onEditStudent={handleEditClick}
                 onError={handleError}
                 loading={loading}
-                selectedClass={selectedClass} // 🔥 NECESSÁRIO PARA A SUA FEATURE
               />
             </>
           )}
