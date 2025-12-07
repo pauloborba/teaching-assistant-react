@@ -10,27 +10,27 @@ import { Grade } from "../types/EspecificacaoDoCalculoDaMedia";
 const API_URL = "http://localhost:3005/api";
 
 // ----------------------------------------
-// ScriptAnswerService (REAL backend version)
+// ScriptAnswerService – UPDATED TO MATCH NEW ROUTES
 // ----------------------------------------
 
 export const ScriptAnswerService = {
   /** Fetch ALL ScriptAnswers */
   async getAllScriptAnswers(): Promise<ScriptAnswer[]> {
-    const res = await fetch(`${API_URL}/scriptAnswers`);
+    const res = await fetch(`${API_URL}/scripts/answers`);
     if (!res.ok) throw new Error("Failed to fetch scriptAnswers");
     return res.json();
   },
 
   /** Fetch ScriptAnswers for a specific student */
   async getScriptAnswersByStudentId(studentId: string): Promise<ScriptAnswer[]> {
-    const res = await fetch(`${API_URL}/scriptAnswers/student/${studentId}`);
+    const res = await fetch(`${API_URL}/scripts/answers/${studentId}`);
     if (!res.ok) throw new Error("Failed to fetch scriptAnswers by student");
     return res.json();
   },
 
   /** Create (or save) a ScriptAnswer */
   async saveScriptAnswer(scriptAnswer: ScriptAnswer): Promise<ScriptAnswer> {
-    const res = await fetch(`${API_URL}/scriptAnswers`, {
+    const res = await fetch(`${API_URL}/scripts/answers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(scriptAnswer)
@@ -41,12 +41,17 @@ export const ScriptAnswerService = {
   },
 
   /** Update only the GRADE of a ScriptAnswer */
-  async updateScriptAnswerGrade(req: UpdateSriptAnswerGradeRequest): Promise<ScriptAnswer> {
-    const res = await fetch(`${API_URL}/scriptAnswers/${req.scriptAnswerId}/grade`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ grade: req.grade })
-    });
+  async updateScriptAnswerGrade(
+    req: UpdateSriptAnswerGradeRequest
+  ): Promise<ScriptAnswer> {
+    const res = await fetch(
+      `${API_URL}/scripts/answers/${req.scriptAnswerId}/grade`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ grade: req.grade })
+      }
+    );
 
     if (!res.ok) throw new Error("Failed to update ScriptAnswer grade");
     return res.json();
@@ -68,10 +73,14 @@ export const ScriptAnswerService = {
   },
 
   /** Get the grade of a task inside a ScriptAnswer */
-  async getTaskAnswerGrade(scriptAnswerId: string, taskId: string): Promise<Grade | undefined> {
+  async getTaskAnswerGrade(
+    scriptAnswerId: string,
+    taskId: string
+  ): Promise<Grade | undefined> {
     const res = await fetch(
-      `${API_URL}/scriptAnswers/${scriptAnswerId}/tasks/${taskId}`
+      `${API_URL}/scripts/answers/${scriptAnswerId}/tasks/${taskId}`
     );
+
     if (res.status === 404) return undefined;
     if (!res.ok) throw new Error("Failed to fetch task grade");
 
@@ -80,9 +89,12 @@ export const ScriptAnswerService = {
   },
 
   /** Add comment to a ScriptAnswer */
-  async updateScriptAnswerComment(scriptAnswerId: string, comment: string): Promise<any> {
+  async updateScriptAnswerComment(
+    scriptAnswerId: string,
+    comment: string
+  ): Promise<any> {
     const res = await fetch(
-      `${API_URL}/scriptAnswers/${scriptAnswerId}/comments`,
+      `${API_URL}/scripts/answers/${scriptAnswerId}/comments`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -101,7 +113,7 @@ export const ScriptAnswerService = {
     comment: string
   ): Promise<any> {
     const res = await fetch(
-      `${API_URL}/scriptAnswers/${scriptAnswerId}/tasks/${taskId}/comments`,
+      `${API_URL}/scripts/answers/${scriptAnswerId}/tasks/${taskId}/comments`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
