@@ -36,7 +36,7 @@ defineFeature(feature, (test) => {
               questions: [1, 2].slice(0, qCount)
           }]);
 
-          Object.defineProperty(dataService, 'questions', { get: () => mockQuestionsDB, configurable: true });
+          (dataService.getQuestionsByIds as jest.Mock).mockReturnValue(mockQuestionsDB);
           (dataService.shuffleArray as jest.Mock).mockImplementation((arr) => arr);
           (dataService.addExamGeneration as jest.Mock).mockImplementation(() => {});
       });

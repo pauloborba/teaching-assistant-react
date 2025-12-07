@@ -54,7 +54,7 @@ describe('Service Tests: Exam Generation Routes (Robust)', () => {
         (dataService.getExamsForClass as jest.Mock).mockReturnValue([mockExam]);
         (dataService.addExamGeneration as jest.Mock).mockImplementation(() => {});
         (dataService.shuffleArray as jest.Mock).mockImplementation((arr) => arr);
-        Object.defineProperty(dataService, 'questions', { get: () => mockQuestions, configurable: true });
+        (dataService.getQuestionsByIds as jest.Mock).mockReturnValue(mockQuestions);
     });
 
     it('should generate a valid ZIP containing correct PDFs and content', async () => {
