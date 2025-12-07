@@ -4,12 +4,12 @@ export class StudentSet {
   private students: Student[] = [];
 
   constructor() {
-    // StudentSet is now independent of persistence
+    
   }
 
-  // Add a new student
+  
   addStudent(student: Student): Student {
-    // Check if CPF already exists (student.cpf is already clean)
+    
     if (this.findStudentByCPF(student.cpf)) {
       throw new Error('Student with this CPF already exists');
     }
@@ -18,7 +18,7 @@ export class StudentSet {
     return student;
   }
 
-  // Remove student by CPF (expects clean CPF)
+  
   removeStudent(cpf: string): boolean {
     const index = this.students.findIndex(s => s.cpf === cpf);
     
@@ -30,33 +30,33 @@ export class StudentSet {
     return true;
   }
 
-  // Update student by CPF
+  
   updateStudent(updatedStudent: Student): Student {
-    // updatedStudent.cpf is already clean
+    
     const existingStudent = this.findStudentByCPF(updatedStudent.cpf);
     
     if (!existingStudent) {
       throw new Error('Student not found');
     }
 
-    // Update basic fields only - evaluations are now handled through enrollments
+    
     existingStudent.name = updatedStudent.name;
     existingStudent.email = updatedStudent.email;
     
-    // CPF should not be updated as it's the identifier
+    
     
     return existingStudent;
-  }  // Find student by CPF (expects clean CPF)
+  }  
   findStudentByCPF(cpf: string): Student | undefined {
     return this.students.find(s => s.cpf === cpf);
   }
 
-  // Get all students
+  
   getAllStudents(): Student[] {
-    return [...this.students]; // Return a copy to prevent external modification
+    return [...this.students]; 
   }
 
-  // Get students count
+  
   getCount(): number {
     return this.students.length;
   }

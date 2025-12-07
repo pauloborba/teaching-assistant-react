@@ -1,21 +1,21 @@
 import { Given, When, Then, After, DataTable, setDefaultTimeout } from '@cucumber/cucumber';
 import expect from 'expect';
 
-// Set default timeout for all steps
-setDefaultTimeout(30 * 1000); // 30 seconds
+
+setDefaultTimeout(30 * 1000); 
 
 const serverUrl = 'http://localhost:3005';
 
-// Test data to clean up
+
 let testStudentCPF: string;
 let lastResponse: Response;
 
-// Only run this After hook for server-side tests by checking if we have a testStudentCPF
+
 After({ tags: '@server' }, async function () {
-  // Clean up test student if it exists
+  
   if (testStudentCPF) {
     try {
-      // testStudentCPF is already formatted, use it directly
+      
       await fetch(`${serverUrl}/api/students/${testStudentCPF}`, {
         method: 'DELETE'
       });
@@ -23,7 +23,7 @@ After({ tags: '@server' }, async function () {
     } catch (error) {
       console.log('Server cleanup: Student may not exist or server unavailable');
     }
-    testStudentCPF = ''; // Reset for next test
+    testStudentCPF = ''; 
   }
 });
 
@@ -39,24 +39,24 @@ Given('the server API is available', async function () {
 Given('there is no student with CPF {string} in the server', async function (cpf: string) {
   testStudentCPF = cpf;
   
-  // Try to delete the student if it exists (cleanup before test)
+
   try {
     await fetch(`${serverUrl}/api/students/${cpf}`, {
       method: 'DELETE'
     });
     console.log(`Server setup: Removed any existing student with CPF: ${cpf}`);
   } catch (error) {
-    // Student may not exist, which is fine
+    
   }
   
-  // Verify student doesn't exist
+  
   try {
     const response = await fetch(`${serverUrl}/api/students/${cpf}`);
     if (response.status === 200) {
       throw new Error(`Student with CPF ${cpf} already exists in the system`);
     }
   } catch (error) {
-    // Expected - student should not exist (404 or network error)
+    
     console.log(`Server setup: Confirmed student with CPF ${cpf} does not exist`);
   }
 });
@@ -93,13 +93,13 @@ Then('the request should be accepted successfully', async function () {
 Then('the server should have stored the student with:', async function (dataTable: DataTable) {
   const expectedData = dataTable.rowsHash();
   
-  // Fetch the student from the server to verify storage
+  
   const response = await fetch(`${serverUrl}/api/students/${expectedData.cpf}`);
   expect(response.status).toBe(200);
   
   const storedStudent = await response.json();
   
-  // Verify all fields match
+  
   expect(storedStudent.name).toBe(expectedData.name);
   expect(storedStudent.cpf).toBe(expectedData.cpf);
   expect(storedStudent.email).toBe(expectedData.email);

@@ -340,6 +340,23 @@ tbody tr:last-child td {
   padding: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   min-height: 400px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos específicos para a seção de flashcards */
+.tab-content > div[style*="padding"] {
+  animation: slideInDown 0.5s ease-out;
 }
 
 
@@ -1176,7 +1193,49 @@ tbody tr:last-child td {
   background-color: white;
   color: #374151;
   font-weight: 600;
+}
+
+/* ========== FLASHCARDS SEÇÃO DE ESTILOSS ========== */
+
+.flashcards-section {
+  padding: 0;
+}
+
+.section-header {
   text-align: center;
+  margin-bottom: 40px;
+  padding: 20px 0;
+  border-bottom: 3px solid #667eea;
+  animation: slideInDown 0.5s ease-out;
+}
+
+.section-header h2 {
+  font-size: 32px;
+  color: #667eea;
+  margin: 0 0 10px 0;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.section-header p {
+  font-size: 16px;
+  color: #999;
+  margin: 0;
+  font-weight: 400;
+}
+
+@media (max-width: 768px) {
+  .section-header h2 {
+    font-size: 24px;
+  }
+
+  .section-header p {
+    font-size: 14px;
+  }
+
+  .flashcards-section {
+    padding: 0;
+  }
 }
 
 .evaluation-select option[value="MA"] {

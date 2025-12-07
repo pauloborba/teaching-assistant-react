@@ -6,7 +6,7 @@ export class Student {
     public cpf: string,
     public email: string
   ) {
-    this.cpf = this.cleanCPF(cpf); // Store only clean CPF internally
+    this.cpf = this.cleanCPF(cpf); 
     this.validateCPF(this.cpf);
     this.validateEmail(email);
   }
@@ -28,17 +28,17 @@ export class Student {
     }
   }
 
-  // Format CPF for display (000.000.000-00)
+  
   getFormattedCPF(): string {
     return this.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }
 
-  // Get CPF (stored clean internally)
+  
   getCPF(): string {
     return this.cpf;
   }
 
-  // Convert to JSON for API responses
+  
   toJSON() {
     return {
       name: this.name,

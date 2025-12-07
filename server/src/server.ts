@@ -8,25 +8,25 @@ import { Class } from './models/Class';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// usado para ler arquivos em POST
+
 const multer = require('multer');
 
-// pasta usada para salvar os upload's feitos
+
 const upload_dir = multer({dest: 'tmp_data/'})
 
 const app = express();
 const PORT = 3005;
 
-// Middleware
+
 app.use(cors());
 app.use(express.json());
 
-// In-memory storage with file persistence
+
 const studentSet = new StudentSet();
 const classes = new Classes();
 const dataFile = path.resolve('./data/app-data.json');
 
-// Persistence functions
+
 const ensureDataDirectory = (): void => {
   const dataDir = path.dirname(dataFile);
   if (!fs.existsSync(dataDir)) {
@@ -60,17 +60,17 @@ const saveDataToFile = (): void => {
   }
 };
 
-// Load data from file
+
 const loadDataFromFile = (): void => {
   try {
     if (fs.existsSync(dataFile)) {
       const fileContent = fs.readFileSync(dataFile, 'utf-8');
       const data = JSON.parse(fileContent);
       
-      // Load students
+      
       if (data.students && Array.isArray(data.students)) {
         data.students.forEach((studentData: any) => {
-          // Create student with basic info only - evaluations handled through enrollments
+          
           const student = new Student(
             studentData.name,
             studentData.cpf,
@@ -85,21 +85,21 @@ const loadDataFromFile = (): void => {
         });
       }
 
-      // Load classes with enrollments
+      
       if (data.classes && Array.isArray(data.classes)) {
         data.classes.forEach((classData: any) => {
           try {
             const classObj = new Class(classData.topic, classData.semester, classData.year);
             classes.addClass(classObj);
 
-            // Load enrollments for this class
+            
             if (classData.enrollments && Array.isArray(classData.enrollments)) {
               classData.enrollments.forEach((enrollmentData: any) => {
                 const student = studentSet.findStudentByCPF(enrollmentData.studentCPF);
                 if (student) {
                   const enrollment = classObj.addEnrollment(student);
                   
-                  // Load evaluations for this enrollment
+                 
                   if (enrollmentData.evaluations && Array.isArray(enrollmentData.evaluations)) {
                     enrollmentData.evaluations.forEach((evalData: any) => {
                       const evaluation = Evaluation.fromJSON(evalData);
@@ -107,7 +107,7 @@ const loadDataFromFile = (): void => {
                     });
                   }
                     
-                    // Load medias and attendance status if provided in the data file
+                    
                     if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
                       enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
                     }
@@ -133,10 +133,10 @@ const loadDataFromFile = (): void => {
   }
 };
 
-// Test mode flag to disable file persistence
+
 const isTestMode = process.env.NODE_ENV === 'test';
 
-// Trigger save after any modification (async to not block operations)
+
 const triggerSave = (): void => {
   if (!isTestMode) {
     setImmediate(() => {
@@ -145,19 +145,19 @@ const triggerSave = (): void => {
   }
 };
 
-// Load existing data on startup (only in non-test mode)
+
 if (!isTestMode) {
   loadDataFromFile();
 }
 
-// Helper function to clean CPF
+
 const cleanCPF = (cpf: string): string => {
   return cpf.replace(/[.-]/g, '');
 };
 
-// Routes
 
-// GET /api/students - Get all students
+
+
 app.get('/api/students', (req: Request, res: Response) => {
   try {
     const students = studentSet.getAllStudents();
@@ -167,7 +167,7 @@ app.get('/api/students', (req: Request, res: Response) => {
   }
 });
 
-// POST /api/students - Add a new student
+
 app.post('/api/students', (req: Request, res: Response) => {
   try {
     const { name, cpf, email } = req.body;
@@ -176,17 +176,17 @@ app.post('/api/students', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Name, CPF, and email are required' });
     }
 
-    // Create student with basic information only - evaluations handled through enrollments
+    
     const student = new Student(name, cpf, email);
     const addedStudent = studentSet.addStudent(student);
-    triggerSave(); // Save to file after adding
+    triggerSave(); 
     res.status(201).json(addedStudent.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
 });
 
-// PUT /api/students/:cpf - Update a student
+
 app.put('/api/students/:cpf', (req: Request, res: Response) => {
   try {
     const { cpf } = req.params;
@@ -196,17 +196,17 @@ app.put('/api/students/:cpf', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Name and email are required for update' });
     }
     
-    // Create a Student object for update - evaluations handled through enrollments
+    
     const updatedStudent = new Student(name, cpf, email);
     const result = studentSet.updateStudent(updatedStudent);
-    triggerSave(); // Save to file after updating
+    triggerSave(); 
     res.json(result.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
 });
 
-// DELETE /api/students/:cpf - Delete a student
+
 app.delete('/api/students/:cpf', (req: Request, res: Response) => {
   try {
     const { cpf } = req.params;
@@ -217,52 +217,16 @@ app.delete('/api/students/:cpf', (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Student not found' });
     }
     
-    triggerSave(); // Save to file after deleting
+    triggerSave(); 
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
 });
 
-// PUT /api/students/:cpf/evaluation - Update a specific evaluation
-// DEPRECATED: Evaluations are now handled through class enrollments
-/*
-app.put('/api/students/:cpf/evaluation', (req: Request, res: Response) => {
-  try {
-    const { cpf } = req.params;
-    const { goal, grade } = req.body;
-    
-    if (!goal) {
-      return res.status(400).json({ error: 'Goal is required' });
-    }
-    
-    const cleanedCPF = cleanCPF(cpf);
-    const student = studentSet.findStudentByCPF(cleanedCPF);
-    
-    if (!student) {
-      return res.status(404).json({ error: 'Student not found' });
-    }
-    
-    if (grade === '' || grade === null || grade === undefined) {
-      // Remove evaluation
-      student.removeEvaluation(goal);
-    } else {
-      // Add or update evaluation
-      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
-        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
-      }
-      student.addOrUpdateEvaluation(goal, grade);
-    }
-    
-    triggerSave(); // Save to file after evaluation update
-    res.json(student.toJSON());
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
-  }
-});
-*/
 
-// GET /api/students/:cpf - Get a specific student
+
+
 app.get('/api/students/:cpf', (req: Request, res: Response) => {
   try {
     const { cpf } = req.params;
@@ -279,7 +243,7 @@ app.get('/api/students/:cpf', (req: Request, res: Response) => {
   }
 });
 
-// GET /api/classes - Get all classes
+
 app.get('/api/classes', (req: Request, res: Response) => {
   try {
     const allClasses = classes.getAllClasses();
@@ -289,7 +253,7 @@ app.get('/api/classes', (req: Request, res: Response) => {
   }
 });
 
-// POST /api/classes - Add a new class
+
 app.post('/api/classes', (req: Request, res: Response) => {
   try {
     const { topic, semester, year } = req.body;
@@ -300,14 +264,14 @@ app.post('/api/classes', (req: Request, res: Response) => {
 
     const classObj = new Class(topic, semester, year);
     const newClass = classes.addClass(classObj);
-    triggerSave(); // Save to file after adding class
+    triggerSave(); 
     res.status(201).json(newClass.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
 });
 
-// PUT /api/classes/:id - Update a class
+
 app.put('/api/classes/:id', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -322,19 +286,19 @@ app.put('/api/classes/:id', (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Class not found' });
     }
 
-    // Update the class directly using setters
+
     existingClass.setTopic(topic);
     existingClass.setSemester(semester);
     existingClass.setYear(year);
     
-    triggerSave(); // Save to file after updating class
+    triggerSave(); 
     res.json(existingClass.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
 });
 
-// DELETE /api/classes/:id - Delete a class
+
 app.delete('/api/classes/:id', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -344,14 +308,14 @@ app.delete('/api/classes/:id', (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Class not found' });
     }
     
-    triggerSave(); // Save to file after deleting class
+    triggerSave(); 
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
 });
 
-// POST /api/classes/:classId/enroll - Enroll a student in a class
+
 app.post('/api/classes/:classId/enroll', (req: Request, res: Response) => {
   try {
     const { classId } = req.params;
@@ -372,14 +336,14 @@ app.post('/api/classes/:classId/enroll', (req: Request, res: Response) => {
     }
 
     const enrollment = classObj.addEnrollment(student);
-    triggerSave(); // Save to file after enrolling student
+    triggerSave(); 
     res.status(201).json(enrollment.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
 });
 
-// DELETE /api/classes/:classId/enroll/:studentCPF - Remove student enrollment from a class
+
 app.delete('/api/classes/:classId/enroll/:studentCPF', (req: Request, res: Response) => {
   try {
     const { classId, studentCPF } = req.params;
@@ -396,14 +360,14 @@ app.delete('/api/classes/:classId/enroll/:studentCPF', (req: Request, res: Respo
       return res.status(404).json({ error: 'Student not enrolled in this class' });
     }
     
-    triggerSave(); // Save to file after unenrolling student
+    triggerSave(); 
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
 });
 
-// GET /api/classes/:classId/enrollments - Get all enrollments for a class
+
 app.get('/api/classes/:classId/enrollments', (req: Request, res: Response) => {
   try {
     const { classId } = req.params;
@@ -420,7 +384,7 @@ app.get('/api/classes/:classId/enrollments', (req: Request, res: Response) => {
   }
 });
 
-// GET /api/classes/:classId/enrollments/:studentCPF/evaluation - Get the student's average and final average for a class
+
 app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
   try {
     const { classId, studentCPF } = req.params;
@@ -449,7 +413,7 @@ app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
   }
 });
 
-// PUT /api/classes/:classId/enrollments/:studentCPF/evaluation - Update evaluation for an enrolled student
+
 app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
   try {
     const { classId, studentCPF } = req.params;
@@ -471,44 +435,39 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
     }
 
     if (grade === '' || grade === null || grade === undefined) {
-      // Remove evaluation
+      
       enrollment.removeEvaluation(goal);
     } else {
-      // Add or update evaluation
+      
       if (!['MANA', 'MPA', 'MA'].includes(grade)) {
         return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
       }
       enrollment.addOrUpdateEvaluation(goal, grade);
     }
 
-    triggerSave(); // Save to file after evaluation update
+    triggerSave(); 
     res.json(enrollment.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
 });
 
-// POST api/classes/gradeImport/:classId, usado na feature de importacao de grades
-// Vai ser usado em 2 fluxos(poderia ter divido em 2 endpoints mas preferi deixar em apenas 1)
-// [Front] Upload → [Back] lê só o cabeçalho e retorna colunas da planilha e os goals da 'classId'
-// [Front] Mapeia colunas da planilha para os goals → [Back] faz parse completo (stream)
+
 app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (req: express.Request, res: express.Response) => {
   res.status(501).json({ error: "Endpoint ainda não implementado." });
 });
 
 // --------------------------------------------
-// SEÇÃO ADICIONADA: FLASHCARDS
-// --------------------------------------------
+// FLASHCARDS
+
 import { FlashcardSet } from "./models/FlashcardSet";
 
 const flashcardSet = new FlashcardSet();
 
-// GET all flashcards
 app.get("/api/flashcards", (req, res) => {
   res.json(flashcardSet.getAll());
 });
 
-// POST create flashcard
 app.post("/api/flashcards", (req, res) => {
   const { front, back } = req.body;
   if (!front || !back) {
@@ -518,7 +477,6 @@ app.post("/api/flashcards", (req, res) => {
   res.status(201).json(card);
 });
 
-// DELETE flashcard
 app.delete("/api/flashcards/:id", (req, res) => {
   const id = Number(req.params.id);
   if (flashcardSet.delete(id)) {
@@ -530,10 +488,8 @@ app.delete("/api/flashcards/:id", (req, res) => {
 
 // --------------------------------------------
 
-// Export the app for testing
 export { app, studentSet, classes };
 
-// Only start the server if this file is run directly (not imported for testing)
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

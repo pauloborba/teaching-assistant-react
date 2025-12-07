@@ -1,0 +1,281 @@
+/* Animação ao carregar o container */
+.flashcard-container {
+  animation: slideInUp 0.5s ease-out;
+}
+
+/* Animação slide de baixo para cima */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Título da lista de flashcards */
+.list-title {
+  font-size: 20px;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 24px;
+  font-weight: 600;
+  padding-bottom: 16px;
+  border-bottom: 3px solid #667eea;
+}
+
+/* Estado vazio - quando não há flashcards */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+  border: 2px dashed #ccc;
+}
+
+/* Ícone do estado vazio */
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+/* Título do estado vazio */
+.empty-state h3 {
+  color: #666;
+  font-size: 22px;
+  margin: 0;
+}
+
+/* Descrição do estado vazio */
+.empty-state p {
+  color: #999;
+  font-size: 16px;
+  margin: 10px 0 0 0;
+}
+
+/* Grid de cards responsivo */
+.flashcards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+/* Responsivo para tablets */
+@media (max-width: 768px) {
+  .flashcards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+  }
+}
+
+/* Responsivo para celulares */
+@media (max-width: 480px) {
+  .flashcards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Wrapper do card com perspectiva 3D */
+.flashcard-wrapper {
+  perspective: 1000px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Animação de fade in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animação ao deletar o card */
+.flashcard-wrapper.deleting {
+  animation: slideOutRight 0.3s ease-out forwards;
+}
+
+/* Animação slide para a direita */
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100px) scale(0.9);
+  }
+}
+
+/* Efeito flip 3D do card */
+.flashcard {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  cursor: pointer;
+  transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transform-style: preserve-3d;
+  margin-bottom: 12px;
+}
+
+/* Rotação quando virado */
+.flashcard-wrapper.flipped .flashcard {
+  transform: rotateY(180deg);
+}
+
+/* Lados do card (frente e verso) */
+.flashcard-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* Frente do card - roxo */
+.flashcard-front {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* Verso do card - rosa/vermelho */
+.flashcard-back {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  transform: rotateY(180deg);
+}
+
+/* Sombra ao passar o mouse */
+.flashcard-wrapper:hover .flashcard-face {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* Conteúdo do card */
+.flashcard-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+}
+
+/* Texto do card */
+.flashcard-content p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Dica para virar o card */
+.flip-hint {
+  font-size: 12px;
+  opacity: 0.7;
+  font-weight: 400;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Animação de pulsação da dica */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Container dos botões de ação */
+.flashcard-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* Botão de deletar */
+.btn-delete {
+  flex: 1;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
+}
+
+/* Efeito hover do botão delete */
+.btn-delete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(255, 107, 107, 0.4);
+}
+
+/* Efeito ao clicar no botão delete */
+.btn-delete:active {
+  transform: translateY(0);
+}
+
+/* Scrollbar customizada para textos longos */
+.flashcard-content p::-webkit-scrollbar {
+  width: 6px;
+}
+
+.flashcard-content p::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.flashcard-content p::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.flashcard-content p::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsivo para celulares */
+@media (max-width: 480px) {
+  .flashcard {
+    height: 240px;
+  }
+
+  .flashcard-face {
+    padding: 20px;
+  }
+
+  .flashcard-content p {
+    font-size: 16px;
+  }
+
+  .btn-delete {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+}

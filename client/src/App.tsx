@@ -147,8 +147,11 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'flashcards' && (
-            <div style={{ padding: "20px" }}>
-              <h2>Flashcards</h2>
+            <div className="flashcards-section">
+              <div className="section-header">
+                <h2>📚 Meus Flashcards</h2>
+                <p>Aprenda e memorize com flashcards interativos</p>
+              </div>
 
               <FlashcardForm onAdd={addFlashcard} />
 
