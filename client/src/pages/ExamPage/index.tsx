@@ -350,7 +350,7 @@ export default function ExamPage() {
         <p style={{ padding: "20px", textAlign: "center" }}>Carregando...</p>
       ) : rows.length === 0 ? (
         <p style={{ padding: "20px", textAlign: "center" }}>
-          Nenhuma prova encontrada.
+          Nenhuma geração de prova encontrada.
         </p>
       ) : (
         <CollapsibleTable
