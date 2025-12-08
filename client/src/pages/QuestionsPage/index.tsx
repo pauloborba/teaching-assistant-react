@@ -262,7 +262,7 @@ const QuestionsPage: React.FC = () => {
       <section className="question-form">
         <h3>{form.id ? 'Edit question' : 'Create new question'}</h3>
         <form onSubmit={handleSubmit}>
-          <div className="form-row">
+          <div className="form-row form-row-textarea">
             <label htmlFor="question-text">Question</label>
               <textarea
                   id="question-text"
@@ -304,7 +304,7 @@ const QuestionsPage: React.FC = () => {
           </div>
 
           {form.type === 'open' && (
-            <div className="form-row">
+            <div className="form-row form-row-textarea">
               <label htmlFor="question-answer">Answer</label>
               <textarea
                 id="question-answer"
