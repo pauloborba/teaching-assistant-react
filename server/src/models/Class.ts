@@ -67,17 +67,18 @@ export class Class {
   getEspecificacaoDoCalculoDaMedia(): EspecificacaoDoCalculoDaMedia {
     return this.especificacaoDoCalculoDaMedia;
   }
-
-  /**
-   * Define as metas em lote. Só pode ser chamada uma vez; depois disso as metas ficam imutáveis.
-   * Lança Error se as metas já estiverem lockadas ou se o array for inválido.
-   */
+  
+  // Metas management
   setMetas(metas: string[]): void {
     if (this.metasLocked) {
       throw new Error('Metas já foram definidas para a turma e não podem ser alteradas!');
     }
     if (!Array.isArray(metas) || metas.length === 0) {
       throw new Error('As metas de uma turma não devem ser vazias!');
+    }
+    // Check for empty strings in metas
+    if (metas.some(m => !m || m.trim() === '')) {
+      throw new Error('Metas não podem ter títulos vazios!');
     }
     // verificar se array tem duplicatas
     const hasDuplicates = metas.length !== new Set(metas).size;

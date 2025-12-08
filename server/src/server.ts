@@ -360,13 +360,15 @@ app.delete('/api/classes/:id', (req: Request, res: Response) => {
 app.get('/api/classes/:id/metas', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const classObj = classes.findClassById(id);
-    // checar se a turma existe
-    if (!classObj) {
-      return res.status(404).json({ error: 'Class not found' });
+    try {
+      const metas = classes.getClassMetas(id);
+      res.json({ metas });
+    } catch (error) {
+      if ((error as Error).message === 'Class not found') {
+        return res.status(404).json({ error: 'Class not found' });
+      }
+      throw error;
     }
-    const metas = classObj.getMetas();
-    res.json({ metas });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
@@ -378,22 +380,17 @@ app.post('/api/classes/:id/metas', (req: Request, res: Response) => {
     const { id } = req.params;
     const { metas } = req.body;
 
-    // verificar se a turma existe
-    const classObj = classes.findClassById(id);
-    if (!classObj) {
-      return res.status(404).json({ error: 'Turma não encontrada!' });
-    }
-
     try {
-      classObj.setMetas(metas);
+      classes.addClassMetas(id, metas);
+      triggerSave(); // Save to file after adding metas
+      res.status(201).json({ message: 'Metas criadas com sucesso!' });
     } catch (err) {
-      return res.status(409).json({ error: (err as Error).message });
+      const errorMessage = (err as Error).message;
+      if (errorMessage === 'Turma não encontrada!') {
+        return res.status(404).json({ error: errorMessage });
+      }
+      return res.status(409).json({ error: errorMessage });
     }
-
-    triggerSave(); // Save to file after adding metas
-    
-    // retornar uma mensagem de metas criadas com sucesso
-    res.status(201).json({ message: 'Metas criadas com sucesso!' });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
