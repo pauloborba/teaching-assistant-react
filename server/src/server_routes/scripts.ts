@@ -10,7 +10,7 @@ export function setupScriptRoutes(app: Express, scripts: any) {
   });
 
   // GET /api/scripts/:id - Get one script by ID
-  app.get(scripturl+'/:id', (req: Request, res: Response) => {
+  app.get(scripturl+':id', (req: Request, res: Response) => {
     const { id } = req.params;
     const script = scripts.findById(id);
     if (!script) {
@@ -30,7 +30,7 @@ export function setupScriptRoutes(app: Express, scripts: any) {
   });
 
   // PUT /api/scripts/:id - Update a script
-  app.put(scripturl+'/:id', (req: Request, res: Response) => {
+  app.put(scripturl+':id', (req: Request, res: Response) => {
     const { id } = req.params;
     const script = scripts.updateScript(id, req.body);
 
