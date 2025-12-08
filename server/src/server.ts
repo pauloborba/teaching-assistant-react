@@ -532,10 +532,13 @@ export { app, studentSet, classes, scriptAnswerSet, taskset, scripts};
 import { setupScriptAnswerRoutes } from './server_routes/scriptanswer';
 import { setupTaskRoutes } from './server_routes/tasks';
 import { setupScriptRoutes } from './server_routes/scripts';
+import { loadMockScriptsAndAnswers } from './mock_scripts';
 
 setupScriptAnswerRoutes(app, scriptAnswerSet, studentSet);
 setupTaskRoutes(app, taskset);
 setupScriptRoutes(app, scripts);
+
+loadMockScriptsAndAnswers(taskset, scripts, scriptAnswerSet, "11111111111");
 
 // Only start the server if this file is run directly (not imported for testing)
 if (require.main === module) {
