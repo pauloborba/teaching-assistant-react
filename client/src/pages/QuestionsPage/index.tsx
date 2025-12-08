@@ -264,16 +264,15 @@ const QuestionsPage: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <label htmlFor="question-text">Question</label>
-            <input
-              id="question-text"
-              type="text"
-              value={form.question}
-              onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                setForm((prev: FormState) => ({ ...prev, question: event.target.value }))
-              }
-              placeholder="Enter question text"
-              required
-            />
+              <textarea
+                  id="question-text"
+                  value={form.question}
+                  onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+                    setForm((prev: FormState) => ({ ...prev, question: event.target.value }))
+                  }
+                  placeholder="Enter question text"
+                  required
+              />
           </div>
 
           <div className="form-row">
