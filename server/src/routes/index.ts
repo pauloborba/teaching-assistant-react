@@ -18,7 +18,10 @@ router.use(statsRoutes);
 // Question bank routes
 router.use('/questions', questionsRoutes);
 
-// Exams routes
+// Question bank routes
+router.use('/questions', questionsRoutes);
+
+// Exams routes (v1)
 router.use('/exams', examsRoutes);
 router.use(correctionRoutes);
 router.use('/exams', examPdfRoutes);

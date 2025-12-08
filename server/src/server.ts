@@ -3,7 +3,7 @@ import cors from 'cors';
 import { Student } from './models/Student';
 import { Class } from './models/Class';
 import routes from './routes';
-import { studentSet, classes, triggerSave, cleanCPF, loadAllData } from './services/dataService';
+import { studentSet, classes, triggerSave, cleanCPF, loadAllData, examsManager } from './services/dataService';
 
 const app = express();
 const PORT = 3005;
@@ -14,6 +14,7 @@ app.use(express.json());
 
 // Load existing data on startup
 loadAllData();
+console.log(`Server loaded ${examsManager.getAllExams().length} exams on startup`);
 
 // Routes
 

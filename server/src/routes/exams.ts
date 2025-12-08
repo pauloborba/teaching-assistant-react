@@ -17,10 +17,13 @@ import {
   shuffleArray,
   getQuestionsByIds,
   QuestionRecord,
-  examsManager,
   deleteExam,
   getExamById,
+  examsManager,
   triggerSaveStudentsExams,
+  cleanCPF,
+  addStudentExam,
+  questions,
 } from "../services/dataService";
 
 const formatDateExtended = (dateString: string) => {
@@ -615,6 +618,172 @@ router.delete("/:examId", (req: Request, res: Response) => {
       error: "Internal server error",
       message: error instanceof Error ? error.message : "Unknown error",
     });
+  }
+});
+
+router.get('/:examId', (req: Request, res: Response) => {
+  try {
+    const { examId } = req.params;
+        const examIdNum = parseInt(examId, 10);
+        let exam: any | undefined;
+        if (!isNaN(examIdNum)) {
+          exam = examsManager.getExamById(examIdNum);
+        }
+        if (!exam) {
+          // fallback: search by title
+          exam = examsManager.getAllExams().find(e => e.title === examId || String(e.id) === examId);
+        }
+
+    if (!exam) {
+      return res.status(404).json({ error: 'Exam not found' });
+    }
+
+    res.json(exam);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch exam' });
+  }
+});
+
+/**
+ * GET /api/v1/exams/:examId/questions
+ * Return question objects for an exam
+ */
+router.get('/:examId/questions', (req: Request, res: Response) => {
+  try {
+    const { examId } = req.params;
+    const examIdNum = parseInt(examId, 10);
+    let exam: any | undefined;
+    if (!isNaN(examIdNum)) {
+      exam = examsManager.getExamById(examIdNum);
+    }
+    if (!exam) {
+      exam = examsManager.getAllExams().find(e => e.title === examId || String(e.id) === examId);
+    }
+    if (!exam) {
+      return res.status(404).json({ error: 'Exam not found' });
+    }
+
+    const qIds: number[] = (exam as any).questions || [];
+    const examQuestions = questions.filter(q => qIds.includes((q as any).id));
+    res.json(examQuestions);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch exam questions' });
+  }
+});
+
+/**
+ * GET /api/v1/exams/:examId/responses
+ * Return responses submitted for an exam (teachers/professors)
+ */
+router.get('/:examId/responses', (req: Request, res: Response) => {
+  try {
+    const { examId } = req.params;
+    const auth = (req.headers.authorization || '') as string;
+
+    // Basic auth-role handling (no real JWT parsing here): require token and restrict to professor-like tokens
+    if (!auth) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const token = auth.split(' ')[1] || '';
+    if (!token.toLowerCase().includes('prof') && !token.toLowerCase().includes('teacher')) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const examIdNumParsed = parseInt(examId, 10);
+    let exam: any | undefined;
+    if (!isNaN(examIdNumParsed)) {
+      exam = examsManager.getExamById(examIdNumParsed);
+    }
+    if (!exam) {
+      exam = examsManager.getAllExams().find(e => e.title === examId || String(e.id) === examId);
+    }
+    if (!exam) {
+      return res.status(404).json({ error: 'Exam not found' });
+    }
+
+    const examIdNum = (exam as any).id;
+    const allStudentExams = examsManager.getAllStudentExams ? examsManager.getAllStudentExams() : [];
+    const responses = allStudentExams.filter((se: any) => se.examId === examIdNum);
+    res.json(responses);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch responses' });
+  }
+});
+
+/**
+ * POST /api/v1/exams/:examId/responses
+ * Submit student responses for an exam
+ */
+router.post('/:examId/responses', (req: Request, res: Response) => {
+  try {
+    const { examId } = req.params;
+    const auth = (req.headers.authorization || '') as string;
+
+    // Basic auth-role handling (no real JWT parsing here): require token and forbid professor role
+    if (!auth) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const token = auth.split(' ')[1] || '';
+    if (token.toLowerCase().includes('prof') || token.toLowerCase().includes('professor')) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const examIdNumParsed = parseInt(examId, 10);
+    let exam: any | undefined;
+    if (!isNaN(examIdNumParsed)) {
+      exam = examsManager.getExamById(examIdNumParsed);
+    }
+    if (!exam) {
+      exam = examsManager.getAllExams().find(e => e.title === examId || String(e.id) === examId);
+    }
+    if (!exam) {
+      return res.status(404).json({ error: 'Exam not found' });
+    }
+
+    // Treat isValid=false as closed/expired
+    if ((exam as any).isValid === false) {
+      return res.status(410).json({ error: 'Exam submission period has ended.' });
+    }
+
+    const { studentCpf, answers } = req.body as { studentCpf?: string; answers?: any[] };
+
+    if (!studentCpf || !answers || !Array.isArray(answers)) {
+      return res.status(400).json({ message: 'Invalid request payload' });
+    }
+
+    // Validate all answers present and non-empty
+    const incomplete = answers.some(a => a.answer === null || a.answer === undefined || String(a.answer).trim() === '');
+    if (incomplete) {
+      return res.status(400).json({ message: 'Please answer all questions before submitting.' });
+    }
+
+    // Persist student exam using examsManager helpers
+    const allStudentExams = examsManager.getAllStudentExams ? examsManager.getAllStudentExams() : [];
+    const nextId = allStudentExams.length > 0 ? Math.max(...allStudentExams.map((se: any) => se.id)) + 1 : 1;
+
+    const studentExam = {
+      id: nextId,
+      studentCPF: cleanCPF(studentCpf),
+      examId: (exam as any).id,
+      answers,
+    };
+
+    try {
+      addStudentExam(studentExam as any);
+      triggerSaveStudentsExams();
+
+      return res.status(201).json({ message: 'Response submitted successfully', data: studentExam });
+    } catch (err) {
+      if (err instanceof Error && err.message === 'StudentAlreadySubmitted') {
+        return res.status(409).json({ message: 'Você já respondeu essa prova' });
+      }
+      console.error('Error submitting responses:', err);
+      return res.status(500).json({ error: 'Failed to submit responses' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to submit responses' });
   }
 });
 

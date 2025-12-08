@@ -52,6 +52,8 @@ export interface ExamGenerationRecord {
 export const studentSet = new StudentSet();
 export const classes = new Classes();
 export const examsManager = new Exams();
+export const questions: Question[] = [];
+export const responses: any[] = [];
 export const questionsManager = new Questions();
 export const examGenerations: ExamGenerationRecord[] = [];
 
@@ -60,6 +62,7 @@ export const dataFile = path.resolve('./data/app-data.json');
 export const examsFile = path.resolve('./data/exams.json');
 export const questionsFile = path.resolve('./data/questions.json');
 export const studentsExamsFile = path.resolve('./data/students-exams.json');
+export const responsesFile = path.resolve('./data/responses.json');
 export const generationsFile = path.resolve('./data/exam-generations.json');
 
 // Persistence functions
@@ -131,6 +134,19 @@ export const saveStudentsExamsToFile = (): void => {
   }
 };
 
+export const saveResponsesToFile = (): void => {
+  try {
+    const data = {
+      responses: responses
+    };
+
+    ensureDataDirectory(responsesFile);
+    fs.writeFileSync(responsesFile, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error saving responses to file:', error);
+  }
+};
+
 // Load data from file
 export const loadDataFromFile = (): void => {
   try {
@@ -197,6 +213,9 @@ export const loadExamsFromFile = (): void => {
         data.exams.forEach((exam: ExamRecord) => {
           examsManager.addExam(exam);
         });
+        console.log(`Loaded ${data.exams.length} exams from ${examsFile}`);
+      } else {
+        console.log(`No exams found in ${examsFile}`);
       }
     }
   } catch (error) {
@@ -211,7 +230,12 @@ export const loadQuestionsFromFile = (): void => {
       const data = JSON.parse(fileContent);
 
       const loaded = Questions.fromJSON(data);
-      questionsManager.replaceAll(loaded.getAllQuestions());
+      const all = loaded.getAllQuestions();
+      questionsManager.replaceAll(all);
+
+      // Keep exported `questions` array in sync for routes/components that use it
+      questions.length = 0;
+      questions.push(...all);
     }
   } catch (error) {
     console.error('Error loading questions from file:', error);
@@ -232,6 +256,22 @@ export const loadStudentsExamsFromFile = (): void => {
     }
   } catch (error) {
     console.error('Error loading students exams from file:', error);
+  }
+};
+
+export const loadResponsesFromFile = (): void => {
+  try {
+    if (fs.existsSync(responsesFile)) {
+      const fileContent = fs.readFileSync(responsesFile, 'utf-8');
+      const data = JSON.parse(fileContent);
+
+      if (data.responses && Array.isArray(data.responses)) {
+        responses.length = 0;
+        responses.push(...data.responses);
+      }
+    }
+  } catch (error) {
+    console.error('Error loading responses from file:', error);
   }
 };
 
@@ -272,15 +312,42 @@ export const loadAllData = (): void => {
   loadExamsFromFile();
   loadQuestionsFromFile();
   loadStudentsExamsFromFile();
+  loadResponsesFromFile();
   loadGenerationsFromFile();
 };
 
 export const triggerSave = (): void => { setImmediate(() => { saveDataToFile(); }); };
-export const triggerSaveExams = (): void => { setImmediate(() => { saveExamsToFile(); }); };
-export const triggerSaveQuestions = (): void => { setImmediate(() => { saveQuestionsToFile(); }); };
-export const triggerSaveStudentsExams = (): void => { setImmediate(() => { saveStudentsExamsToFile(); }); };
 
-export const cleanCPF = (cpf: string): string => { return cpf.replace(/[.-]/g, ''); };
+export const triggerSaveExams = (): void => {
+  setImmediate(() => {
+    saveExamsToFile();
+  });
+};
+
+export const triggerSaveQuestions = (): void => {
+  setImmediate(() => {
+    saveQuestionsToFile();
+  });
+};
+
+export const triggerSaveStudentsExams = (): void => {
+  // Deprecated: keep function for compatibility but persist responses only
+  setImmediate(() => {
+    // Save to responses.json instead of students-exams.json
+    saveResponsesToFile();
+  });
+};
+
+export const triggerSaveResponses = (): void => {
+  setImmediate(() => {
+    saveResponsesToFile();
+  });
+};
+
+// Helper function to clean CPF
+export const cleanCPF = (cpf: string): string => {
+  return cpf.replace(/[.-]/g, '');
+};
 
 // Helper functions for Exams manager
 export const getExamsForClass = (classId: string): ExamRecord[] => {
@@ -311,7 +378,49 @@ export const deleteExam = (examId: number): boolean => {
 };
 
 export const addStudentExam = (studentExam: StudentExamRecord): void => {
-  examsManager.addStudentExam(studentExam);
+  // Prevent a student from submitting more than once for the same exam
+  try {
+    const studentCPF = cleanCPF(String(studentExam.studentCPF));
+
+    const alreadyInResponses = responses.some(r => {
+      try {
+        return cleanCPF(String(r.studentCPF)) === studentCPF && r.examId === studentExam.examId;
+      } catch (e) {
+        return false;
+      }
+    });
+
+    const allStudentExams = examsManager.getAllStudentExams ? examsManager.getAllStudentExams() : [];
+    const alreadyInManager = allStudentExams.some((se: any) => {
+      try {
+        return cleanCPF(String(se.studentCPF)) === studentCPF && se.examId === studentExam.examId;
+      } catch (e) {
+        return false;
+      }
+    });
+
+    if (alreadyInResponses || alreadyInManager) {
+      throw new Error('StudentAlreadySubmitted');
+    }
+
+    // Add to exams manager and persist a simplified responses record
+    examsManager.addStudentExam(studentExam);
+
+    responses.push({
+      id: studentExam.id,
+      studentCPF: studentExam.studentCPF,
+      examId: studentExam.examId,
+      answers: studentExam.answers,
+      timestamp: new Date().toISOString()
+    });
+    triggerSaveResponses();
+  } catch (error) {
+    if ((error as Error).message === 'StudentAlreadySubmitted') {
+      throw error; // rethrow so callers can handle and return 409
+    }
+    console.error('Error adding student exam to responses:', error);
+    throw error;
+  }
 };
 
 export const updateStudentExamAnswers = (studentExamId: number, answers: Array<{ questionId: number; answer: string }>): boolean => {

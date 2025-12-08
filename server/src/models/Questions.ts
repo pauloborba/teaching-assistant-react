@@ -1,6 +1,10 @@
 export type QuestionType = 'open' | 'closed';
 
 export interface QuestionOptionRecord {
+  question: any;
+  type: string;
+  options: boolean;
+  answer: string;
   id: number;
   option: string;
   isCorrect: boolean;

@@ -5,6 +5,7 @@ import './styles/variables.css';
 import App from './App';
 import ExamplePage from './pages/ExamplePage';
 import ExamPage from './pages/ExamPage';
+import ExamResponse from './pages/ExamResponse';
 import Correction from './pages/Correction';
 import PdfExamplePage from './pages/PdfExamplePage';
 
@@ -23,6 +24,7 @@ root.render(
         <Route path="/example" element={<ExamplePage />} />
 
         {/* Adicione mais rotas aqui conforme necessário */}
+        <Route path='/examResponse' element={<ExamResponse />}/>
         <Route path='/correction/:id' element={<Correction />} />
         <Route path="/exam/:id" element={<ExamPage />} />
         <Route path="/pdf-example" element={<PdfExamplePage />} />
