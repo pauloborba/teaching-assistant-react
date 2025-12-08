@@ -21,6 +21,24 @@ const serverUrl = 'http://localhost:3005';
 
 // Test data to clean up
 let testStudentCPF: string;
+let testQuestionText: string | null = null;
+
+const fetchAllQuestions = async (): Promise<any[]> => {
+  const response = await fetch(`${serverUrl}/api/questions`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch questions for cleanup');
+  }
+  const body = await response.json();
+  return Array.isArray(body.data) ? body.data : [];
+};
+
+const deleteQuestionByText = async (questionText: string): Promise<void> => {
+  const allQuestions = await fetchAllQuestions();
+  const target = allQuestions.find((question: any) => (question.question || '').trim() === questionText.trim());
+  if (target) {
+    await fetch(`${serverUrl}/api/questions/${target.id}`, { method: 'DELETE' });
+  }
+};
 
 Before({ tags: '@gui' }, async function () {
   browser = await launch({ 
@@ -67,6 +85,17 @@ After({ tags: '@gui' }, async function () {
       }
     } catch (error) {
       console.log('GUI cleanup: Student may not exist or GUI unavailable');
+    }
+  }
+
+  if (testQuestionText) {
+    try {
+      await deleteQuestionByText(testQuestionText);
+      console.log(`GUI cleanup: Removed test question "${testQuestionText}"`);
+    } catch (error) {
+      console.log('GUI cleanup: Question may not exist or server unavailable');
+    } finally {
+      testQuestionText = null;
     }
   }
   
@@ -265,4 +294,100 @@ Then('the student should have email {string}', async function (expectedEmail: st
   const emailCell = await foundStudent!.$('[data-testid="student-email"]');
   const actualEmail = await page.evaluate(el => el.textContent, emailCell!);
   expect(actualEmail).toBe(expectedEmail);
+});
+
+Given('there is no question with text {string} in the system', async function (questionText: string) {
+  testQuestionText = questionText;
+  await deleteQuestionByText(questionText);
+});
+
+When('I navigate to the Questions area', async function () {
+  await page.waitForSelector('[data-testid="questions-tab"]', { timeout: 10000 });
+  const questionsTab = await page.$('[data-testid="questions-tab"]');
+  if (!questionsTab) {
+    throw new Error('Questions tab not found');
+  }
+
+  const isActive = await page.evaluate(el => el.classList.contains('active'), questionsTab);
+  if (!isActive) {
+    await questionsTab.click();
+  }
+
+  await page.waitForSelector('[data-testid="question-form"]', { timeout: 10000 });
+});
+
+When('I fill the question form with:', async function (dataTable: DataTable) {
+  const data = dataTable.rowsHash();
+  const questionType = (data.type || 'open').toLowerCase();
+
+  if (data.question) {
+    await page.waitForSelector('#question-text', { timeout: 5000 });
+    await page.click('#question-text', { clickCount: 3 });
+    await page.type('#question-text', data.question);
+    testQuestionText = data.question;
+  }
+
+  if (data.topic) {
+    await page.click('#question-topic', { clickCount: 3 });
+    await page.type('#question-topic', data.topic);
+  }
+
+  await page.select('#question-type', questionType);
+
+  if (questionType === 'open') {
+    if (data.answer) {
+      await page.waitForSelector('#question-answer', { timeout: 5000 });
+      await page.click('#question-answer', { clickCount: 3 });
+      await page.type('#question-answer', data.answer);
+    }
+  } else {
+    const optionEntries = Object.entries(data)
+      .filter(([key]) => key.toLowerCase().startsWith('option'))
+      .sort(([a], [b]) => a.localeCompare(b));
+
+    for (const [key, value] of optionEntries) {
+      const index = parseInt(key.replace(/[^0-9]/g, ''), 10);
+      if (Number.isNaN(index) || !value) continue;
+      const selector = `.options-list input[placeholder="Option ${index}"]`;
+      await page.waitForSelector(selector, { timeout: 5000 });
+      await page.click(selector, { clickCount: 3 });
+      await page.type(selector, value as string);
+    }
+
+    const correctIndex = parseInt(String(data.correct || data.correctOption || '1'), 10) || 1;
+    const checkboxSelector = `.options-list .option-item:nth-child(${correctIndex}) input[type="checkbox"]`;
+    const checkbox = await page.$(checkboxSelector);
+    if (checkbox) {
+      const isChecked = await page.evaluate(el => (el as HTMLInputElement).checked, checkbox);
+      if (!isChecked) {
+        await checkbox.click();
+      }
+    }
+  }
+});
+
+When('I submit the question form', async function () {
+  const submitButton = await page.$('[data-testid="question-submit-button"]');
+  expect(submitButton).toBeTruthy();
+  await submitButton!.click();
+  await page.waitForTimeout(1500);
+});
+
+Then('I should see {string} in the question bank list', async function (questionText: string) {
+  await page.waitForSelector('[data-testid="questions-table"] tbody', { timeout: 10000 });
+  const rows = await page.$$('[data-testid^="question-row-"]');
+  let found = false;
+
+  for (const row of rows) {
+    const questionCell = await row.$('[data-testid="question-text"]');
+    if (questionCell) {
+      const text = await page.evaluate(el => el.textContent?.trim() || '', questionCell);
+      if (text === questionText) {
+        found = true;
+        break;
+      }
+    }
+  }
+
+  expect(found).toBeTruthy();
 });

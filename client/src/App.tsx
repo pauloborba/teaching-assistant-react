@@ -155,6 +155,7 @@ const App: React.FC = () => {
           <button
             className={`tab-button ${activeTab === 'questions' ? 'active' : ''}`}
             onClick={() => setActiveTab('questions')}
+            data-testid="questions-tab"
           >
             Questions
           </button>
