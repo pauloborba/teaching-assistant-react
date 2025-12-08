@@ -40,6 +40,60 @@ const ensureDataDirectory = (): void => {
 };
 
 const saveDataToFile = (): void => {
+<<<<<<< HEAD
+  try {
+    const data = {
+      students: studentSet.getAllStudents().map(student => ({
+        name: student.name,
+        cpf: student.getCPF(),
+        email: student.email
+      })),
+      classes: classes.getAllClasses().map(classObj => ({
+        topic: classObj.getTopic(),
+        semester: classObj.getSemester(),
+        year: classObj.getYear(),
+        especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
+        enrollments: classObj.getEnrollments().map(enrollment => ({
+          studentCPF: enrollment.getStudent().getCPF(),
+          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+          mediaPreFinal: enrollment.getMediaPreFinal(),
+          mediaPosFinal: enrollment.getMediaPosFinal(),
+          reprovadoPorFalta: enrollment.getReprovadoPorFalta()
+        }))
+      }))
+    };
+
+    ensureDataDirectory();
+    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error saving students to file:', error);
+  }
+||||||| 4536175
+  try {
+    const data = {
+      students: studentSet.getAllStudents().map(student => ({
+        name: student.name,
+        cpf: student.getCPF(),
+        email: student.email
+      })),
+      classes: classes.getAllClasses().map(classObj => ({
+        topic: classObj.getTopic(),
+        semester: classObj.getSemester(),
+        year: classObj.getYear(),
+        especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
+        enrollments: classObj.getEnrollments().map(enrollment => ({
+          studentCPF: enrollment.getStudent().getCPF(),
+          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
+        }))
+      }))
+    };
+
+    ensureDataDirectory();
+    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error saving students to file:', error);
+  }
+=======
         try {
                 const data = {
                         students: studentSet.getAllStudents().map(student => ({
@@ -54,10 +108,7 @@ const saveDataToFile = (): void => {
                                 especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
                                 enrollments: classObj.getEnrollments().map(enrollment => ({
                                         studentCPF: enrollment.getStudent().getCPF(),
-                                        evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
-                                  mediaPreFinal: enrollment.getMediaPreFinal(),
-                                  mediaPosFinal: enrollment.getMediaPosFinal(),
-                                  reprovadoPorFalta: enrollment.getReprovadoPorFalta()
+                                        evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
                                 }))
                         }))
                 };
@@ -67,6 +118,7 @@ const saveDataToFile = (): void => {
         } catch (error) {
                 console.error('Error saving students to file:', error);
         }
+>>>>>>> origin
 };
 
 // Load data from file

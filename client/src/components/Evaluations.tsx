@@ -158,6 +158,9 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                   {evaluationGoals.map(goal => (
                     <th key={goal} className="goal-header">{goal}</th>
                   ))}
+                <th className="average-header">Average</th>
+                <th className="final-header">Final</th>
+                <th className="final-average-header">Final Average</th>
                 </tr>
               </thead>
               <tbody>
@@ -169,6 +172,13 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                     acc[evaluation.goal] = evaluation.grade;
                     return acc;
                   }, {} as {[goal: string]: string});
+
+                  // Final exam grade is stored as an evaluation with goal 'Final'
+                  const currentFinalGrade = studentEvaluations['Final'] || '';
+
+                  // Determine whether final select should be disabled:
+                  const mediaPreFinalIsNumber = typeof enrollment.mediaPreFinal === 'number' && !isNaN(enrollment.mediaPreFinal);
+                  const disableFinal = !mediaPreFinalIsNumber || (mediaPreFinalIsNumber && enrollment.mediaPreFinal! >= 7);
 
                   return (
                     <tr key={student.cpf} className="student-row">
@@ -191,6 +201,36 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                           </td>
                         );
                       })}
+                      <td className="average-cell">
+                        {typeof enrollment.mediaPreFinal === 'number' && !isNaN(enrollment.mediaPreFinal)
+                          ? enrollment.mediaPreFinal.toFixed(1)
+                          : '-'}
+                      </td>
+                      <td className="final-cell">
+                      <select
+                        value={disableFinal ? '' : currentFinalGrade}
+                        onChange={(e) => {
+                          if (disableFinal) return;
+                          handleEvaluationChange(student.cpf, 'Final', e.target.value);
+                        }}
+                        className={`evaluation-select ${
+                          (!disableFinal && currentFinalGrade)
+                            ? `grade-${currentFinalGrade.toLowerCase()}`
+                            : ''
+                        }`}
+                        disabled={disableFinal}
+                      >
+                        <option value="">-</option>
+                        <option value="MANA">MANA</option>
+                        <option value="MPA">MPA</option>
+                        <option value="MA">MA</option>
+                      </select>
+                    </td>
+                      <td className="average-cell">
+                        {typeof enrollment.mediaPosFinal === 'number' && !isNaN(enrollment.mediaPosFinal)
+                          ? enrollment.mediaPosFinal.toFixed(1)
+                          : '-'}
+                      </td>
                     </tr>
                   );
                 })}

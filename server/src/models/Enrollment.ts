@@ -1,12 +1,11 @@
 import { Student } from './Student';
 import { Evaluation } from './Evaluation';
+import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA, Grade } from './EspecificacaoDoCalculoDaMedia';
 
 export class Enrollment {
   private student: Student;
   private evaluations: Evaluation[];
-  // Média do estudante antes da prova final
   private mediaPreFinal: number | null;
-  // Média do estudante depois da final
   private mediaPosFinal: number | null;
   private reprovadoPorFalta: Boolean;
 
@@ -30,7 +29,38 @@ export class Enrollment {
 
   // Calcula a média do estudante antes da prova final
   calculateMediaPreFinal(): number {
-    throw new Error('calculateMedia() not implemented yet');
+    const specificacao_calculo_media = DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA;
+
+    // Obter as metas e seus pesos
+    const specificacaoJson = specificacao_calculo_media.toJSON();
+    const metasDaSpec = Object.keys(specificacaoJson.pesosDasMetas || {});
+
+    const goalToMeta: Record<string, string> = {
+      'Configuration Management': 'Gerência de Configuração',
+      'Project Management': 'Gerência de Projeto',
+      'Design': 'Qualidade de Software',
+    };
+
+    const notasDasMetas = new Map<string, Grade>();
+
+    for (const meta of metasDaSpec) {
+      let evaluation = this.evaluations.find(e => e.getGoal() === meta);
+      
+      if (!evaluation) {
+        const goalKey = Object.keys(goalToMeta).find(k => goalToMeta[k] === meta);
+
+        if (goalKey) {
+          evaluation = this.evaluations.find(e => e.getGoal() === goalKey);
+        }
+      }
+
+      // usa 'MANA' como default (peso 0)
+      const conceito = evaluation ? (evaluation.getGrade()) : 'MANA';
+      notasDasMetas.set(meta, conceito);
+    }
+
+    this.setMediaPreFinal(specificacao_calculo_media.calc(notasDasMetas));
+    return specificacao_calculo_media.calc(notasDasMetas);
   }
 
   // Calcula a média do estudante depois da prova final
