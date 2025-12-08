@@ -11,30 +11,51 @@ interface Props {
 
 export default function ScriptGrading({ scriptAnswer, onClose }: Props) {
   const [current, setCurrent] = useState<ScriptAnswer>(scriptAnswer);
+  const [loading, setLoading] = useState(false);
 
-  const handleUpdateTask = (updated: TaskAnswer) => {
-    ScriptAnswerService.updateTaskAnswer({
-      TaskAnswerId: updated.id,
-      grade: updated.grade,
-      comments: updated.comments
-    });
+  const handleUpdateTask = async (updated: TaskAnswer) => {
+    try {
+      setLoading(true);
 
-    // Reload updated script answer
-    const refreshed = async () =>{
-      const list = await ScriptAnswerService.getAllScriptAnswers(); // <-- Await
-      const refreshed = list.find(sa => sa.id === current.id);      // Now OK
+      // Update grade if changed
+      if (updated.grade) {
+        await ScriptAnswerService.updateTaskAnswerGrade(
+          current.id,
+          updated.task,
+          updated.grade
+        );
+      }
 
-      if (refreshed) setCurrent(refreshed);
+      // Update comments if present
+      if (updated.comments) {
+        await ScriptAnswerService.updateTaskAnswerComment(
+          current.id,
+          updated.task,
+          updated.comments
+        );
+      }
+
+      // Reload updated script answer
+      const refreshed = await ScriptAnswerService.getScriptAnswerById(current.id);
+      if (refreshed) {
+        setCurrent(refreshed);
+      }
+    } catch (error) {
+      console.error("Failed to update task answer:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div>
-      <button onClick={onClose}>← Back</button>
+      <button onClick={onClose} disabled={loading}>
+        ← Back
+      </button>
       <h2>Grading Script {current.scriptId}</h2>
-      <h3>Student {current.studentId}</h3>
+      <h3>Student {current.student}</h3>
 
-      {current.taskAnswers.map(task => (
+      {current.answers.map(task => (
         <TaskAnswerEditor
           key={task.id}
           taskAnswer={task}

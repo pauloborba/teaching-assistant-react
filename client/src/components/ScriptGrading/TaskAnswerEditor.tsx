@@ -8,16 +8,44 @@ import { Task } from "../../types/Task";
 interface Props {
   taskAnswer: TaskAnswer;
   onChange: (updated: TaskAnswer) => void;
+  disabled?: boolean;
 }
 
 const gradeOptions: Grade[] = ["MA", "MANA", "MPA"];
 
-export default function TaskAnswerEditor({ taskAnswer, onChange }: Props) {
+export default function TaskAnswerEditor({ taskAnswer, onChange, disabled = false }: Props) {
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
+  const [localGrade, setLocalGrade] = useState<Grade | undefined>(taskAnswer.grade);
+  const [localComments, setLocalComments] = useState(taskAnswer.comments ?? "");
+  const [saving, setSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
-  const update = (changes: Partial<TaskAnswer>) => {
-    onChange({ ...taskAnswer, ...changes });
+  const handleGradeChange = (grade: Grade | undefined) => {
+    setLocalGrade(grade);
+    setHasChanges(true);
+  };
+
+  const handleCommentsChange = (comments: string) => {
+    setLocalComments(comments);
+    setHasChanges(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const updated: TaskAnswer = {
+        ...taskAnswer,
+        grade: localGrade,
+        comments: localComments
+      };
+      onChange(updated);
+      setHasChanges(false);
+    } catch (err) {
+      console.error("Failed to save changes:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   // 🔥 Load task details from backend
@@ -27,7 +55,7 @@ export default function TaskAnswerEditor({ taskAnswer, onChange }: Props) {
     async function load() {
       setLoading(true);
       try {
-        const t = await TaskService.getTaskById(taskAnswer.taskId);
+        const t = await TaskService.getTaskById(taskAnswer.task);
         if (!cancelled) setTask(t);
       } catch (err) {
         console.error("Failed to load task:", err);
@@ -41,7 +69,7 @@ export default function TaskAnswerEditor({ taskAnswer, onChange }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [taskAnswer.taskId]);
+  }, [taskAnswer.task]);
 
   return (
     <div
@@ -50,49 +78,75 @@ export default function TaskAnswerEditor({ taskAnswer, onChange }: Props) {
         padding: "12px",
         marginBottom: "12px",
         borderRadius: "6px",
+        opacity: disabled ? 0.6 : 1,
+        pointerEvents: disabled ? "none" : "auto"
       }}
     >
-      {/* 🔥 Replace old line */}
+      {/* Task statement */}
       <strong>
         Task:{" "}
         {loading
           ? "Loading task..."
           : task
-          ? task.statement // <–– SHOW THE TASK STATEMENT HERE
-          : `Unknown task ${taskAnswer.taskId}`}
+          ? task.statement
+          : `Unknown task ${taskAnswer.task}`}
       </strong>
 
-
-      {/* 🔽 User answer */}
+      {/* User answer */}
       <div style={{ marginTop: 8 }}>
         <strong>Answer:</strong> {taskAnswer.answer}
       </div>
 
-      {/* 🔽 Grade selector */}
+      {/* Grade selector */}
       <div style={{ marginTop: 8 }}>
-        Grade:
-        <select
-          value={taskAnswer.grade ?? ""}
-          onChange={(e) => update({ grade: e.target.value as Grade })}
-        >
-          <option value="">—</option>
-          {gradeOptions.map((g) => (
-            <option key={g} value={g}>
-              {g}
-            </option>
-          ))}
-        </select>
+        <label>
+          Grade:
+          <select
+            value={localGrade ?? ""}
+            onChange={(e) => handleGradeChange(e.target.value as Grade | undefined)}
+            disabled={saving}
+          >
+            <option value="">—</option>
+            {gradeOptions.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
-      {/* 🔽 Comments */}
+      {/* Comments */}
       <div style={{ marginTop: 8 }}>
-        Comments:
-        <textarea
-          value={taskAnswer.comments ?? ""}
-          onChange={(e) => update({ comments: e.target.value })}
-          rows={3}
-          style={{ width: "100%" }}
-        />
+        <label>
+          Comments:
+          <textarea
+            value={localComments}
+            onChange={(e) => handleCommentsChange(e.target.value)}
+            rows={3}
+            disabled={saving}
+            style={{ width: "100%" }}
+          />
+        </label>
+      </div>
+
+      {/* Save button */}
+      <div style={{ marginTop: 12 }}>
+        <button
+          onClick={handleSave}
+          disabled={!hasChanges || saving || disabled}
+          style={{
+            padding: "8px 16px",
+            backgroundColor: hasChanges ? "#007bff" : "#ccc",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: hasChanges && !saving ? "pointer" : "not-allowed",
+            opacity: hasChanges && !saving ? 1 : 0.6
+          }}
+        >
+          {saving ? "Saving..." : "Save Changes"}
+        </button>
       </div>
     </div>
   );
