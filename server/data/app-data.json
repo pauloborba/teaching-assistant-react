@@ -197,42 +197,105 @@
         {
           "studentCPF": "11111111111",
           "evaluations": [
-            {"goal": "Requirements", "grade": "MA"},
-            {"goal": "Configuration Management", "grade": "MA"},
-            {"goal": "Project Management", "grade": "MA"},
-            {"goal": "Design", "grade": "MA"},
-            {"goal": "Tests", "grade": "MA"},
-            {"goal": "Refactoring", "grade": "MA"}
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
           ]
         },
         {
           "studentCPF": "44444444444",
           "evaluations": [
-            {"goal": "Requirements", "grade": "MA"},
-            {"goal": "Configuration Management", "grade": "MA"},
-            {"goal": "Project Management", "grade": "MPA"},
-            {"goal": "Design", "grade": "MA"},
-            {"goal": "Tests", "grade": "MA"},
-            {"goal": "Refactoring", "grade": "MA"}
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
           ]
         },
         {
           "studentCPF": "66666666666",
           "evaluations": [
-            {"goal": "Requirements", "grade": "MPA"},
-            {"goal": "Configuration Management", "grade": "MA"},
-            {"goal": "Project Management", "grade": "MANA"},
-            {"goal": "Design", "grade": "MPA"},
-            {"goal": "Tests", "grade": "MA"},
-            {"goal": "Refactoring", "grade": "MA"}
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
           ]
         },
         {
           "studentCPF": "77777777777",
           "evaluations": [
-            {"goal": "Requirements", "grade": "MANA"},
-            {"goal": "Configuration Management", "grade": "MANA"},
-            {"goal": "Project Management", "grade": "MANA"}
+            {
+              "goal": "Requirements",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MANA"
+            }
           ]
         }
       ]
@@ -245,46 +308,106 @@
         {
           "studentCPF": "11111111111",
           "evaluations": [
-            {"goal": "Requirements Analysis", "grade": "MA"},
-            {"goal": "Use Cases", "grade": "MA"},
-            {"goal": "Architecture", "grade": "MPA"},
-            {"goal": "Database Design", "grade": "MA"}
+            {
+              "goal": "Requirements Analysis",
+              "grade": "MA"
+            },
+            {
+              "goal": "Use Cases",
+              "grade": "MA"
+            },
+            {
+              "goal": "Architecture",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Database Design",
+              "grade": "MA"
+            }
           ]
         },
         {
           "studentCPF": "22222222222",
           "evaluations": [
-            {"goal": "Requirements Analysis", "grade": "MA"},
-            {"goal": "Use Cases", "grade": "MA"},
-            {"goal": "Architecture", "grade": "MA"},
-            {"goal": "Database Design", "grade": "MA"}
+            {
+              "goal": "Requirements Analysis",
+              "grade": "MA"
+            },
+            {
+              "goal": "Use Cases",
+              "grade": "MA"
+            },
+            {
+              "goal": "Architecture",
+              "grade": "MA"
+            },
+            {
+              "goal": "Database Design",
+              "grade": "MA"
+            }
           ]
         },
         {
           "studentCPF": "44444444444",
           "evaluations": [
-            {"goal": "Requirements Analysis", "grade": "MPA"},
-            {"goal": "Use Cases", "grade": "MPA"},
-            {"goal": "Architecture", "grade": "MPA"},
-            {"goal": "Database Design", "grade": "MPA"}
+            {
+              "goal": "Requirements Analysis",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Use Cases",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Architecture",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Database Design",
+              "grade": "MPA"
+            }
           ]
         },
         {
           "studentCPF": "66666666666",
           "evaluations": [
-            {"goal": "Requirements Analysis", "grade": "MA"},
-            {"goal": "Use Cases", "grade": "MA"},
-            {"goal": "Architecture", "grade": "MA"},
-            {"goal": "Database Design", "grade": "MA"}
+            {
+              "goal": "Requirements Analysis",
+              "grade": "MA"
+            },
+            {
+              "goal": "Use Cases",
+              "grade": "MA"
+            },
+            {
+              "goal": "Architecture",
+              "grade": "MA"
+            },
+            {
+              "goal": "Database Design",
+              "grade": "MA"
+            }
           ]
         },
         {
           "studentCPF": "77777777777",
           "evaluations": [
-            {"goal": "Requirements Analysis", "grade": "MA"},
-            {"goal": "Use Cases", "grade": "MA"},
-            {"goal": "Architecture", "grade": "MA"},
-            {"goal": "Database Design", "grade": "MA"}
+            {
+              "goal": "Requirements Analysis",
+              "grade": "MA"
+            },
+            {
+              "goal": "Use Cases",
+              "grade": "MA"
+            },
+            {
+              "goal": "Architecture",
+              "grade": "MA"
+            },
+            {
+              "goal": "Database Design",
+              "grade": "MA"
+            }
           ]
         }
       ]
@@ -297,40 +420,82 @@
         {
           "studentCPF": "11111111111",
           "evaluations": [
-            {"goal": "Creational Patterns", "grade": "MA"},
-            {"goal": "Structural Patterns", "grade": "MA"},
-            {"goal": "Behavioral Patterns", "grade": "MPA"}
+            {
+              "goal": "Creational Patterns",
+              "grade": "MA"
+            },
+            {
+              "goal": "Structural Patterns",
+              "grade": "MA"
+            },
+            {
+              "goal": "Behavioral Patterns",
+              "grade": "MPA"
+            }
           ]
         },
         {
           "studentCPF": "22222222222",
           "evaluations": [
-            {"goal": "Creational Patterns", "grade": "MPA"},
-            {"goal": "Structural Patterns", "grade": "MPA"},
-            {"goal": "Behavioral Patterns", "grade": "MANA"}
+            {
+              "goal": "Creational Patterns",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Structural Patterns",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Behavioral Patterns",
+              "grade": "MANA"
+            }
           ]
         },
         {
           "studentCPF": "33333333333",
           "evaluations": [
-            {"goal": "Creational Patterns", "grade": "MA"},
-            {"goal": "Structural Patterns", "grade": "MA"},
-            {"goal": "Behavioral Patterns", "grade": "MA"}
+            {
+              "goal": "Creational Patterns",
+              "grade": "MA"
+            },
+            {
+              "goal": "Structural Patterns",
+              "grade": "MA"
+            },
+            {
+              "goal": "Behavioral Patterns",
+              "grade": "MA"
+            }
           ]
         },
         {
           "studentCPF": "55555555555",
           "evaluations": [
-            {"goal": "Creational Patterns", "grade": "MA"},
-            {"goal": "Structural Patterns", "grade": "MA"},
-            {"goal": "Behavioral Patterns", "grade": "MA"}
+            {
+              "goal": "Creational Patterns",
+              "grade": "MA"
+            },
+            {
+              "goal": "Structural Patterns",
+              "grade": "MA"
+            },
+            {
+              "goal": "Behavioral Patterns",
+              "grade": "MA"
+            }
           ]
         },
         {
           "studentCPF": "88888888888",
           "evaluations": [
-            {"goal": "Creational Patterns", "grade": "MANA"},
-            {"goal": "Structural Patterns", "grade": "MANA"}
+            {
+              "goal": "Creational Patterns",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Structural Patterns",
+              "grade": "MANA"
+            }
           ]
         }
       ]
@@ -343,45 +508,102 @@
         {
           "studentCPF": "22222222222",
           "evaluations": [
-            {"goal": "Unit Testing", "grade": "MA"},
-            {"goal": "Integration Testing", "grade": "MA"},
-            {"goal": "System Testing", "grade": "MA"},
-            {"goal": "Performance Testing", "grade": "MPA"}
+            {
+              "goal": "Unit Testing",
+              "grade": "MA"
+            },
+            {
+              "goal": "Integration Testing",
+              "grade": "MA"
+            },
+            {
+              "goal": "System Testing",
+              "grade": "MA"
+            },
+            {
+              "goal": "Performance Testing",
+              "grade": "MPA"
+            }
           ]
         },
         {
           "studentCPF": "33333333333",
           "evaluations": [
-            {"goal": "Unit Testing", "grade": "MA"},
-            {"goal": "Integration Testing", "grade": "MA"},
-            {"goal": "System Testing", "grade": "MA"},
-            {"goal": "Performance Testing", "grade": "MA"}
+            {
+              "goal": "Unit Testing",
+              "grade": "MA"
+            },
+            {
+              "goal": "Integration Testing",
+              "grade": "MA"
+            },
+            {
+              "goal": "System Testing",
+              "grade": "MA"
+            },
+            {
+              "goal": "Performance Testing",
+              "grade": "MA"
+            }
           ]
         },
         {
           "studentCPF": "55555555555",
           "evaluations": [
-            {"goal": "Unit Testing", "grade": "MPA"},
-            {"goal": "Integration Testing", "grade": "MPA"},
-            {"goal": "System Testing", "grade": "MPA"},
-            {"goal": "Performance Testing", "grade": "MPA"}
+            {
+              "goal": "Unit Testing",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Integration Testing",
+              "grade": "MPA"
+            },
+            {
+              "goal": "System Testing",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Performance Testing",
+              "grade": "MPA"
+            }
           ]
         },
         {
           "studentCPF": "77777777777",
           "evaluations": [
-            {"goal": "Unit Testing", "grade": "MA"},
-            {"goal": "Integration Testing", "grade": "MA"},
-            {"goal": "System Testing", "grade": "MA"},
-            {"goal": "Performance Testing", "grade": "MA"}
+            {
+              "goal": "Unit Testing",
+              "grade": "MA"
+            },
+            {
+              "goal": "Integration Testing",
+              "grade": "MA"
+            },
+            {
+              "goal": "System Testing",
+              "grade": "MA"
+            },
+            {
+              "goal": "Performance Testing",
+              "grade": "MA"
+            }
           ]
         },
         {
           "studentCPF": "88888888888",
           "evaluations": [
-            {"goal": "Unit Testing", "grade": "MA"},
-            {"goal": "Integration Testing", "grade": "MA"},
-            {"goal": "System Testing", "grade": "MPA"}
+            {
+              "goal": "Unit Testing",
+              "grade": "MA"
+            },
+            {
+              "goal": "Integration Testing",
+              "grade": "MA"
+            },
+            {
+              "goal": "System Testing",
+              "grade": "MPA"
+            }
           ]
         }
       ]

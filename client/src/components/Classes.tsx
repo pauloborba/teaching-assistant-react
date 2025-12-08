@@ -188,6 +188,8 @@ const Classes: React.FC<ClassesProps> = ({
     clearComparisonError(); // Clear error on new selection
   };
 
+  
+
   // Handle comparison button click
   const handleCompareClasses = async () => {
     const selectedIds = Array.from(selectedClassesForComparison);
@@ -322,6 +324,46 @@ const Classes: React.FC<ClassesProps> = ({
       if (!c) return false;
       return Boolean(comparisonReports[c.id]);
     });
+
+  // Toggle select first up-to-MAX_COMPARISON_SELECTION prioritized by availability of reports
+  const handleToggleSelectAllVisible = () => {
+    const MAX = MAX_COMPARISON_SELECTION;
+    const withReports = classes.filter(c => Boolean(comparisonReports[c.id]));
+    const withoutReports = classes.filter(c => !comparisonReports[c.id]);
+    const prioritized = [...withReports, ...withoutReports];
+    const toSelect = prioritized.slice(0, Math.min(MAX, prioritized.length));
+
+    const allSelected = toSelect.every(c => selectedClassesForComparison.has(c.id));
+    if (allSelected) {
+      setSelectedClassesForComparison(new Set());
+      clearComparisonError();
+      return;
+    }
+
+    const newSelection = new Set<string>(toSelect.map(c => c.id));
+    setSelectedClassesForComparison(newSelection);
+    clearComparisonError();
+  };
+
+  const headerAllSelected = (() => {
+    if (!classes || classes.length === 0) return false;
+    const MAX = MAX_COMPARISON_SELECTION;
+    const withReports = classes.filter(c => Boolean(comparisonReports[c.id]));
+    const withoutReports = classes.filter(c => !comparisonReports[c.id]);
+    const prioritized = [...withReports, ...withoutReports];
+    const toCheck = prioritized.slice(0, Math.min(MAX, prioritized.length));
+    return toCheck.length > 0 && toCheck.every(c => selectedClassesForComparison.has(c.id));
+  })();
+
+  // Selection info text for display (handles special message when many classes exist)
+  const selectionInfoText = (() => {
+    if (selectedClassesForComparison.size === 0) return 'Select at least 2 classes to compare';
+    // Show clearer message when the user has reached the maximum allowed selection
+    if (selectedClassesForComparison.size >= MAX_COMPARISON_SELECTION) {
+      return `Maximum of ${MAX_COMPARISON_SELECTION} classes selected`;
+    }
+    return `${selectedClassesForComparison.size} class${selectedClassesForComparison.size !== 1 ? 'es' : ''} selected`;
+  })();
 
   // Handle closing report panel
   const handleCloseReportPanel = () => {
@@ -482,8 +524,9 @@ const Classes: React.FC<ClassesProps> = ({
                   <th className="checkbox-col">
                     <input 
                       type="checkbox" 
-                      title="Select for comparison"
-                      disabled 
+                      title="Select visible classes for comparison"
+                      checked={headerAllSelected}
+                      onChange={handleToggleSelectAllVisible}
                     />
                   </th>
                   <th>Topic</th>
@@ -548,19 +591,16 @@ const Classes: React.FC<ClassesProps> = ({
             {/* Comparison Controls */}
             {classes.length > 1 && (
               <div className="comparison-controls">
-                <p className="selection-info">
-                  {selectedClassesForComparison.size === 0 
-                    ? 'Select at least 2 classes to compare'
-                    : `${selectedClassesForComparison.size} class${selectedClassesForComparison.size !== 1 ? 'es' : ''} selected`
-                  }
-                </p>
-                <button
-                  className="compare-btn"
-                  onClick={handleCompareClasses}
-                  disabled={selectedClassesForComparison.size < 2 || isLoadingComparison}
-                >
-                  {isLoadingComparison ? 'Loading...' : `Compare (${selectedClassesForComparison.size})`}
-                </button>
+                <p className="selection-info">{selectionInfoText}</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    className="compare-btn"
+                    onClick={handleCompareClasses}
+                    disabled={selectedClassesForComparison.size < 2 || isLoadingComparison}
+                  >
+                    {isLoadingComparison ? 'Loading...' : `Compare (${selectedClassesForComparison.size})`}
+                  </button>
+                </div>
               </div>
             )}
           </div>
