@@ -1,0 +1,178 @@
+{
+  "generations": [
+    {
+      "id": "1-1765141459490",
+      "examId": 1,
+      "classId": "Engenharia de Software e Sistemas-2025-1",
+      "timestamp": "2025-12-07T21:04:19.490Z",
+      "description": "Lote gerado em 07/12/2025, 18:04:19 (3 provas)",
+      "versions": [
+        {
+          "versionNumber": 1,
+          "questions": [
+            {
+              "numero": 1,
+              "questionId": 2,
+              "type": "open",
+              "rightAnswer": "Processo de detalhar, validar e refinar requisitos coletados para garantir entendimento preciso do problema."
+            },
+            {
+              "numero": 2,
+              "questionId": 1,
+              "type": "closed",
+              "rightAnswer": "A"
+            }
+          ]
+        },
+        {
+          "versionNumber": 2,
+          "questions": [
+            {
+              "numero": 1,
+              "questionId": 2,
+              "type": "open",
+              "rightAnswer": "Processo de detalhar, validar e refinar requisitos coletados para garantir entendimento preciso do problema."
+            },
+            {
+              "numero": 2,
+              "questionId": 1,
+              "type": "closed",
+              "rightAnswer": "A"
+            }
+          ]
+        },
+        {
+          "versionNumber": 3,
+          "questions": [
+            {
+              "numero": 1,
+              "questionId": 2,
+              "type": "open",
+              "rightAnswer": "Processo de detalhar, validar e refinar requisitos coletados para garantir entendimento preciso do problema."
+            },
+            {
+              "numero": 2,
+              "questionId": 1,
+              "type": "closed",
+              "rightAnswer": "B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2-1765141462571",
+      "examId": 2,
+      "classId": "Engenharia de Software e Sistemas-2025-1",
+      "timestamp": "2025-12-07T21:04:22.571Z",
+      "description": "Lote gerado em 07/12/2025, 18:04:22 (3 provas)",
+      "versions": [
+        {
+          "versionNumber": 1,
+          "questions": [
+            {
+              "numero": 1,
+              "questionId": 14,
+              "type": "open",
+              "rightAnswer": "Reunião diária curta para alinhar o trabalho e identificar impedimentos."
+            },
+            {
+              "numero": 2,
+              "questionId": 15,
+              "type": "closed",
+              "rightAnswer": "B"
+            },
+            {
+              "numero": 3,
+              "questionId": 11,
+              "type": "closed",
+              "rightAnswer": "A"
+            },
+            {
+              "numero": 4,
+              "questionId": 12,
+              "type": "open",
+              "rightAnswer": "É a soma de todo trabalho completado durante um Sprint que representa um avanço potencialmente entregável do produto."
+            },
+            {
+              "numero": 5,
+              "questionId": 13,
+              "type": "closed",
+              "rightAnswer": "A"
+            }
+          ]
+        },
+        {
+          "versionNumber": 2,
+          "questions": [
+            {
+              "numero": 1,
+              "questionId": 14,
+              "type": "open",
+              "rightAnswer": "Reunião diária curta para alinhar o trabalho e identificar impedimentos."
+            },
+            {
+              "numero": 2,
+              "questionId": 13,
+              "type": "closed",
+              "rightAnswer": "A"
+            },
+            {
+              "numero": 3,
+              "questionId": 11,
+              "type": "closed",
+              "rightAnswer": "B"
+            },
+            {
+              "numero": 4,
+              "questionId": 12,
+              "type": "open",
+              "rightAnswer": "É a soma de todo trabalho completado durante um Sprint que representa um avanço potencialmente entregável do produto."
+            },
+            {
+              "numero": 5,
+              "questionId": 15,
+              "type": "closed",
+              "rightAnswer": "B"
+            }
+          ]
+        },
+        {
+          "versionNumber": 3,
+          "questions": [
+            {
+              "numero": 1,
+              "questionId": 12,
+              "type": "open",
+              "rightAnswer": "É a soma de todo trabalho completado durante um Sprint que representa um avanço potencialmente entregável do produto."
+            },
+            {
+              "numero": 2,
+              "questionId": 11,
+              "type": "closed",
+              "rightAnswer": "B"
+            },
+            {
+              "numero": 3,
+              "questionId": 13,
+              "type": "closed",
+              "rightAnswer": "A"
+            },
+            {
+              "numero": 4,
+              "questionId": 15,
+              "type": "closed",
+              "rightAnswer": "A"
+            },
+            {
+              "numero": 5,
+              "questionId": 14,
+              "type": "open",
+              "rightAnswer": "Reunião diária curta para alinhar o trabalho e identificar impedimentos."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

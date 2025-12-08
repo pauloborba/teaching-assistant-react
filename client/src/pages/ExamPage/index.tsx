@@ -2,28 +2,33 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import CustomButton from "../../components/CustomButton";
-import CollapsibleTable, {Column, DetailColumn} from "../../components/CollapsibleTable";
+import CollapsibleTable, { Column, DetailColumn } from "../../components/CollapsibleTable";
 import Alert from "../../components/Alert";
 import Dropdown from "../../components/DropDown";
 import ExamsService from "../../services/ExamsService";
-
+import QuestionService from "../../services/QuestionService";
+import { Button } from "@mui/material";
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { GeneratePDFButton } from "../../components/GeneratePDFButton";
 import "./ExamPage.css";
 import ExamCreatePopup from "./ExamPagePopup";
 import CorrectionButton from "../../components/CorrectionButton";
 
 const columns: Column[] = [
-  { id: "studentName", label: "Aluno", align: "left" },
+  { id: "versionNumber", label: "Versão", align: "center" },
   { id: "examID", label: "ID Prova", align: "right" },
-  { id: "qtdAberta", label: "Quantidade Aberta", align: "right" },
-  { id: "qtdFechada", label: "Quantidade Fechada", align: "right" },
-  { id: "ativo", label: "Ativo", align: "right" },
-  { id: "grade_closed", label: "Nota fechadas", align: "right" },
+  // Marcelo
+  { id: "generationDate", label: "Data de Geração", align: "left" },
+  { id: "numQuestionsOpen", label: "Nº Questões Abertas", align: "right" },
+  { id: "numQuestionsClosed", label: "Nº Questões Fechadas", align: "right" },
+  // { id: "grade_closed", label: "Nota fechadas", align: "right" }
 ];
 
 const detailColumns: DetailColumn[] = [
-  { id: "idQuestion", label: "ID Questão" },
-  { id: "tipoQuestao", label: "Tipo da questão" },
-  { id: "textoPergunta", label: "Texto da Pergunta", align: "left" },
+  { id: "numero", label: "#" },
+  { id: "questionId", label: "ID Questão" },
+  { id: "type", label: "Tipo" },
+  { id: "questionText", label: "Texto da Questão", align: "left" },
 ];
 
 export default function ExamPage() {
@@ -39,61 +44,110 @@ export default function ExamPage() {
 
   const [selectedExam, setSelectedExam] = useState("Todas as provas");
 
+  const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
+  const [selectedExamIdForPdf, setSelectedExamIdForPdf] = useState<string | null>(null);
+
   const [alertConfig, setAlertConfig] = useState({
     open: false,
     message: "",
     severity: "info" as "success" | "error" | "warning" | "info",
   });
 
-  const [students, setStudents] = useState<any[]>([]);
-
-  //Função que fecha o alerta
   const handleCloseAlert = () => {
     setAlertConfig((prev) => ({ ...prev, open: false }));
   };
 
-  // -------------------------------
-  // Carrega provas + tabela (todas)
-  // -------------------------------
-const loadAllData = useCallback(async () => {
-  if (!classID) return;
+  const transformGenerationsToRows = async (generations: any[], examIdFilter?: number) => {
+    const rows: any[] = [];
 
-  try {
-    setTableLoading(true);
+    for (const gen of generations) {
+      if (examIdFilter && gen.examId !== examIdFilter) continue;
 
-    const [examsResponse, studentsResponse] = await Promise.all([
-      ExamsService.getExamsForClass(classID),
-      ExamsService.getStudentsWithExamsForClass(classID),
-    ]);
+      const generationDate = new Date(gen.timestamp).toLocaleString('pt-BR');
 
-    setExams(examsResponse.data || []);
-    setStudents(studentsResponse.data || []);
-    setRows(studentsResponse.data || []);
-  } catch (error) {
-    console.error("Erro ao carregar dados:", error);
-    setExams([]);
-    setRows([]);
-  } finally {
-    setTableLoading(false);
-  }
-}, [classID]);
+      for (const version of (gen.versions || [])) {
+        const numOpen = version.questions?.filter((q: any) => q.type === 'open').length || 0;
+        const numClosed = version.questions?.filter((q: any) => q.type === 'closed').length || 0;
 
-  // carregar automaticamente ao montar
- useEffect(() => {
-   loadAllData();
- }, [loadAllData]);
+        // Fetch question texts
+        const detailsWithText = await Promise.all(
+          (version.questions || []).map(async (q: any) => {
+            let questionText = 'Carregando...';
+            try {
+              const questionData = await QuestionService.getQuestionById(q.questionId);
+              questionText = questionData?.question || 'Não disponível';
+            } catch (e) {
+              console.error(`Failed to fetch question ${q.questionId}`, e);
+              questionText = 'Erro ao carregar';
+            }
 
-  // ---------------------------------------------------
-  // Função auxiliar: pega o ID da prova pela string título
-  // ---------------------------------------------------
+            return {
+              numero: q.numero,
+              questionId: q.questionId,
+              type: q.type === 'open' ? 'Aberta' : 'Fechada',
+              questionText: questionText
+            };
+          })
+        );
+
+        rows.push({
+          versionNumber: version.versionNumber,
+          examID: gen.examId,
+          generationDate: generationDate,
+          numQuestionsOpen: numOpen,
+          numQuestionsClosed: numClosed,
+          details: detailsWithText
+        });
+      }
+    }
+
+    return rows;
+  };
+
+
+  const loadAllData = useCallback(async () => {
+    if (!classID) return;
+
+    try {
+      setTableLoading(true);
+
+      const examsResponse = await ExamsService.getExamsForClass(classID);
+      setExams(examsResponse.data || []);
+
+      // Fetch all generations for all exams in the class
+      const allGenerations: any[] = [];
+      for (const exam of (examsResponse.data || [])) {
+        try {
+          const gens = await ExamsService.getGenerations(exam.id, classID);
+          if (Array.isArray(gens)) {
+            allGenerations.push(...gens);
+          }
+        } catch (e) {
+          console.error(`Failed to fetch generations for exam ${exam.id}`, e);
+        }
+      }
+
+      console.log("All generations fetched:", allGenerations);
+      const transformedRows = await transformGenerationsToRows(allGenerations);
+      setRows(transformedRows);
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
+      setExams([]);
+      setRows([]);
+    } finally {
+      setTableLoading(false);
+    }
+  }, [classID]);
+
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
+
   const getExamIdByTitle = (title: string): string | undefined => {
     const exam = exams.find((e) => e.title === title);
     return exam ? exam.id.toString() : undefined;
   };
 
-  // -------------------------------------------
-  // Filtro via API (carrega somente uma prova)
-  // -------------------------------------------
   const handleExamSelect = async (title: string) => {
     setSelectedExam(title);
 
@@ -110,13 +164,10 @@ const loadAllData = useCallback(async () => {
       const examId = getExamIdByTitle(title);
       if (!examId) return;
 
-      const response = await ExamsService.getStudentsWithExamsForClass(
-        classID,
-        Number(examId)
-      );
-
-
-      setRows(response.data || []);
+      // Fetch generations for the specific exam
+      const gens = await ExamsService.getGenerations(Number(examId), classID);
+      const transformedRows = await transformGenerationsToRows(gens, Number(examId));
+      setRows(transformedRows);
     } catch (error) {
       console.error("Erro ao filtrar:", error);
     } finally {
@@ -124,17 +175,29 @@ const loadAllData = useCallback(async () => {
     }
   };
 
-  // -------------------------------------------
-  // Criar prova
-  // -------------------------------------------
+  const handleOpenPdfDialog = () => {
+    const examId = getExamIdByTitle(selectedExam);
+
+    if (examId) {
+      setSelectedExamIdForPdf(examId);
+      setPdfDialogOpen(true);
+    } else {
+      setAlertConfig({
+        open: true,
+        message: "Selecione uma prova específica para gerar o PDF.",
+        severity: "warning"
+      });
+    }
+  };
+
   const handleCreateExam = async (data: any) => {
     try {
       setLoading(true);
 
       if (!classID) throw new Error("ID da turma não encontrado");
 
-      if (!data.codProva || !data.nomeProva)
-        throw new Error("Código e nome da prova são obrigatórios");
+      if (!data.nomeProva)
+        throw new Error("Nome da prova é obrigatório");
 
       if (isNaN(parseInt(data.abertas)) || isNaN(parseInt(data.fechadas)))
         throw new Error("Quantidades inválidas");
@@ -162,6 +225,48 @@ const loadAllData = useCallback(async () => {
     }
   };
 
+  // -------------------------------------------
+  // Deletar prova
+  // -------------------------------------------
+  const handleDeleteExam = async () => {
+    if (!classID) return;
+
+    const examId = getExamIdByTitle(selectedExam);
+    if (!examId) return;
+
+    // Confirmação antes de deletar
+    const confirmed = window.confirm(
+      `Tem certeza que deseja deletar a prova "${selectedExam}"? Esta ação não pode ser desfeita.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+
+      await ExamsService.deleteExam(Number(examId), classID);
+
+      setAlertConfig({
+        open: true,
+        message: `Prova "${selectedExam}" deletada com sucesso!`,
+        severity: "success",
+      });
+
+      // Resetar para "Todas as provas" e recarregar
+      setSelectedExam("Todas as provas");
+      await loadAllData();
+    } catch (err) {
+      setAlertConfig({
+        open: true,
+        message:
+          err instanceof Error ? err.message : "Erro ao deletar prova",
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // opções do dropdown (somente strings)
   const dropdownOptions = useMemo(() => {
     return ["Todas as provas", ...exams.map((e) => e.title)];
@@ -170,13 +275,10 @@ const loadAllData = useCallback(async () => {
   return (
     <div className="exam-page">
       <Header />
-
-      {/* Controles superiores */}
       <div
         className="top-controls"
         style={{ display: "flex", gap: "15px", alignItems: "center" }}
       >
-        {/* ID da turma */}
         <input
           type="text"
           value={classID || ""}
@@ -190,7 +292,6 @@ const loadAllData = useCallback(async () => {
           }}
         />
 
-        {/* Dropdown */}
         <Dropdown
           subjects={dropdownOptions}
           onSelect={handleExamSelect}
@@ -200,7 +301,7 @@ const loadAllData = useCallback(async () => {
         {/* Botão alinhado à direita */}
         <div style={{ marginLeft: "auto", gap: "10px", display: "flex" }}>
           <CorrectionButton
-            students={students}
+            students={rows}
             exam={exams.find((exam) => exam.title === selectedExam)}
             label="Corrigir Fechadas"
             isActive={selectedExam !== "Todas as provas"}
@@ -211,10 +312,45 @@ const loadAllData = useCallback(async () => {
             label="Criar Prova"
             onClick={() => setPopupOpen(true)}
           />
+        {selectedExam !== "Todas as provas" && (
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<FileDownloadIcon />}
+            onClick={handleOpenPdfDialog}
+            style={{ marginLeft: "10px", height: "40px", textTransform: "none" }}
+          >
+            Baixar Lote
+          </Button>
+        )}
+
+        <div style={{ marginLeft: "auto" }}>
+          {/* Botão alinhado à direita */}
+          <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
+            {/* Botão de deletar - só aparece quando uma prova específica está selecionada */}
+            {selectedExam !== "Todas as provas" && (
+              <CustomButton
+                label="Deletar Prova"
+                onClick={handleDeleteExam}
+                data-testid="delete-exam-button"
+                style={{
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                }}
+                disabled={loading}
+              />
+            )}
+
+            <CustomButton
+              label="Criar Prova"
+              onClick={() => setPopupOpen(true)}
+              data-testid="open-create-exam"
+            />
+          </div>
+        </div>
         </div>
       </div>
 
-      {/* TABELA */}
       {tableLoading ? (
         <p style={{ padding: "20px", textAlign: "center" }}>Carregando...</p>
       ) : rows.length === 0 ? (
@@ -223,26 +359,32 @@ const loadAllData = useCallback(async () => {
         </p>
       ) : (
         <CollapsibleTable
+          data-testid="exam-table"
           columns={columns}
           detailColumns={detailColumns}
           rows={rows}
-          detailTitle="Questões"
-          computeDetailRow={(detail) => ({
-            ...detail,
-            total: detail.tipoQuestao === "Aberta" ? 2 : 1,
-          })}
+          detailTitle="Questões da Versão"
+          computeDetailRow={(detail) => detail}
         />
       )}
-
-      {/* POPUP */}
       <ExamCreatePopup
         isOpen={popupOpen}
         onClose={() => setPopupOpen(false)}
         onSubmit={handleCreateExam}
         loading={loading}
       />
+      {classID && (
+        <GeneratePDFButton
+          open={pdfDialogOpen}
+          onClose={() => setPdfDialogOpen(false)}
+          examId={selectedExamIdForPdf}
+          classId={classID}
+          defaultQuantity={rows.length > 0 ? rows.length : 30}
+        />
+      )}
 
       <Alert //Alerta para criação da prova com exito ou não
+        data-testid={alertConfig.severity === "success" ? "alert-success" : "alert-error"}
         message={alertConfig.message}
         severity={alertConfig.severity}
         autoHideDuration={3000}

@@ -1,4 +1,5 @@
 class ResponseService {
+  // Use the same base API as the rest of the client (`/api/exams`)
   private readonly baseUrl = 'http://localhost:3005/api/exams';
 
   async getQuestions(examId: string | number): Promise<any[]> {

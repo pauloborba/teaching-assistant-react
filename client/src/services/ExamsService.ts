@@ -31,8 +31,7 @@ class ExamsService {
     classId: string
   ): Promise<any> {
     const response = await fetch(
-      `${
-        ExamsService.apiUrl
+      `${ExamsService.apiUrl
       }/exams/${examId}/generate?classId=${encodeURIComponent(classId)}`,
       {
         method: "POST",
@@ -69,11 +68,10 @@ class ExamsService {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        codigoProva: examData.codProva,
         nomeProva: examData.nomeProva,
-        tema: examData.temas,
         quantidadeAberta: parseInt(examData.abertas, 10),
         quantidadeFechada: parseInt(examData.fechadas, 10),
+        questionIds: examData.questionIds || [],
         classId: classId,
       }),
     });
@@ -143,6 +141,34 @@ class ExamsService {
     return response.json();
   }
 
+  /**
+   * Delete an exam by its ID
+   * @param examId - The exam ID to delete
+   * @param classId - The class ID (for validation)
+   * @returns Promise with deletion confirmation
+   */
+  public static async deleteExam(
+    examId: number,
+    classId: string
+  ): Promise<any> {
+    const response = await fetch(
+      `${ExamsService.apiUrl}/exams/${examId}?classId=${encodeURIComponent(classId)}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Falha ao deletar a prova");
+    }
+
+    return response.json();
+  }
+
   public static async downloadExamPDF(examId: string): Promise<void> {
     try {
       const response = await fetch(
@@ -162,7 +188,7 @@ class ExamsService {
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
-        } catch (e) {}
+        } catch (e) { }
         if (status === 404) {
           throw new Error("Prova não encontrada.");
         }
@@ -189,53 +215,60 @@ class ExamsService {
     }
   }
 
-  public static async downloadExamZIP(
-    examId: string,
-    quantity: number
-  ): Promise<void> {
+  public static async downloadExamsZIP(examId: string, quantity: number, classId: string, date: string): Promise<void> {
     try {
-      const response = await fetch(
-        `${ExamsService.apiUrl}/exams/${examId}/zip?quantity=${quantity}`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/zip",
-          },
-        }
-      );
+      const response = await fetch(`${ExamsService.apiUrl}/exams/${examId}/zip?quantity=${quantity}&classId=${classId}&date=${date}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/zip',
+        },
+      });
 
       if (!response.ok) {
         const status = response.status;
-        let errorMessage = "Falha ao baixar o PDF.";
-
+        let errorMessage = 'Falha ao baixar o ZIP.';
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
-        } catch (e) {}
-        if (status === 404) {
-          throw new Error("Prova não encontrada.");
-        }
-        if (status === 403) {
-          throw new Error("Você não tem permissão para baixar esta prova.");
-        }
+        } catch (e) { }
+
+        if (status === 404) throw new Error('Prova não encontrada.');
+        if (status === 400) throw new Error(errorMessage);
         throw new Error(errorMessage);
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(
-        new Blob([blob], { type: "application/zip" })
+        new Blob([blob], { type: 'application/zip' })
       );
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = url;
-      link.setAttribute("download", `prova-${examId}-versions.zip`);
+      link.setAttribute('download', `Lote_Provas_${examId}.zip`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+
     } catch (error) {
-      console.error("Error downloading exam ZIP:", error);
+      console.error('Error downloading exams ZIP:', error);
       throw error;
     }
+  }
+
+  public static async getGenerations(examId: number, classId: string): Promise<any> {
+    const response = await fetch(`${ExamsService.apiUrl}/exams/${examId}/generations?classId=${encodeURIComponent(classId)}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to fetch generations");
+    }
+
+    return response.json();
   }
 }
 

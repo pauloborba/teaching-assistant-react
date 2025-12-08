@@ -205,7 +205,7 @@ const Classes: React.FC<ClassesProps> = ({
   const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 
   return (
-    <div className="classes-container">
+    <div className="classes-container" data-testid="classes-container">
       <h2>Class Management</h2>
 
       {/* Class Form */}
@@ -324,6 +324,7 @@ const Classes: React.FC<ClassesProps> = ({
                         className="exams-btn"
                         onClick={() => navigate(`/exam/${classObj.id}`)}
                         title="View Exams"
+                        data-testid={`exams-btn-${classObj.id}`}
                       >
                         Exams
                       </button>

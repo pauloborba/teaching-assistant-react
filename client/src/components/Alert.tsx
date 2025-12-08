@@ -20,7 +20,8 @@ export default function Alert({
     variant = 'filled',
     onClose,
     autoHideDuration,
-    open = true
+    open = true,
+    ...rest
 }: AlertProps) {
     // If autoHideDuration is provided, use Snackbar
     if (autoHideDuration) {
@@ -28,11 +29,11 @@ export default function Alert({
             <Snackbar
                 open={open}
                 autoHideDuration={autoHideDuration}
-               onClose={onClose}
+                onClose={onClose}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
                 <MuiAlert
-                   // onClose={onClose}
+                    // onClose={onClose}
                     severity={severity}
                     variant={variant}
                     sx={{ width: '100%' }}
@@ -46,10 +47,11 @@ export default function Alert({
 
     // Otherwise render a static alert
     return (
-        <MuiAlert 
+        <MuiAlert
             //onClose={onClose} 
-            severity={severity} 
+            severity={severity}
             variant={variant}
+            {...rest}
         >
             {title && <AlertTitle>{title}</AlertTitle>}
             {message}

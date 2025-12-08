@@ -4,13 +4,10 @@ import './CustomButton.css';
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'text';
 export type ButtonSize = 'small' | 'medium' | 'large';
 
-interface CustomButtonProps {
+interface CustomButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     label: string;
     variant?: ButtonVariant;
     size?: ButtonSize;
-    disabled?: boolean;
-    onClick?: () => void;
-    type?: 'button' | 'submit' | 'reset';
     fullWidth?: boolean;
     color?: string;
     className?: string;
@@ -25,8 +22,10 @@ export default function CustomButton({
     type = 'button',
     fullWidth = false,
     color,
-    className = ''
+    className = '',
+    ...rest  // <-- captura data-testid e outros atributos
 }: CustomButtonProps) {
+
     const buttonClasses = [
         'custom-button',
         `custom-button--${variant}`,
@@ -65,6 +64,7 @@ export default function CustomButton({
             disabled={disabled}
             type={type}
             style={dynamicStyle}
+            {...rest}  // <-- repassa para o DOM!
         >
             {label}
         </button>

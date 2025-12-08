@@ -1,6 +1,5 @@
 {
   "questions": [
-
     {
       "id": 1,
       "question": "Qual é a principal característica de um requisito funcional?",
@@ -32,8 +31,16 @@
       "topic": "Requisitos de Software",
       "type": "closed",
       "options": [
-        { "id": 1, "option": "Entrevistas", "isCorrect": true },
-        { "id": 2, "option": "Refatoração", "isCorrect": false }
+        {
+          "id": 1,
+          "option": "Entrevistas",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Refatoração",
+          "isCorrect": false
+        }
       ]
     },
     {
@@ -54,10 +61,13 @@
           "option": "Especificação de Requisitos de Software (ERS)",
           "isCorrect": true
         },
-        { "id": 2, "option": "Plano de Testes", "isCorrect": false }
+        {
+          "id": 2,
+          "option": "Plano de Testes",
+          "isCorrect": false
+        }
       ]
     },
-
     {
       "id": 6,
       "question": "O que é controle de versão?",
@@ -71,8 +81,16 @@
       "topic": "Gerência de Configuração",
       "type": "closed",
       "options": [
-        { "id": 1, "option": "Git", "isCorrect": true },
-        { "id": 2, "option": "Excel", "isCorrect": false }
+        {
+          "id": 1,
+          "option": "Git",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Excel",
+          "isCorrect": false
+        }
       ]
     },
     {
@@ -93,7 +111,11 @@
           "option": "Plano de Gerência de Configuração",
           "isCorrect": true
         },
-        { "id": 2, "option": "Backlog do Produto", "isCorrect": false }
+        {
+          "id": 2,
+          "option": "Backlog do Produto",
+          "isCorrect": false
+        }
       ]
     },
     {
@@ -103,7 +125,6 @@
       "type": "open",
       "answer": "É a verificação formal de que artefatos estão consistentes, completos e em conformidade com padrões e baselines."
     },
-
     {
       "id": 11,
       "question": "Qual é o objetivo do Scrum Master?",
@@ -115,7 +136,11 @@
           "option": "Ajudar a equipe a seguir o Scrum e remover impedimentos",
           "isCorrect": true
         },
-        { "id": 2, "option": "Priorizar backlog", "isCorrect": false }
+        {
+          "id": 2,
+          "option": "Priorizar backlog",
+          "isCorrect": false
+        }
       ]
     },
     {
@@ -131,8 +156,16 @@
       "topic": "Gerência de Projetos Ágeis",
       "type": "closed",
       "options": [
-        { "id": 1, "option": "Sprint Planning", "isCorrect": true },
-        { "id": 2, "option": "Retrospective", "isCorrect": false }
+        {
+          "id": 1,
+          "option": "Sprint Planning",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Retrospective",
+          "isCorrect": false
+        }
       ]
     },
     {
@@ -148,11 +181,18 @@
       "topic": "Gerência de Projetos Ágeis",
       "type": "closed",
       "options": [
-        { "id": 1, "option": "Product Backlog", "isCorrect": true },
-        { "id": 2, "option": "Sprint Burn-down", "isCorrect": false }
+        {
+          "id": 1,
+          "option": "Product Backlog",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Sprint Burn-down",
+          "isCorrect": false
+        }
       ]
     },
-
     {
       "id": 16,
       "question": "O que um Diagrama de Classes representa?",
@@ -166,8 +206,16 @@
       "topic": "Modelagem UML",
       "type": "closed",
       "options": [
-        { "id": 1, "option": "Diagrama de Atividades", "isCorrect": true },
-        { "id": 2, "option": "Diagrama de Implantação", "isCorrect": false }
+        {
+          "id": 1,
+          "option": "Diagrama de Atividades",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Diagrama de Implantação",
+          "isCorrect": false
+        }
       ]
     },
     {
@@ -202,8 +250,6 @@
       "type": "open",
       "answer": "Uma entidade externa que interage com o sistema, podendo ser um usuário ou outro sistema."
     },
-
-
     {
       "id": 21,
       "question": "O que é o escopo de um projeto?",
@@ -217,8 +263,16 @@
       "topic": "Gerência de Projetos",
       "type": "closed",
       "options": [
-        { "id": 1, "option": "Gráfico de Gantt", "isCorrect": true },
-        { "id": 2, "option": "Diagrama de Atividades", "isCorrect": false }
+        {
+          "id": 1,
+          "option": "Gráfico de Gantt",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Diagrama de Atividades",
+          "isCorrect": false
+        }
       ]
     },
     {
@@ -234,8 +288,16 @@
       "topic": "Gerência de Projetos",
       "type": "closed",
       "options": [
-        { "id": 1, "option": "Gerenciamento de Recursos", "isCorrect": true },
-        { "id": 2, "option": "Gerenciamento de Custos", "isCorrect": false }
+        {
+          "id": 1,
+          "option": "Gerenciamento de Recursos",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Gerenciamento de Custos",
+          "isCorrect": false
+        }
       ]
     },
     {
@@ -244,6 +306,13 @@
       "topic": "Gerência de Projetos",
       "type": "open",
       "answer": "Uma decomposição hierárquica do projeto em partes menores e mais gerenciáveis."
+    },
+    {
+      "id": 26,
+      "question": "Qual é o Nome do melhor aluno de Paulo Borba?",
+      "topic": "Conhecimentos Gerais",
+      "type": "open",
+      "answer": "Rodrigo Sampaio"
     }
   ]
 }

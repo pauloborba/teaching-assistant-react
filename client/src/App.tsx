@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Student } from "./types/Student";
-import { Class } from "./types/Class";
-import { studentService } from "./services/StudentService";
-import ClassService from "./services/ClassService";
-import StudentList from "./components/StudentList";
-import StudentForm from "./components/StudentForm";
-import Evaluations from "./components/Evaluations";
-import Classes from "./components/Classes";
-import "./App.css";
+import React, { useState, useEffect, useCallback } from 'react';
+import { Student } from './types/Student';
+import { Class } from './types/Class';
+import { studentService } from './services/StudentService';
+import ClassService from './services/ClassService';
+import StudentList from './components/StudentList';
+import StudentForm from './components/StudentForm';
+import Evaluations from './components/Evaluations';
+import Classes from './components/Classes';
+import QuestionsPage from './pages/QuestionsPage';
+import './App.css';
 
-type TabType = "students" | "evaluations" | "classes";
+type TabType = 'students' | 'evaluations' | 'classes' | 'questions';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -137,9 +138,8 @@ const App: React.FC = () => {
             Students
           </button>
           <button
-            className={`tab-button ${
-              activeTab === "evaluations" ? "active" : ""
-            }`}
+            className={`tab-button ${activeTab === "evaluations" ? "active" : ""
+              }`}
             onClick={() => setActiveTab("evaluations")}
             data-testid="evaluations-tab"
           >
@@ -151,6 +151,12 @@ const App: React.FC = () => {
             data-testid="classes-tab"
           >
             Classes
+          </button>
+          <button
+            className={`tab-button ${activeTab === 'questions' ? 'active' : ''}`}
+            onClick={() => setActiveTab('questions')}
+          >
+            Questions
           </button>
         </div>
 
@@ -226,6 +232,10 @@ const App: React.FC = () => {
               onClassDeleted={handleClassDeleted}
               onError={handleError}
             />
+          )}
+
+          {activeTab === 'questions' && (
+            <QuestionsPage />
           )}
         </div>
       </main>

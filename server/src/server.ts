@@ -3,7 +3,7 @@ import cors from 'cors';
 import { Student } from './models/Student';
 import { Class } from './models/Class';
 import routes from './routes';
-import { studentSet, classes, triggerSave, cleanCPF, loadAllData } from './services/dataService';
+import { studentSet, classes, triggerSave, cleanCPF, loadAllData, examsManager } from './services/dataService';
 
 const app = express();
 const PORT = 3005;
@@ -14,6 +14,7 @@ app.use(express.json());
 
 // Load existing data on startup
 loadAllData();
+console.log(`Server loaded ${examsManager.getAllExams().length} exams on startup`);
 
 // Routes
 
@@ -319,9 +320,12 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
   }
 });
 
-// Import modular routes
 app.use('/api', routes);
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
