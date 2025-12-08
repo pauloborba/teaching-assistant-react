@@ -16,7 +16,8 @@
     "lint": "npm run lint --prefix client"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "jest-cucumber": "^4.5.0"
   },
   "keywords": [
     "react",
