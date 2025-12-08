@@ -14,15 +14,14 @@ import "./ExamPage.css";
 import ExamCreatePopup from "./ExamPagePopup";
 
 const columns: Column[] = [
-  { id: "versionNumber", label: "Versão", align: "center" },
-  { id: "examID", label: "ID Prova", align: "right" },
+  { id: "genId", label: "Geração ID", align: "left" },
+  { id: "numVersions", label: "Nº Versões", align: "right" },
   { id: "generationDate", label: "Data de Geração", align: "left" },
   { id: "numQuestionsOpen", label: "Nº Questões Abertas", align: "right" },
   { id: "numQuestionsClosed", label: "Nº Questões Fechadas", align: "right" },
 ];
 
 const detailColumns: DetailColumn[] = [
-  { id: "numero", label: "#" },
   { id: "questionId", label: "ID Questão" },
   { id: "type", label: "Tipo" },
   { id: "questionText", label: "Texto da Questão", align: "left" },
@@ -62,13 +61,26 @@ export default function ExamPage() {
 
       const generationDate = new Date(gen.timestamp).toLocaleString('pt-BR');
 
-      for (const version of (gen.versions || [])) {
-        const numOpen = version.questions?.filter((q: any) => q.type === 'open').length || 0;
-        const numClosed = version.questions?.filter((q: any) => q.type === 'closed').length || 0;
+      // Fetch exam data to get the defined question counts
+      let numOpen = 0;
+      let numClosed = 0;
+      try {
+        const examData = exams.find(e => e.id === gen.examId);
+        if (examData) {
+          numOpen = examData.openQuestions || 0;
+          numClosed = examData.closedQuestions || 0;
+        }
+      } catch (e) {
+        console.error(`Failed to fetch exam data for exam ${gen.examId}`, e);
+      }
 
-        // Fetch question texts
-        const detailsWithText = await Promise.all(
-          (version.questions || []).map(async (q: any) => {
+      // Collect unique questions from all versions in this generation
+      const questionMap = new Map();
+
+      for (const version of (gen.versions || [])) {
+        for (const q of (version.questions || [])) {
+          // Only fetch question text once per unique question ID
+          if (!questionMap.has(q.questionId)) {
             let questionText = 'Carregando...';
             try {
               const questionData = await QuestionService.getQuestionById(q.questionId);
@@ -78,24 +90,23 @@ export default function ExamPage() {
               questionText = 'Erro ao carregar';
             }
 
-            return {
-              numero: q.numero,
+            questionMap.set(q.questionId, {
               questionId: q.questionId,
               type: q.type === 'open' ? 'Aberta' : 'Fechada',
               questionText: questionText
-            };
-          })
-        );
-
-        rows.push({
-          versionNumber: version.versionNumber,
-          examID: gen.examId,
-          generationDate: generationDate,
-          numQuestionsOpen: numOpen,
-          numQuestionsClosed: numClosed,
-          details: detailsWithText
-        });
+            });
+          }
+        }
       }
+
+      rows.push({
+        genId: gen.id,
+        numVersions: gen.versions?.length || 0,
+        generationDate: generationDate,
+        numQuestionsOpen: numOpen,
+        numQuestionsClosed: numClosed,
+        details: Array.from(questionMap.values())
+      });
     }
 
     return rows;
@@ -209,6 +220,9 @@ export default function ExamPage() {
       setPopupOpen(false);
 
       await loadAllData();
+
+      // Select the newly created exam
+      setSelectedExam(data.nomeProva);
     } catch (err) {
       setAlertConfig({
         open: true,
@@ -361,6 +375,7 @@ export default function ExamPage() {
           examId={selectedExamIdForPdf}
           classId={classID}
           defaultQuantity={rows.length > 0 ? rows.length : 30}
+          onSuccess={loadAllData}
         />
       )}
 
