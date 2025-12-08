@@ -1,28 +1,24 @@
 import { ScriptAnswer } from "../models/ScriptAnswer";
-import { Student } from "../models/Student";
-import { Task } from "../models/Task";
 import { TaskAnswer } from "../models/TaskAnswer";
 import { Grade } from "../models/Evaluation";
 
 describe("ScriptAnswer", () => {
-  let student: Student;
   let script: ScriptAnswer;
 
   beforeEach(() => {
-    student = new Student("John Doe", "12345678909", "john@example.com");
-    script = new ScriptAnswer("sa1", student);
+    script = new ScriptAnswer("sa1", "script1", "student123");
   });
 
   // ---------------------------------------------------------------
   test("constructor initializes fields", () => {
     expect(script.getId()).toBe("sa1");
+    expect(script.getScriptId()).toBe("script1");
     expect(script.answers.length).toBe(0);
   });
 
   // ---------------------------------------------------------------
   test("toJSON() returns correct structure", () => {
-    const t1 = new Task("t1", "Example task");
-    const ta1 = new TaskAnswer("a1", t1, "my answer", "MA");
+    const ta1 = new TaskAnswer("a1", "t1", "my answer", "MA");
 
     script.addAnswer(ta1);
 
@@ -30,18 +26,12 @@ describe("ScriptAnswer", () => {
 
     expect(json).toEqual({
       id: "sa1",
-      student: {
-        name: "John Doe",
-        cpf: "123.456.789-09",
-        email: "john@example.com",
-      },
+      scriptId: "script1",
+      student: "student123",
       answers: [
         {
           id: "a1",
-          task: {
-            id: "t1",
-            statement: "Example task",
-          },
+          task: "t1",
           answer: "my answer",
           grade: "MA",
           comments: undefined,
@@ -53,7 +43,7 @@ describe("ScriptAnswer", () => {
 
   // ---------------------------------------------------------------
   test("addAnswer() adds new answer", () => {
-    const answer = new TaskAnswer("a1", new Task("t1", "task1"));
+    const answer = new TaskAnswer("a1", "t1");
     script.addAnswer(answer);
 
     expect(script.answers.length).toBe(1);
@@ -61,9 +51,8 @@ describe("ScriptAnswer", () => {
   });
 
   test("addAnswer() throws when adding duplicate task", () => {
-    const t1 = new Task("t1", "task1");
-    const answer1 = new TaskAnswer("a1", t1);
-    const answer2 = new TaskAnswer("a2", t1);
+    const answer1 = new TaskAnswer("a1", "t1");
+    const answer2 = new TaskAnswer("a2", "t1");
 
     script.addAnswer(answer1);
 
@@ -72,8 +61,8 @@ describe("ScriptAnswer", () => {
 
   // ---------------------------------------------------------------
   test("findAnswerByTaskId() returns correct answer", () => {
-    const a1 = new TaskAnswer("a1", new Task("t1", "task1"));
-    const a2 = new TaskAnswer("a2", new Task("t2", "task2"));
+    const a1 = new TaskAnswer("a1", "t1");
+    const a2 = new TaskAnswer("a2", "t2");
 
     script.addAnswer(a1);
     script.addAnswer(a2);
@@ -84,7 +73,7 @@ describe("ScriptAnswer", () => {
 
   // ---------------------------------------------------------------
   test("removeAnswer() removes existing answer", () => {
-    const a1 = new TaskAnswer("a1", new Task("t1", "t1"));
+    const a1 = new TaskAnswer("a1", "t1");
     script.addAnswer(a1);
     expect(script.answers.length).toBe(1);
 
@@ -102,10 +91,10 @@ describe("ScriptAnswer", () => {
   // ---------------------------------------------------------------
   describe("grade distribution", () => {
     test("getGradeDistribution counts correctly", () => {
-      script.addAnswer(new TaskAnswer("a1", new Task("1", "x"), "a", "MA"));
-      script.addAnswer(new TaskAnswer("a2", new Task("2", "x"), "a", "MA"));
-      script.addAnswer(new TaskAnswer("a3", new Task("3", "x"), "a", "MPA"));
-      script.addAnswer(new TaskAnswer("a4", new Task("4", "x"), "a", "MANA"));
+      script.addAnswer(new TaskAnswer("a1", "t1", "a", "MA"));
+      script.addAnswer(new TaskAnswer("a2", "t2", "a", "MA"));
+      script.addAnswer(new TaskAnswer("a3", "t3", "a", "MPA"));
+      script.addAnswer(new TaskAnswer("a4", "t4", "a", "MANA"));
 
       const dist = script.getGradeDistribution();
 
@@ -116,7 +105,6 @@ describe("ScriptAnswer", () => {
       });
     });
 
-    // NEW TEST
     test("getNumberOfAnswersWithGrade throws on invalid grade", () => {
       expect(() => (script as any).getNumberOfAnswersWithGrade("INVALID"))
         .toThrow("Invalid grade");
@@ -124,13 +112,10 @@ describe("ScriptAnswer", () => {
   });
 
   // ---------------------------------------------------------------
-  // NEW TESTS: Grade validation in constructor and updateGrade()
-  // ---------------------------------------------------------------
   describe("grade validation", () => {
     test("constructor throws when initialized with invalid grade", () => {
       expect(() => {
-        // @ts-expect-error intentionally invalid
-        new ScriptAnswer("bad", student, [], "INVALID");
+        new ScriptAnswer("bad", "script1", "student123", [], "INVALID" as Grade);
       }).toThrow("Invalid grade value");
     });
 
@@ -147,9 +132,36 @@ describe("ScriptAnswer", () => {
 
     test("updateGrade throws on invalid grade", () => {
       expect(() => {
-        // @ts-expect-error intentional invalid
-        script.updateGrade("WRONG");
+        script.updateGrade("WRONG" as Grade);
       }).toThrow("Invalid grade value");
+    });
+  });
+
+  // ---------------------------------------------------------------
+  describe("static methods", () => {
+    test("fromJSON creates ScriptAnswer instance", () => {
+      const json = {
+        id: "sa1",
+        scriptId: "script1",
+        student: "student123",
+        answers: [
+          {
+            id: "a1",
+            task: "t1",
+            answer: "test answer",
+            grade: "MA",
+            comments: "good",
+          },
+        ],
+        grade: "MPA",
+      };
+
+      const script = ScriptAnswer.fromJSON(json);
+
+      expect(script.getId()).toBe("sa1");
+      expect(script.getScriptId()).toBe("script1");
+      expect(script.answers.length).toBe(1);
+      expect(script.grade).toBe("MPA");
     });
   });
 });

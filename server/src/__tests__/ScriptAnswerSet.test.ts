@@ -1,4 +1,6 @@
 import { ScriptAnswerSet } from '../models/ScriptAnswerSet';
+import { ScriptAnswer } from '../models/ScriptAnswer';
+import { TaskAnswer } from '../models/TaskAnswer';
 
 describe('ScriptAnswerSet', () => {
   let set: ScriptAnswerSet;
@@ -22,9 +24,9 @@ describe('ScriptAnswerSet', () => {
 
       const result = set.addScriptAnswer(data);
 
-      expect(result.id).toBe('A1');
-      expect(result.scriptId).toBe('S1');
-      expect(result.studentId).toBe('ST1');
+      expect(result.getId()).toBe('A1');
+      expect(result.getScriptId()).toBe('S1');
+      expect(result.answers.length).toBe(0);
       expect(result.grade).toBe('MA');
       expect(set.getAll().length).toBe(1);
     });
@@ -37,8 +39,8 @@ describe('ScriptAnswerSet', () => {
 
       const result = set.addScriptAnswer(data);
 
-      expect(result.id).toBeDefined();
-      expect(typeof result.id).toBe('string');
+      expect(result.getId()).toBeDefined();
+      expect(typeof result.getId()).toBe('string');
       expect(set.getAll().length).toBe(1);
     });
   });
@@ -51,7 +53,7 @@ describe('ScriptAnswerSet', () => {
       const a = set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
       expect(set.getAll().length).toBe(1);
     
-      const removed = set.removeScriptAnswer(a.id);
+      const removed = set.removeScriptAnswer(a.getId());
 
       expect(removed).toBe(true);
       expect(set.getAll().length).toBe(0);
@@ -78,7 +80,7 @@ describe('ScriptAnswerSet', () => {
       const all = set.getAll();
 
       expect(all.length).toBe(2);
-      expect(all.map(a => a.id)).toEqual(['A1', 'A2']);
+      expect(all.map(a => a.getId())).toEqual(['A1', 'A2']);
     });
   });
 
@@ -94,7 +96,7 @@ describe('ScriptAnswerSet', () => {
       const results = set.findByStudentId('ST1');
 
       expect(results.length).toBe(2);
-      expect(results.map(a => a.id)).toEqual(['A1', 'A2']);
+      expect(results.map(a => a.getId())).toEqual(['A1', 'A2']);
     });
 
     test('should return an empty array if student has no answers', () => {
@@ -116,7 +118,7 @@ describe('ScriptAnswerSet', () => {
       const result = set.findById('A1');
 
       expect(result).not.toBeNull();
-      expect(result?.scriptId).toBe('S1');
+      expect(result?.getScriptId()).toBe('S1');
     });
 
     test('should return null for nonexistent ID', () => {
@@ -131,7 +133,7 @@ describe('ScriptAnswerSet', () => {
   // -----------------------------------------
   describe('updateGrade', () => {
     test('should update grade of an existing script answer', () => {
-      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1', grade: null });
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1', grade: undefined });
 
       const updated = set.updateGrade('A1', 'MA');
 
@@ -151,12 +153,12 @@ describe('ScriptAnswerSet', () => {
   // -----------------------------------------
   describe('updateTaskAnswer', () => {
     test('should update grade and comments of a task answer', () => {
-      set.addScriptAnswer({
+      const scriptAnswer = set.addScriptAnswer({
         id: 'A1',
         scriptId: 'S1',
         studentId: 'ST1',
         taskAnswers: [
-          { id: 'TA1', grade: 'MA', comments: 'old comment' }
+          { id: 'TA1', task: 'T1', grade: 'MA', comments: 'old comment' }
         ]
       });
 
@@ -166,7 +168,7 @@ describe('ScriptAnswerSet', () => {
       });
 
       expect(result).not.toBeNull();
-      expect(result?.grade).toBe('MANA');
+      expect(result?.getGrade()).toBe('MANA');
       expect(result?.comments).toBe('new comment');
     });
 
@@ -184,4 +186,29 @@ describe('ScriptAnswerSet', () => {
     });
   });
 
+  // -----------------------------------------
+  // findByScriptId
+  // -----------------------------------------
+  describe('findByScriptId', () => {
+    test('should return all answers for a specific script', () => {
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
+      set.addScriptAnswer({ id: 'A2', scriptId: 'S1', studentId: 'ST2' });
+      set.addScriptAnswer({ id: 'A3', scriptId: 'S2', studentId: 'ST3' });
+
+      const results = set.findbyScriptId('S1');
+
+  
+
+      expect(results.length).toBe(2);
+      expect(results.map(a => a.getId())).toEqual(['A1', 'A2']);
+    });
+
+    test('should return an empty array if script has no answers', () => {
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
+
+      const results = set.findbyScriptId('NOPE');
+
+      expect(results).toEqual([]);
+    });
+  });
 });
