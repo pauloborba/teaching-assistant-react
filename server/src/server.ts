@@ -9,6 +9,8 @@ import { Report } from './models/Report';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
+import { notificarResultadoDisciplina, notificarAlunosEmLote } from './services/gradenotification';
+import { Enrollment } from './models/Enrollment';
 
 // usado para ler arquivos em POST
 const multer = require('multer');
@@ -513,6 +515,84 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
     res.json(report.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// POST /api/notifications/grade-result - Enviar notificação de resultado da disciplina para um aluno
+app.post('/api/notifications/grade-result', async (req: Request, res: Response) => {
+  try {
+    const { studentCPF, disciplina, professorNome } = req.body;
+    
+    if (!studentCPF || !disciplina || !professorNome) {
+      return res.status(400).json({ error: 'studentCPF, disciplina e professorNome são obrigatórios' });
+    }
+
+    const cleanedCPF = cleanCPF(studentCPF);
+    const student = studentSet.findStudentByCPF(cleanedCPF);
+    
+    if (!student) {
+      return res.status(404).json({ error: 'Aluno não encontrado' });
+    }
+
+    // Encontrar a matrícula do aluno na disciplina para obter a nota
+    const classObj = classes.findClassesByTopic(disciplina)[0];
+    if (!classObj) {
+      return res.status(404).json({ error: 'Disciplina não encontrada' });
+    }
+
+    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
+    if (!enrollment) {
+      return res.status(404).json({ error: 'Aluno não matriculado nesta disciplina' });
+    }
+
+    // A nota final é calculada na rota /api/classes/:classId/enrollments/:studentCPF/evaluation
+    // Para a notificação, usaremos a média pré-final, que é o que o cliente espera
+    const nota = enrollment.getMediaPreFinal() ?? 0;
+
+    await notificarResultadoDisciplina(student, nota, disciplina, professorNome);
+    res.status(200).json({ message: 'Notificação enviada com sucesso' });
+  } catch (error) {
+    console.error('Erro ao enviar notificação:', error);
+    res.status(500).json({ error: 'Erro ao enviar notificação de resultado' });
+  }
+});
+
+// POST /api/notifications/batch-result - Enviar notificação de resultado da disciplina em lote
+app.post('/api/notifications/batch-result', async (req: Request, res: Response) => {
+  try {
+    const { classId, disciplina, professorNome } = req.body;
+    
+    if (!classId || !disciplina || !professorNome) {
+      return res.status(400).json({ error: 'classId, disciplina e professorNome são obrigatórios' });
+    }
+
+    const classObj = classes.findClassById(classId);
+    
+    if (!classObj) {
+      return res.status(404).json({ error: 'Disciplina não encontrada' });
+    }
+
+    const students = classObj.getEnrollments().map((e: Enrollment) => e.getStudent());
+    
+    if (students.length === 0) {
+      return res.status(404).json({ error: 'Nenhum aluno matriculado nesta disciplina' });
+    }
+
+    // A lógica de cálculo da nota será implementada agora
+    const totalEnviados = await notificarAlunosEmLote(students, disciplina, professorNome, (student) => {
+      const enrollment = classObj.findEnrollmentByStudentCPF(student.getCPF());
+      // Garante que a nota seja 0 se a matrícula não for encontrada (embora não deva acontecer)
+      return enrollment?.getMediaPreFinal() ?? 0;
+
+    }); 
+    
+    res.status(200).json({ 
+      message: 'Notificações enviadas com sucesso',
+      totalEnviados: totalEnviados 
+    });
+  } catch (error) {
+    console.error('Erro ao enviar notificações em lote:', error);
+    res.status(500).json({ error: 'Erro ao enviar notificações em lote' });
   }
 });
 
