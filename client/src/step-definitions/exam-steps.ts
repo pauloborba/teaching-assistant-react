@@ -70,6 +70,55 @@ Given('professor {string} accesses the screen {string}', async function (profess
     await page.waitForSelector('[data-testid="exam-popup"]');
 });
 
+Given("professor {string} registers the exam {string} with questions {string} and {string} and {string} and {string} and {string}", async function (professorName: string, examTitle: string, q1: string, q2: string, q3: string, q4: string, q5: string) {
+    examTitleGlobal = examTitle;
+
+    await page.waitForSelector('[data-testid="exam-title"]');
+
+    await page.click('[data-testid="exam-title"]');
+    await page.type('[data-testid="exam-title"]', examTitle);
+
+    // Select questions
+    const questionsToSelect = [q1, q2, q3, q4, q5];
+    // Aguarda carregar a lista
+    await page.waitForSelector('.questions-list .question-item');
+    for (const qId of questionsToSelect) {
+        const checkboxSelector = `[data-testid="question-checkbox-${qId}"]`;
+        // Verifica se o checkbox existe antes de clicar
+        await page.waitForSelector(checkboxSelector);
+        await page.click(checkboxSelector);
+    }
+    //Confirmar o registro
+    await page.waitForSelector('[data-testid="confirm-create-exam"]');
+    await page.click('[data-testid="confirm-create-exam"]');
+    await page.waitForSelector('[data-testid="exam-table"]', { timeout: 5000 });
+});
+
+// Step alternativo para usar com "And registers..." (sem o parâmetro professor)
+Given('registers the exam {string} with questions {string} and {string} and {string} and {string} and {string}', async function (examTitle: string, q1: string, q2: string, q3: string, q4: string, q5: string) {
+    examTitleGlobal = examTitle;
+
+    await page.waitForSelector('[data-testid="exam-title"]');
+
+    await page.click('[data-testid="exam-title"]');
+    await page.type('[data-testid="exam-title"]', examTitle);
+
+    // Select questions
+    const questionsToSelect = [q1, q2, q3, q4, q5];
+    // Aguarda carregar a lista
+    await page.waitForSelector('.questions-list .question-item');
+    for (const qId of questionsToSelect) {
+        const checkboxSelector = `[data-testid="question-checkbox-${qId}"]`;
+        // Verifica se o checkbox existe antes de clicar
+        await page.waitForSelector(checkboxSelector);
+        await page.click(checkboxSelector);
+    }
+    //Confirmar o registro
+    await page.waitForSelector('[data-testid="confirm-create-exam"]');
+    await page.click('[data-testid="confirm-create-exam"]');
+    await page.waitForSelector('[data-testid="exam-table"]', { timeout: 5000 });
+});
+
 
 
 /* ------------------------------------------------------------
@@ -83,19 +132,6 @@ When('the professor provides the title {string}', async function (title: string)
 
     await page.click('[data-testid="exam-title"]');
     await page.type('[data-testid="exam-title"]', title);
-});
-
-When('defines the rules {string} and {string}', async function (rule1: string, rule2: string) {
-
-    // Campo para questões abertas
-    await page.waitForSelector('[data-testid="open-questions"]');
-    await page.click('[data-testid="open-questions"]');
-    await page.type('[data-testid="open-questions"]', rule1.replace(/\D/g, '')); // extrai apenas número
-
-    // Campo para questões fechadas
-    await page.waitForSelector('[data-testid="closed-questions"]');
-    await page.click('[data-testid="closed-questions"]');
-    await page.type('[data-testid="closed-questions"]', rule2.replace(/\D/g, ''));
 });
 
 When('selects the questions {string} and {string} and {string} and {string} and {string}', async function (q1: string, q2: string, q3: string, q4: string, q5: string) {
@@ -116,9 +152,59 @@ When('confirms the exam registration', async function () {
     await page.waitForSelector('[data-testid="exam-table"]', { timeout: 5000 });
 });
 
+When('professor {string} deletes the exam {string}', async function (professorName: string, examTitle: string) {
+    // First, select the exam from the dropdown
+    await page.click('[data-testid="dropdown-button"]');
+    await page.waitForSelector(`[data-testid="dropdown-item-${examTitle}"]`);
+    await page.click(`[data-testid="dropdown-item-${examTitle}"]`);
+
+    // Wait for the delete button to appear (it only shows when a specific exam is selected)
+    await page.waitForSelector('[data-testid="delete-exam-button"]', { timeout: 5000 });
+
+    // Set up dialog handler BEFORE clicking the delete button
+    page.once('dialog', async dialog => {
+        await dialog.accept(); // Confirm the deletion
+    });
+
+    // Click the delete button
+    await page.click('[data-testid="delete-exam-button"]');
+});
+
 /* ------------------------------------------------------------
    THEN
 -------------------------------------------------------------*/
+Then('the system shows the message {string}', async function (msg: string) {
+    // Wait for the alert message to appear
+    // Make it more flexible to match partial messages
+    const searchText = msg.toLowerCase().includes('deletado') || msg.toLowerCase().includes('deletada')
+        ? 'deletad' // Match both "deletado" and "deletada"
+        : msg;
+
+    await page.waitForFunction(
+        (text: string) => {
+            const alerts = Array.from(document.querySelectorAll('.MuiAlert-root'));
+            return alerts.some(alert => {
+                const alertText = alert.textContent?.toLowerCase() || '';
+                return alertText.includes(text.toLowerCase());
+            });
+        },
+        { timeout: 10000 },
+        searchText
+    );
+});
+
+Then('the exam {string} does not appear in the list of registered exams', async function (title: string) {
+    await page.waitForSelector('[data-testid="exam-table"]');
+    const examExists = await page.$(`[data-testid="exam-table"] [data-testid="exam-row-${title}"]`);
+    expect(examExists).toBeFalsy();
+});
+
+Then('the exam {string} is no longer in the list of registered exams', async function (title: string) {
+    await page.waitForSelector('[data-testid="exam-table"]');
+    const examExists = await page.$(`[data-testid="exam-table"] [data-testid="exam-row-${title}"]`);
+    expect(examExists).toBeFalsy();
+});
+
 Then('the system registers the exam {string} successfully', async function (title: string) {
     // Esse passo intermediário não faz verificação —
     // os próximos steps validam o comportamento real.
