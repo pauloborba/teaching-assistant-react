@@ -115,4 +115,26 @@ export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, stud
 
     return res.status(200).json({ taskId, comment });
   });
+
+  // DELETE /api/scriptanswers/:id → Delete a script answer by ID
+  app.delete(scriptAnswerurl+':id', (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const removed = scriptAnswerSet.removeScriptAnswer(id);
+    if (!removed) {
+      return res.status(404).json({ error: 'ScriptAnswer not found' });
+    }
+
+    return res.status(200).json({ message: 'ScriptAnswer deleted successfully', id });
+  });
+
+  // DELETE /api/scriptanswers → Delete all script answers
+  app.delete(scriptAnswerurl+'', (req: Request, res: Response) => {
+    try {
+      const count = scriptAnswerSet.removeAllScriptAnswers();
+      return res.status(200).json({ message: 'All script answers deleted', count });
+    } catch (error) {
+      return res.status(500).json({ error: 'Failed to delete all script answers' });
+    }
+  });
 }

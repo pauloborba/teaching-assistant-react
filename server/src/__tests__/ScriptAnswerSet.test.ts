@@ -70,6 +70,56 @@ describe('ScriptAnswerSet', () => {
   });
 
   // -----------------------------------------
+  // removeAllScriptAnswers
+  // -----------------------------------------
+  describe('removeAllScriptAnswers', () => {
+    test('should remove all script answers and return the count', () => {
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
+      set.addScriptAnswer({ id: 'A2', scriptId: 'S2', studentId: 'ST2' });
+      set.addScriptAnswer({ id: 'A3', scriptId: 'S3', studentId: 'ST3' });
+      expect(set.getAll().length).toBe(3);
+
+      const count = set.removeAllScriptAnswers();
+
+      expect(count).toBe(3);
+      expect(set.getAll().length).toBe(0);
+    });
+
+    test('should return 0 when there are no answers to remove', () => {
+      expect(set.getAll().length).toBe(0);
+
+      const count = set.removeAllScriptAnswers();
+
+      expect(count).toBe(0);
+      expect(set.getAll().length).toBe(0);
+    });
+
+    test('should clear all answers regardless of their properties', () => {
+      set.addScriptAnswer({ 
+        id: 'A1', 
+        scriptId: 'S1', 
+        studentId: 'ST1', 
+        grade: 'MA',
+        taskAnswers: [
+          { id: 'TA1', task: 'T1', grade: 'MPA', comments: 'comment' }
+        ]
+      });
+      set.addScriptAnswer({ 
+        id: 'A2', 
+        scriptId: 'S2', 
+        studentId: 'ST2', 
+        grade: 'MANA'
+      });
+      expect(set.getAll().length).toBe(2);
+
+      const count = set.removeAllScriptAnswers();
+
+      expect(count).toBe(2);
+      expect(set.getAll()).toEqual([]);
+    });
+  });
+
+  // -----------------------------------------
   // getAll
   // -----------------------------------------
   describe('getAll', () => {
@@ -196,8 +246,6 @@ describe('ScriptAnswerSet', () => {
       set.addScriptAnswer({ id: 'A3', scriptId: 'S2', studentId: 'ST3' });
 
       const results = set.findbyScriptId('S1');
-
-  
 
       expect(results.length).toBe(2);
       expect(results.map(a => a.getId())).toEqual(['A1', 'A2']);

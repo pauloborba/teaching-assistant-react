@@ -232,4 +232,63 @@ describe('Server API – Script Answers Endpoints', () => {
     expect(res.body.taskId).toBe('t4');
     expect(res.body.comment).toBe('Good work!');
   });
+
+  // ----------------------------------------------------------
+  // 14) Deletar resposta existente
+  // ----------------------------------------------------------
+
+  test('DELETE /api/scriptanswers/:id → deletes existing script answer', async () => {
+    scriptAnswerSet.addScriptAnswer({ id: '130', scriptId: '1', studentId: 'S1' });
+    expect(scriptAnswerSet.getAll().length).toBe(1);
+
+    const res = await request(app).delete('/api/scriptanswers/130');
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('ScriptAnswer deleted successfully');
+    expect(res.body.id).toBe('130');
+    expect(scriptAnswerSet.getAll().length).toBe(0);
+  });
+
+  // ----------------------------------------------------------
+  // 15) Tentar deletar resposta inexistente
+  // ----------------------------------------------------------
+
+  test('DELETE /api/scriptanswers/:id → returns 404 when deleting nonexistent answer', async () => {
+    const res = await request(app).delete('/api/scriptanswers/nonexistent');
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe('ScriptAnswer not found');
+  });
+
+  // ----------------------------------------------------------
+  // 16) Deletar todas as respostas
+  // ----------------------------------------------------------
+
+  test('DELETE /api/scriptanswers → deletes all script answers', async () => {
+    scriptAnswerSet.addScriptAnswer({ id: '140', scriptId: '1', studentId: 'S1' });
+    scriptAnswerSet.addScriptAnswer({ id: '141', scriptId: '2', studentId: 'S2' });
+    scriptAnswerSet.addScriptAnswer({ id: '142', scriptId: '3', studentId: 'S3' });
+    expect(scriptAnswerSet.getAll().length).toBe(3);
+
+    const res = await request(app).delete('/api/scriptanswers/');
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('All script answers deleted');
+    expect(res.body.count).toBe(3);
+    expect(scriptAnswerSet.getAll().length).toBe(0);
+  });
+
+  // ----------------------------------------------------------
+  // 17) Deletar todas as respostas quando não há nenhuma
+  // ----------------------------------------------------------
+
+  test('DELETE /api/scriptanswers → returns 200 even when no answers exist', async () => {
+    expect(scriptAnswerSet.getAll().length).toBe(0);
+
+    const res = await request(app).delete('/api/scriptanswers/');
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('All script answers deleted');
+    expect(res.body.count).toBe(0);
+  });
 });

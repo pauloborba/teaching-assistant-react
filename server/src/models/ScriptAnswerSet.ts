@@ -25,7 +25,12 @@ export class ScriptAnswerSet {
     }
     return false;
   }
-  
+
+  removeAllScriptAnswers() {
+    const count = this.scriptAnswers.length;
+    this.scriptAnswers = [];
+    return count;
+  }
 
   getAll() {
     return this.scriptAnswers.slice()
