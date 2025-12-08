@@ -12,6 +12,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
 import {TaskSet} from './models/TaskSet'
+import { ScriptAnswerSet } from './models/ScriptAnswerSet';
+
 
 // usado para ler arquivos em POST
 const multer = require('multer');
@@ -32,7 +34,7 @@ const classes = new Classes();
 const dataFile = path.resolve('./data/app-data.json');
 const scripts = new Scripts();
 const taskset = new TaskSet();
-const scriptResponseSet = new ScriptResponseSet();
+const scriptAnswerSet = new ScriptAnswerSet();
 
 // Persistence functions
 const ensureDataDirectory = (): void => {
@@ -523,8 +525,21 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
 });
 
 
-// Export the app for testing
-export { app, studentSet, classes };
+// Export the app for testing and routes files
+export { app, studentSet, classes, scriptAnswerSet, taskset, scripts};
+
+
+// Setup routes (after exports)
+import { setupScriptAnswerRoutes } from './server_routes/scriptanswer';
+import { setupTaskRoutes } from './server_routes/tasks';
+import { setupScriptRoutes } from './server_routes/scripts';
+import { loadMockScriptsAndAnswers } from './mock_scripts';
+
+setupScriptAnswerRoutes(app, scriptAnswerSet, studentSet);
+setupTaskRoutes(app, taskset);
+setupScriptRoutes(app, scripts);
+
+loadMockScriptsAndAnswers(taskset, scripts, scriptAnswerSet, "11111111111");
 
 // Only start the server if this file is run directly (not imported for testing)
 if (require.main === module) {
@@ -534,99 +549,7 @@ if (require.main === module) {
 }
 
 
-// POST /api/tasks => create new task
-app.post('/api/tasks', (req: Request, res: Response) =>{
-  const task = taskset.addTask(req.body);
-  res.status(201).json(task);
-});
 
-// GET /api/tasks/:id => get task by id
-app.get('/api/tasks/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const task = taskset.findById(id);
-  if (!task) {
-    return res.status(404).json({ error: 'Task not found' });
-  }
-  res.json(task.toJSON());
-});
 
-// GET /api/tasks - Get all students
-app.get('/api/tasks', (req: Request, res: Response) => {
-  try {
-    const tasks = taskset.getAllTasks();
-    res.json(tasks.map(t => t.toJSON()));
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch students' });
-  }
-});
-// PUT /api/tasks/:id => update task
-app.put('/api/tasks/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const task = taskset.updateTask(id, req.body);
 
-  if (!task) return res.status(404).json({ error: 'Task not found' });
-  res.json(task.toJSON());
-});
 
-//POST /api/scripts - Create a new script
-app.post('/api/scripts', (req: Request, res: Response) => {
-  const script = scripts.addScript(req.body);
-  res.status(201).json(script.toJSON());
-});
-
-//GET /api/scripts/:id - Get one script by ID
-app.get('/api/scripts/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const script = scripts.findById(id);
-  if (!script) {
-    return res.status(404).json({ error: 'Script not found' });
-  }
-  res.json(script.toJSON());
-});
-
-// GET /api/scripts - Get all scripts
-app.get('/api/scripts', (req: Request, res: Response) => {
-  try {
-    const allScripts = scripts.getAllScripts();
-    res.json(allScripts.map(s => s.toJSON()));
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch scripts' });
-  }
-});
-
-//PUT /api/scripts/:id - Update a script
-app.put('/api/scripts/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const script = scripts.updateScript(id, req.body);
-
-  if (!script) return res.status(404).json({ error: 'Script not found' });
-  res.json(script.toJSON());
-});
-
-app.post('/api/scriptResponses', (req, res) => {
-  const { scriptId, studentCPF, classId } = req.body;
-  const script = scripts.findById(scriptId);
-  const classObj = classes.findClassById(classId);
-
-  if (!script || !classObj) {
-    return res.status(404).json({ error: 'Script or Class not found' });
-  }
-
-  const enrollment = classObj.findEnrollmentByStudentCPF(studentCPF);
-  
-  if (!enrollment) { 
-    return res.status(404).json({ error: 'Student not enrolled in this class' });
-  }
-  
-  const response = scriptResponseSet.createOrGetActiveScriptResponse(enrollment, script);
-  res.json(response.toJSON());
-});
-
-// GET /api/script-responses/:id
-app.get('/api/scriptResponses/:id', (req, res) => {
-  const response = scriptResponseSet.findById(req.params.id);
-  if (!response) {
-    return res.status(404).json({ error: 'ScriptResponse not found' });
-  }
-  res.json(response.toJSON());
-});
