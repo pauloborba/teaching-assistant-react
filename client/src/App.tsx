@@ -7,9 +7,10 @@ import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
+import SelfEvaluation from './components/SelfEvaluation';
 import './App.css';
 
-type TabType = 'students' | 'evaluations' | 'classes';
+type TabType = 'students' | 'evaluations' | 'classes' | 'self-evaluation';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -19,6 +20,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('students');
+  const errorTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const loadStudents = useCallback(async () => {
     try {
@@ -66,6 +68,40 @@ const App: React.FC = () => {
     loadStudents();
     loadClasses();
   }, [loadStudents, loadClasses]);
+
+  // Clear error message when window loses focus or after 6 seconds
+  useEffect(() => {
+    const handleWindowBlur = () => {
+      setError('');
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    };
+
+    window.addEventListener('blur', handleWindowBlur);
+    return () => {
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, []);
+
+  // Auto-clear error message after 6 seconds
+  useEffect(() => {
+    if (error) {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+
+      errorTimeoutRef.current = setTimeout(() => {
+        setError('');
+      }, 6000);
+    }
+
+    return () => {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    };
+  }, [error]);
 
   const handleStudentAdded = async () => {
     loadStudents(); // Reload the list when a new student is added
@@ -120,6 +156,27 @@ const App: React.FC = () => {
         {error && (
           <div className="error-message">
             <strong>Error:</strong> {error}
+            <button 
+              onClick={() => {
+                setError('');
+                if (errorTimeoutRef.current) {
+                  clearTimeout(errorTimeoutRef.current);
+                }
+              }}
+              style={{
+                marginLeft: 'auto',
+                background: 'none',
+                border: 'none',
+                color: '#c53030',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                fontWeight: 'bold',
+                padding: '0 0.5rem'
+              }}
+              title="Close error message"
+            >
+              ×
+            </button>
           </div>
         )}
 
@@ -138,6 +195,12 @@ const App: React.FC = () => {
             data-testid="evaluations-tab"
           >
             Evaluations
+          </button>
+          <button
+            className={`tab-button ${activeTab === 'self-evaluation' ? 'active' : ''}`}
+            onClick={() => setActiveTab('self-evaluation')}
+          >
+            Self-Evaluation
           </button>
           <button
             className={`tab-button ${activeTab === 'classes' ? 'active' : ''}`}
@@ -212,6 +275,12 @@ const App: React.FC = () => {
               onClassAdded={handleClassAdded}
               onClassUpdated={handleClassUpdated}
               onClassDeleted={handleClassDeleted}
+              onError={handleError}
+            />
+          )}
+
+          {activeTab === 'self-evaluation' && (
+            <SelfEvaluation 
               onError={handleError}
             />
           )}
