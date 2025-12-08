@@ -41,5 +41,11 @@ export const EVALUATION_GOALS = [
   'Project Management',
   'Design',
   'Tests',
-  'Refactoring'
+  'Refactoring',
+  'Roteiro 1',
+  'Roteiro 2',
+  'Roteiro 3',
+  'Roteiro 4',
+  'Roteiro 5',
+  'Roteiro 6'
 ] as const;

@@ -17,9 +17,10 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   });
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<'general' | 'roteiros'>('general');
 
-  // Predefined evaluation goals
-  const evaluationGoals = [
+  // Avaliações gerais
+  const generalGoals = [
     'Requirements',
     'Configuration Management', 
     'Project Management',
@@ -27,6 +28,22 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     'Tests',
     'Refactoring'
   ];
+
+  // Roteiros
+  const roteiroGoals = [
+    'Roteiro 1',
+    'Roteiro 2',
+    'Roteiro 3',
+    'Roteiro 4',
+    'Roteiro 5',
+    'Roteiro 6'
+  ];
+
+  // Todas as metas
+  const evaluationGoals = [...generalGoals, ...roteiroGoals];
+  
+  // Metas a exibir baseado no modo de visualização
+  const displayedGoals = viewMode === 'general' ? generalGoals : roteiroGoals;
 
   const loadClasses = useCallback(async () => {
     try {
@@ -144,18 +161,59 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
 
       {selectedClass && selectedClass.enrollments.length > 0 && (
         <div className="evaluation-table-container">
-          {/*Componente de importacao de notas de uma planilha, vai reagir as mudacas do classId */}
-          <div>
+          <h4>{selectedClass.topic} ({selectedClass.year}/{selectedClass.semester})</h4>
+          
+          {/* Abas para alternar entre visualizações */}
+          <div className="view-mode-tabs" style={{ marginBottom: '20px', marginTop: '20px' }}>
+            <button
+              className={`tab-button ${viewMode === 'general' ? 'active' : ''}`}
+              onClick={() => setViewMode('general')}
+              style={{
+                padding: '10px 20px',
+                marginRight: '10px',
+                border: viewMode === 'general' ? '2px solid #667eea' : '2px solid #ccc',
+                backgroundColor: viewMode === 'general' ? '#667eea' : 'white',
+                color: viewMode === 'general' ? 'white' : '#333',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: viewMode === 'general' ? '600' : 'normal',
+                transition: 'all 0.2s'
+              }}
+            >
+              📊 Avaliações Gerais
+            </button>
+            <button
+              className={`tab-button ${viewMode === 'roteiros' ? 'active' : ''}`}
+              onClick={() => setViewMode('roteiros')}
+              style={{
+                padding: '10px 20px',
+                border: viewMode === 'roteiros' ? '2px solid #667eea' : '2px solid #ccc',
+                backgroundColor: viewMode === 'roteiros' ? '#667eea' : 'white',
+                color: viewMode === 'roteiros' ? 'white' : '#333',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: viewMode === 'roteiros' ? '600' : 'normal',
+                transition: 'all 0.2s'
+              }}
+            >
+              📝 Roteiros
+            </button>
+          </div>
+
+          {/*Componente de importacao de notas de uma planilha */}
+          <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f5f7fa', borderRadius: '8px' }}>
+            <h4 style={{ marginBottom: '10px' }}>
+              {viewMode === 'general' ? 'Importar Notas Gerais' : 'Importar Notas de Roteiros'}
+            </h4>
             <ImportGradeComponent classID={selectedClassId} toReset={loadClasses} />
           </div>
-          <h4>{selectedClass.topic} ({selectedClass.year}/{selectedClass.semester})</h4>
           
           <div className="evaluation-matrix">
             <table className="evaluation-table">
               <thead>
                 <tr>
                   <th className="student-name-header">Student</th>
-                  {evaluationGoals.map(goal => (
+                  {displayedGoals.map(goal => (
                     <th key={goal} className="goal-header">{goal}</th>
                   ))}
                 </tr>
@@ -173,7 +231,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                   return (
                     <tr key={student.cpf} className="student-row">
                       <td className="student-name-cell">{student.name}</td>
-                      {evaluationGoals.map(goal => {
+                      {displayedGoals.map(goal => {
                         const currentGrade = studentEvaluations[goal] || '';
                         
                         return (
