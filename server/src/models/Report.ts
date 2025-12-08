@@ -222,14 +222,20 @@ export class Report implements IReportGenerator {
     
     return enrollments.map(enrollment => {
       const student = enrollment.getStudent();
-      const rawGrade = this.getStudentFinalGrade(enrollment);
-      const finalGrade = rawGrade !== null ? Math.round(rawGrade * 100) / 100 : null;
+      const status = this.getStudentStatus(enrollment);
+      
+      // Don't show final grade for pending students
+      let finalGrade: number | null = null;
+      if (status !== 'PENDING') {
+        const rawGrade = this.getStudentFinalGrade(enrollment);
+        finalGrade = rawGrade !== null ? Math.round(rawGrade * 100) / 100 : null;
+      }
       
       return {
         studentId: student.getCPF(),
         name: student.name,
         finalGrade,
-        status: this.getStudentStatus(enrollment)
+        status
       };
     });
   }
