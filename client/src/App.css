@@ -253,48 +253,64 @@ tbody tr:last-child td {
   box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
 }
 
+.exams-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  min-width: auto;
+  margin-left: 0.5rem;
+}
+
+.exams-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(118, 75, 162, 0.3);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .App-main {
     padding: 1rem;
   }
-  
+
   .student-form {
     padding: 1.5rem;
   }
-  
+
   .form-buttons {
     flex-direction: column;
   }
-  
+
   .table-container {
     font-size: 0.9rem;
   }
-  
+
   th,
   td {
     padding: 0.75rem 0.5rem;
   }
-  
+
   .App-header h1 {
     font-size: 2rem;
   }
-  
+
   /* Responsive evaluations table */
   .evaluations-table {
     font-size: 0.8rem;
   }
-  
+
   .evaluations-table th:first-child {
-    width: 150px; /* Smaller width for student names on mobile */
+    width: 150px;
+    /* Smaller width for student names on mobile */
   }
-  
+
   .evaluations-table th:not(:first-child),
   .evaluations-table td:not(:first-child) {
     width: calc((100% - 150px) / 6);
-    min-width: 80px; /* Smaller minimum width on mobile */
+    min-width: 80px;
+    /* Smaller minimum width on mobile */
   }
-  
+
   .grade-select {
     font-size: 0.75rem;
     padding: 0.2rem;
@@ -503,6 +519,12 @@ tbody tr:last-child td {
   text-align: center;
   font-weight: 500;
   color: #059669;
+}
+
+.classes-list table td:last-child {
+  white-space: nowrap;
+  width: 1%;
+  /* Shrink to fit content */
 }
 
 /* Modern Enrollment Panel */
@@ -776,7 +798,8 @@ tbody tr:last-child td {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
-  table-layout: fixed; /* Force uniform column widths */
+  table-layout: fixed;
+  /* Force uniform column widths */
 }
 
 .evaluations-table th,
@@ -796,14 +819,17 @@ tbody tr:last-child td {
   text-align: left;
   background-color: #667eea;
   color: white;
-  width: 200px; /* Fixed width for student name column */
+  width: 200px;
+  /* Fixed width for student name column */
 }
 
 /* Goal columns - uniform width */
 .evaluations-table th:not(:first-child),
 .evaluations-table td:not(:first-child) {
-  width: calc((100% - 200px) / 6); /* Distribute remaining width equally among 6 goal columns */
-  min-width: 120px; /* Minimum width to ensure readability */
+  width: calc((100% - 200px) / 6);
+  /* Distribute remaining width equally among 6 goal columns */
+  min-width: 120px;
+  /* Minimum width to ensure readability */
 }
 
 .grade-cell {
@@ -1013,7 +1039,8 @@ tbody tr:last-child td {
   border-collapse: collapse;
   background: white;
   min-width: 800px;
-  table-layout: fixed; /* Fixed layout for uniform column widths */
+  table-layout: fixed;
+  /* Fixed layout for uniform column widths */
 }
 
 .student-name-header {
@@ -1026,10 +1053,11 @@ tbody tr:last-child td {
   position: sticky;
   left: 0;
   z-index: 10;
-  width: 200px; /* Fixed width for student column */
+  width: 200px;
+  /* Fixed width for student column */
   font-size: 1rem;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .goal-header {
@@ -1040,9 +1068,10 @@ tbody tr:last-child td {
   font-weight: 700;
   font-size: 0.9rem;
   border: 1px solid #047857;
-  width: calc((100% - 200px) / 6); /* Equal width for all 6 goal columns */
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+  width: calc((100% - 200px) / 6);
+  /* Equal width for all 6 goal columns */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
   vertical-align: middle;
   line-height: 1.2;
 }
@@ -1089,7 +1118,8 @@ tbody tr:last-child td {
   padding: 12px 8px;
   text-align: center;
   border: 1px solid #cbd5e1;
-  width: calc((100% - 200px) / 6); /* Equal width for all goal columns */
+  width: calc((100% - 200px) / 6);
+  /* Equal width for all goal columns */
   vertical-align: middle;
 }
 
@@ -1117,7 +1147,8 @@ tbody tr:last-child td {
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
-  text-align-last: center; /* Center text in select for all browsers */
+  text-align-last: center;
+  /* Center text in select for all browsers */
 }
 
 .evaluation-select:hover {
@@ -1137,21 +1168,21 @@ tbody tr:last-child td {
   background: linear-gradient(135deg, #10b981 0%, #047857 100%);
   color: white;
   border-color: #059669;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .evaluation-select.grade-mpa {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
   border-color: #f59e0b;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .evaluation-select.grade-mana {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   border-color: #ef4444;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .evaluation-select[value="MA"] {

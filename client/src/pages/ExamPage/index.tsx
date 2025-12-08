@@ -1,29 +1,31 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import CustomButton from "../../components/CustomButton";
-import CollapsibleTable, {
-  Column,
-  DetailColumn,
-} from "../../components/CollapsibleTable";
+import CollapsibleTable, { Column, DetailColumn } from "../../components/CollapsibleTable";
+import Alert from "../../components/Alert";
 import Dropdown from "../../components/DropDown";
 import ExamsService from "../../services/ExamsService";
-
+import QuestionService from "../../services/QuestionService";
+import { Button } from "@mui/material";
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { GeneratePDFButton } from "../../components/GeneratePDFButton";
 import "./ExamPage.css";
 import ExamCreatePopup from "./ExamPagePopup";
 
 const columns: Column[] = [
-  { id: "studentName", label: "Aluno", align: "left" },
+  { id: "versionNumber", label: "Versão", align: "center" },
   { id: "examID", label: "ID Prova", align: "right" },
-  { id: "qtdAberta", label: "Quantidade Aberta", align: "right" },
-  { id: "qtdFechada", label: "Quantidade Fechada", align: "right" },
-  { id: "ativo", label: "Ativo", align: "right" },
+  { id: "generationDate", label: "Data de Geração", align: "left" },
+  { id: "numQuestionsOpen", label: "Nº Questões Abertas", align: "right" },
+  { id: "numQuestionsClosed", label: "Nº Questões Fechadas", align: "right" },
 ];
 
 const detailColumns: DetailColumn[] = [
-  { id: "idQuestion", label: "ID Questão" },
-  { id: "tipoQuestao", label: "Tipo da questão" },
-  { id: "textoPergunta", label: "Texto da Pergunta", align: "left" },
+  { id: "numero", label: "#" },
+  { id: "questionId", label: "ID Questão" },
+  { id: "type", label: "Tipo" },
+  { id: "questionText", label: "Texto da Questão", align: "left" },
 ];
 
 export default function ExamPage() {
@@ -39,22 +41,91 @@ export default function ExamPage() {
 
   const [selectedExam, setSelectedExam] = useState("Todas as provas");
 
-  // -------------------------------
-  // Carrega provas + tabela (todas)
-  // -------------------------------
-  const loadAllData = async () => {
+  const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
+  const [selectedExamIdForPdf, setSelectedExamIdForPdf] = useState<string | null>(null);
+
+  const [alertConfig, setAlertConfig] = useState({
+    open: false,
+    message: "",
+    severity: "info" as "success" | "error" | "warning" | "info",
+  });
+
+  const handleCloseAlert = () => {
+    setAlertConfig((prev) => ({ ...prev, open: false }));
+  };
+
+  const transformGenerationsToRows = async (generations: any[], examIdFilter?: number) => {
+    const rows: any[] = [];
+
+    for (const gen of generations) {
+      if (examIdFilter && gen.examId !== examIdFilter) continue;
+
+      const generationDate = new Date(gen.timestamp).toLocaleString('pt-BR');
+
+      for (const version of (gen.versions || [])) {
+        const numOpen = version.questions?.filter((q: any) => q.type === 'open').length || 0;
+        const numClosed = version.questions?.filter((q: any) => q.type === 'closed').length || 0;
+
+        // Fetch question texts
+        const detailsWithText = await Promise.all(
+          (version.questions || []).map(async (q: any) => {
+            let questionText = 'Carregando...';
+            try {
+              const questionData = await QuestionService.getQuestionById(q.questionId);
+              questionText = questionData?.question || 'Não disponível';
+            } catch (e) {
+              console.error(`Failed to fetch question ${q.questionId}`, e);
+              questionText = 'Erro ao carregar';
+            }
+
+            return {
+              numero: q.numero,
+              questionId: q.questionId,
+              type: q.type === 'open' ? 'Aberta' : 'Fechada',
+              questionText: questionText
+            };
+          })
+        );
+
+        rows.push({
+          versionNumber: version.versionNumber,
+          examID: gen.examId,
+          generationDate: generationDate,
+          numQuestionsOpen: numOpen,
+          numQuestionsClosed: numClosed,
+          details: detailsWithText
+        });
+      }
+    }
+
+    return rows;
+  };
+
+
+  const loadAllData = useCallback(async () => {
     if (!classID) return;
 
     try {
       setTableLoading(true);
 
-      const [examsResponse, studentsResponse] = await Promise.all([
-        ExamsService.getExamsForClass(classID),
-        ExamsService.getStudentsWithExamsForClass(classID),
-      ]);
-
+      const examsResponse = await ExamsService.getExamsForClass(classID);
       setExams(examsResponse.data || []);
-      setRows(studentsResponse.data || []);
+
+      // Fetch all generations for all exams in the class
+      const allGenerations: any[] = [];
+      for (const exam of (examsResponse.data || [])) {
+        try {
+          const gens = await ExamsService.getGenerations(exam.id, classID);
+          if (Array.isArray(gens)) {
+            allGenerations.push(...gens);
+          }
+        } catch (e) {
+          console.error(`Failed to fetch generations for exam ${exam.id}`, e);
+        }
+      }
+
+      const transformedRows = await transformGenerationsToRows(allGenerations);
+      setRows(transformedRows);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       setExams([]);
@@ -62,24 +133,17 @@ export default function ExamPage() {
     } finally {
       setTableLoading(false);
     }
-  };
-
-  // carregar automaticamente ao montar
-  useEffect(() => {
-    loadAllData();
   }, [classID]);
 
-  // ---------------------------------------------------
-  // Função auxiliar: pega o ID da prova pela string título
-  // ---------------------------------------------------
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
+
   const getExamIdByTitle = (title: string): string | undefined => {
     const exam = exams.find((e) => e.title === title);
     return exam ? exam.id.toString() : undefined;
   };
 
-  // -------------------------------------------
-  // Filtro via API (carrega somente uma prova)
-  // -------------------------------------------
   const handleExamSelect = async (title: string) => {
     setSelectedExam(title);
 
@@ -96,13 +160,10 @@ export default function ExamPage() {
       const examId = getExamIdByTitle(title);
       if (!examId) return;
 
-      const response = await ExamsService.getStudentsWithExamsForClass(
-        classID,
-        Number(examId)
-      );
-
-
-      setRows(response.data || []);
+      // Fetch generations for the specific exam
+      const gens = await ExamsService.getGenerations(Number(examId), classID);
+      const transformedRows = await transformGenerationsToRows(gens, Number(examId));
+      setRows(transformedRows);
     } catch (error) {
       console.error("Erro ao filtrar:", error);
     } finally {
@@ -110,31 +171,93 @@ export default function ExamPage() {
     }
   };
 
-  // -------------------------------------------
-  // Criar prova
-  // -------------------------------------------
+  const handleOpenPdfDialog = () => {
+    const examId = getExamIdByTitle(selectedExam);
+
+    if (examId) {
+      setSelectedExamIdForPdf(examId);
+      setPdfDialogOpen(true);
+    } else {
+      setAlertConfig({
+        open: true,
+        message: "Selecione uma prova específica para gerar o PDF.",
+        severity: "warning"
+      });
+    }
+  };
+
   const handleCreateExam = async (data: any) => {
     try {
       setLoading(true);
 
       if (!classID) throw new Error("ID da turma não encontrado");
 
-      if (!data.codProva || !data.nomeProva)
-        throw new Error("Código e nome da prova são obrigatórios");
+      if (!data.nomeProva)
+        throw new Error("Nome da prova é obrigatório");
 
       if (isNaN(parseInt(data.abertas)) || isNaN(parseInt(data.fechadas)))
         throw new Error("Quantidades inválidas");
 
-      const result = await ExamsService.createAndGenerateExams(data, classID);
+      await ExamsService.createExams(data, classID);
 
-      alert(`Provas geradas com sucesso! Total: ${result.totalGenerated}`);
+      setAlertConfig({
+        open: true,
+        message: `Provas geradas com sucesso!`,
+        severity: "success",
+      });
+
       setPopupOpen(false);
 
-      await loadAllData(); // recarrega tudo
+      await loadAllData();
     } catch (err) {
-      alert(
-        `Erro: ${err instanceof Error ? err.message : "Erro desconhecido"}`
-      );
+      setAlertConfig({
+        open: true,
+        message:
+          err instanceof Error ? err.message : "Erro desconhecido ao criar prova",
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -------------------------------------------
+  // Deletar prova
+  // -------------------------------------------
+  const handleDeleteExam = async () => {
+    if (!classID) return;
+
+    const examId = getExamIdByTitle(selectedExam);
+    if (!examId) return;
+
+    // Confirmação antes de deletar
+    const confirmed = window.confirm(
+      `Tem certeza que deseja deletar a prova "${selectedExam}"? Esta ação não pode ser desfeita.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+
+      await ExamsService.deleteExam(Number(examId), classID);
+
+      setAlertConfig({
+        open: true,
+        message: `Prova "${selectedExam}" deletada com sucesso!`,
+        severity: "success",
+      });
+
+      // Resetar para "Todas as provas" e recarregar
+      setSelectedExam("Todas as provas");
+      await loadAllData();
+    } catch (err) {
+      setAlertConfig({
+        open: true,
+        message:
+          err instanceof Error ? err.message : "Erro ao deletar prova",
+        severity: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -148,13 +271,10 @@ export default function ExamPage() {
   return (
     <div className="exam-page">
       <Header />
-
-      {/* Controles superiores */}
       <div
         className="top-controls"
         style={{ display: "flex", gap: "15px", alignItems: "center" }}
       >
-        {/* ID da turma */}
         <input
           type="text"
           value={classID || ""}
@@ -168,23 +288,50 @@ export default function ExamPage() {
           }}
         />
 
-        {/* Dropdown */}
         <Dropdown
           subjects={dropdownOptions}
           onSelect={handleExamSelect}
           initialText={selectedExam}
         />
 
-        {/* Botão alinhado à direita */}
+        {selectedExam !== "Todas as provas" && (
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<FileDownloadIcon />}
+            onClick={handleOpenPdfDialog}
+            style={{ marginLeft: "10px", height: "40px", textTransform: "none" }}
+          >
+            Baixar Lote
+          </Button>
+        )}
+
         <div style={{ marginLeft: "auto" }}>
-          <CustomButton
-            label="Criar Prova"
-            onClick={() => setPopupOpen(true)}
-          />
+          {/* Botão alinhado à direita */}
+          <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
+            {/* Botão de deletar - só aparece quando uma prova específica está selecionada */}
+            {selectedExam !== "Todas as provas" && (
+              <CustomButton
+                label="Deletar Prova"
+                onClick={handleDeleteExam}
+                data-testid="delete-exam-button"
+                style={{
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                }}
+                disabled={loading}
+              />
+            )}
+
+            <CustomButton
+              label="Criar Prova"
+              onClick={() => setPopupOpen(true)}
+              data-testid="open-create-exam"
+            />
+          </div>
         </div>
       </div>
 
-      {/* TABELA */}
       {tableLoading ? (
         <p style={{ padding: "20px", textAlign: "center" }}>Carregando...</p>
       ) : rows.length === 0 ? (
@@ -193,23 +340,37 @@ export default function ExamPage() {
         </p>
       ) : (
         <CollapsibleTable
+          data-testid="exam-table"
           columns={columns}
           detailColumns={detailColumns}
           rows={rows}
-          detailTitle="Questões"
-          computeDetailRow={(detail) => ({
-            ...detail,
-            total: detail.tipoQuestao === "Aberta" ? 2 : 1,
-          })}
+          detailTitle="Questões da Versão"
+          computeDetailRow={(detail) => detail}
         />
       )}
-
-      {/* POPUP */}
       <ExamCreatePopup
         isOpen={popupOpen}
         onClose={() => setPopupOpen(false)}
         onSubmit={handleCreateExam}
         loading={loading}
+      />
+      {classID && (
+        <GeneratePDFButton
+          open={pdfDialogOpen}
+          onClose={() => setPdfDialogOpen(false)}
+          examId={selectedExamIdForPdf}
+          classId={classID}
+          defaultQuantity={rows.length > 0 ? rows.length : 30}
+        />
+      )}
+
+      <Alert //Alerta para criação da prova com exito ou não
+        data-testid={alertConfig.severity === "success" ? "alert-success" : "alert-error"}
+        message={alertConfig.message}
+        severity={alertConfig.severity}
+        autoHideDuration={3000}
+        open={alertConfig.open}
+        onClose={handleCloseAlert}
       />
     </div>
   );

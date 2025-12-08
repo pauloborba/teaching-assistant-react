@@ -24,6 +24,7 @@ const Dropdown: React.FC<DropdownProps> = ({
     <div style={{ position: "relative", width: "220px" }}>
       {/* Botão principal */}
       <button
+        data-testid="dropdown-button"
         onClick={() => setOpen(!open)}
         style={{
           width: "100%",
@@ -66,6 +67,7 @@ const Dropdown: React.FC<DropdownProps> = ({
           {subjects.map((subject) => (
             <li
               key={subject}
+              data-testid={`dropdown-item-${subject}`}
               onClick={() => handleSelect(subject)}
               style={{
                 padding: "8px 12px",

@@ -38,7 +38,7 @@ type CollapsibleTableProps = {
   detailColumns: DetailColumn[];
   rows: GenericRow[];
   detailTitle?: string;
-  computeDetailRow?: (detail: any, parent: GenericRow) => any; 
+  computeDetailRow?: (detail: any, parent: GenericRow) => any;
 };
 
 function CollapsibleRow({
@@ -48,7 +48,6 @@ function CollapsibleRow({
   detailTitle = "Details",
   computeDetailRow,
 }: CollapsibleTableProps & { row: GenericRow }) {
-  
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -138,7 +137,10 @@ export default function CollapsibleTable(props: CollapsibleTableProps) {
   const { rows } = props;
 
   return (
-    <TableContainer component={Paper}>
+    <TableContainer
+      component={Paper}
+      data-testid="exam-table"
+    >
       <Table>
         <TableHead>
           <TableRow>

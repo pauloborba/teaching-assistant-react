@@ -45,6 +45,7 @@ const ExamPage: React.FC = () => {
         open={isDialogOpen}
         onClose={handleClosePdfDialog}
         examId={selectedExamId}
+        classId="mock-class-id-teste"
       />
     </div>
   );

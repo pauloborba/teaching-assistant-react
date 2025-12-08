@@ -1,6 +1,6 @@
-import React from 'react';
-import { Student } from '../types/Student';
-import { studentService } from '../services/StudentService';
+import React from "react";
+import { Student } from "../types/Student";
+import { studentService } from "../services/StudentService";
 
 interface StudentListProps {
   students: Student[];
@@ -10,12 +10,12 @@ interface StudentListProps {
   loading: boolean;
 }
 
-const StudentList: React.FC<StudentListProps> = ({ 
-  students, 
-  onStudentDeleted, 
-  onEditStudent, 
-  onError, 
-  loading 
+const StudentList: React.FC<StudentListProps> = ({
+  students,
+  onStudentDeleted,
+  onEditStudent,
+  onError,
+  loading,
 }) => {
   const handleDelete = async (student: Student) => {
     if (window.confirm(`Are you sure you want to delete ${student.name}?`)) {
@@ -46,7 +46,8 @@ const StudentList: React.FC<StudentListProps> = ({
       <div className="students-list">
         <h2>Students (0)</h2>
         <div className="no-students">
-          No students registered yet. Add your first student using the form above.
+          No students registered yet. Add your first student using the form
+          above.
         </div>
       </div>
     );
@@ -67,13 +68,14 @@ const StudentList: React.FC<StudentListProps> = ({
           </thead>
           <tbody>
             {students.map((student) => (
-              <tr key={student.cpf}>
-                <td>{student.name}</td>
-                <td>{student.cpf}</td>
-                <td>{student.email}</td>
+              <tr key={student.cpf} data-testid={`student-row-${student.cpf}`}>
+                <td data-testid="student-name">{student.name}</td>
+                <td data-testid="student-cpf">{student.cpf}</td>
+                <td data-testid="student-email">{student.email}</td>
                 <td>
                   <button
                     className="edit-btn"
+                    data-testid={`edit-student-${student.cpf}`}
                     onClick={() => handleEdit(student)}
                     title="Edit student"
                   >
@@ -81,6 +83,7 @@ const StudentList: React.FC<StudentListProps> = ({
                   </button>
                   <button
                     className="delete-btn"
+                    data-testid={`delete-student-${student.cpf}`}
                     onClick={() => handleDelete(student)}
                     title="Delete student"
                   >

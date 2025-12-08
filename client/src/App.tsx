@@ -7,28 +7,29 @@ import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
+import QuestionsPage from './pages/QuestionsPage';
 import './App.css';
 
-type TabType = 'students' | 'evaluations' | 'classes';
+type TabType = 'students' | 'evaluations' | 'classes' | 'questions';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>('students');
+  const [activeTab, setActiveTab] = useState<TabType>("students");
 
   const loadStudents = useCallback(async () => {
     try {
       setLoading(true);
-      setError('');
+      setError("");
       const studentsData = await studentService.getAllStudents();
       setStudents(studentsData);
     } catch (err) {
-      setError('Failed to load students. Please try again.');
-      console.error('Error loading students:', err);
+      setError("Failed to load students. Please try again.");
+      console.error("Error loading students:", err);
     } finally {
       setLoading(false);
     }
@@ -36,30 +37,34 @@ const App: React.FC = () => {
 
   const loadClasses = useCallback(async () => {
     try {
-      setError('');
+      setError("");
       const classesData = await ClassService.getAllClasses();
       setClasses(classesData);
       return classesData;
     } catch (err) {
-      setError('Failed to load classes. Please try again.');
-      console.error('Error loading classes:', err);
+      setError("Failed to load classes. Please try again.");
+      console.error("Error loading classes:", err);
       return [];
     }
   }, []);
 
-  const updateSelectedClass = useCallback((classesData: Class[]) => {
-    // Update selectedClass if it exists to reflect new enrollments
-    if (selectedClass) {
-      const updatedSelectedClass = classesData.find(c => 
-        c.topic === selectedClass.topic && 
-        c.year === selectedClass.year && 
-        c.semester === selectedClass.semester
-      );
-      if (updatedSelectedClass) {
-        setSelectedClass(updatedSelectedClass);
+  const updateSelectedClass = useCallback(
+    (classesData: Class[]) => {
+      // Update selectedClass if it exists to reflect new enrollments
+      if (selectedClass) {
+        const updatedSelectedClass = classesData.find(
+          (c) =>
+            c.topic === selectedClass.topic &&
+            c.year === selectedClass.year &&
+            c.semester === selectedClass.semester
+        );
+        if (updatedSelectedClass) {
+          setSelectedClass(updatedSelectedClass);
+        }
       }
-    }
-  }, [selectedClass]);
+    },
+    [selectedClass]
+  );
 
   // Load students and classes on component mount
   useEffect(() => {
@@ -126,39 +131,55 @@ const App: React.FC = () => {
         {/* Tab Navigation */}
         <div className="tab-navigation">
           <button
-            className={`tab-button ${activeTab === 'students' ? 'active' : ''}`}
-            onClick={() => setActiveTab('students')}
+            className={`tab-button ${activeTab === "students" ? "active" : ""}`}
+            onClick={() => setActiveTab("students")}
+            data-testid="students-tab"
           >
             Students
           </button>
           <button
-            className={`tab-button ${activeTab === 'evaluations' ? 'active' : ''}`}
-            onClick={() => setActiveTab('evaluations')}
+            className={`tab-button ${activeTab === "evaluations" ? "active" : ""
+              }`}
+            onClick={() => setActiveTab("evaluations")}
+            data-testid="evaluations-tab"
           >
             Evaluations
           </button>
           <button
-            className={`tab-button ${activeTab === 'classes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('classes')}
+            className={`tab-button ${activeTab === "classes" ? "active" : ""}`}
+            onClick={() => setActiveTab("classes")}
+            data-testid="classes-tab"
           >
             Classes
+          </button>
+          <button
+            className={`tab-button ${activeTab === 'questions' ? 'active' : ''}`}
+            onClick={() => setActiveTab('questions')}
+          >
+            Questions
           </button>
         </div>
 
         {/* Tab Content */}
         <div className="tab-content">
-          {activeTab === 'students' && (
+          {activeTab === "students" && (
             <>
               {/* Class Selection */}
               <div className="class-selection">
                 <label htmlFor="class-select">Filter by Class:</label>
                 <select
                   id="class-select"
-                  value={selectedClass ? `${selectedClass.topic}-${selectedClass.year}-${selectedClass.semester}` : ''}
+                  value={
+                    selectedClass
+                      ? `${selectedClass.topic}-${selectedClass.year}-${selectedClass.semester}`
+                      : ""
+                  }
                   onChange={(e) => {
                     const classId = e.target.value;
                     if (classId) {
-                      const classObj = classes.find(c => `${c.topic}-${c.year}-${c.semester}` === classId);
+                      const classObj = classes.find(
+                        (c) => `${c.topic}-${c.year}-${c.semester}` === classId
+                      );
                       setSelectedClass(classObj || null);
                     } else {
                       setSelectedClass(null);
@@ -168,7 +189,7 @@ const App: React.FC = () => {
                 >
                   <option value="">All Students</option>
                   {classes.map((classObj) => (
-                    <option 
+                    <option
                       key={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
                       value={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
                     >
@@ -188,7 +209,11 @@ const App: React.FC = () => {
               />
 
               <StudentList
-                students={selectedClass ? selectedClass.enrollments.map(e => e.student) : students}
+                students={
+                  selectedClass
+                    ? selectedClass.enrollments.map((e) => e.student)
+                    : students
+                }
                 onStudentDeleted={handleStudentDeleted}
                 onEditStudent={handleEditClick}
                 onError={handleError}
@@ -197,13 +222,9 @@ const App: React.FC = () => {
             </>
           )}
 
-          {activeTab === 'evaluations' && (
-            <Evaluations 
-              onError={handleError}
-            />
-          )}
+          {activeTab === "evaluations" && <Evaluations onError={handleError} />}
 
-          {activeTab === 'classes' && (
+          {activeTab === "classes" && (
             <Classes
               classes={classes}
               onClassAdded={handleClassAdded}
@@ -211,6 +232,10 @@ const App: React.FC = () => {
               onClassDeleted={handleClassDeleted}
               onError={handleError}
             />
+          )}
+
+          {activeTab === 'questions' && (
+            <QuestionsPage />
           )}
         </div>
       </main>

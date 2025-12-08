@@ -1,5 +1,3 @@
-// client/src/components/GeneratePdfDialog/index.tsx
-
 import React, { useState, useEffect } from 'react';
 import { Typography, TextField } from '@mui/material';
 import { SharedDialog } from './SharedDialog';
@@ -7,39 +5,42 @@ import ExamsService from '../services/ExamsService';
 
 export interface GeneratePDFButtonProps {
   open: boolean;
-  
   onClose: () => void;
-  
   examId: string | null;
+  classId: string;          
+  defaultQuantity?: number;
 }
 
-export const GeneratePDFButton: React.FC<GeneratePDFButtonProps> = ({ open, onClose, examId }) => {
+export const GeneratePDFButton: React.FC<GeneratePDFButtonProps> = ({ 
+  open, 
+  onClose, 
+  examId, 
+  classId, 
+  defaultQuantity = 1 
+}) => {
   
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(defaultQuantity);
+  const [examDate, setExamDate] = useState(new Date().toISOString().split('T')[0]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
-      setQuantity(1);
+      setQuantity(defaultQuantity > 0 ? defaultQuantity : 1);
+      setExamDate(new Date().toISOString().split('T')[0]);
       setIsLoading(false);
       setErrorMessage(null);
     }
-  }, [open]);
-
-  const handleInternalClose = () => {
-    if (isLoading) return;
-    onClose();
-  };
+  }, [open, defaultQuantity]);
 
   const handleConfirmGeneration = async () => {
-    if (!examId) {
-      setErrorMessage("Erro: Nenhum ID de prova foi fornecido.");
+    if (!examId || !classId) {
+      setErrorMessage("Erro: ID da prova ou turma faltando.");
       return;
     }
 
-    if (quantity < 1 || isNaN(quantity)) {
-      setErrorMessage("A quantidade deve ser 1 ou mais.");
+    if (quantity <= 0) {
+      setErrorMessage("Quantidade deve ser maior que 0.");
       return;
     }
 
@@ -47,19 +48,15 @@ export const GeneratePDFButton: React.FC<GeneratePDFButtonProps> = ({ open, onCl
     setErrorMessage(null);
 
     try {
-      console.log(`Iniciando download de ${quantity} PDF(s) para o ID: ${examId}`);
+      console.log(`Baixando lote: ExamID=${examId}, Qtd=${quantity}, ClassID=${classId}`);
       
-      if (quantity == 1) {
-        await ExamsService.downloadExamPDF(examId);
-      } else {
-        await ExamsService.downloadExamZIP(examId, quantity);
-      }
+      await ExamsService.downloadExamsZIP(examId, quantity, classId, examDate);
       
-      handleInternalClose();
+      onClose();
 
     } catch (error: any) {
       console.error(error);
-      setErrorMessage(error.message || 'Ocorreu um erro desconhecido.');
+      setErrorMessage("Erro ao gerar arquivos. Verifique se há questões cadastradas.");
     } finally {
       setIsLoading(false);
     }
@@ -68,21 +65,20 @@ export const GeneratePDFButton: React.FC<GeneratePDFButtonProps> = ({ open, onCl
   return (
     <SharedDialog
       open={open}
-      onClose={handleInternalClose}
+      onClose={onClose}
       onConfirm={handleConfirmGeneration}
-      title="Testar Geração de PDF"
-      confirmText={isLoading ? "Gerando..." : "Gerar"}
+      title="Gerar Lote de Provas"
+      confirmText={isLoading ? "Gerando..." : "Baixar ZIP"}
       cancelText="Cancelar"
     >
       <Typography gutterBottom>
-        Quantas versões da prova (com ordem randomizada) você deseja gerar?
+        Configure os detalhes para a geração dos arquivos:
       </Typography>
       
       <TextField
         autoFocus
         margin="dense"
-        id="quantidade"
-        label="Quantidade"
+        label="Quantidade de Versões"
         type="number"
         fullWidth
         variant="outlined"
@@ -90,6 +86,23 @@ export const GeneratePDFButton: React.FC<GeneratePDFButtonProps> = ({ open, onCl
         onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 0)}
         InputProps={{ inputProps: { min: 1 } }}
       />
+
+      <TextField
+        margin="dense"
+        label="Data da Aplicação"
+        type="date"
+        fullWidth
+        variant="outlined"
+        value={examDate}
+        onChange={(e) => setExamDate(e.target.value)}
+        InputLabelProps={{
+          shrink: true,
+        }}
+      />
+
+      <Typography variant="caption" color="textSecondary" style={{marginTop: 10, display: 'block'}}>
+        * Será gerado um ZIP contendo os PDFs das provas e os gabaritos correspondentes.
+      </Typography>
       
       {errorMessage && (
         <Typography color="error" style={{ marginTop: '10px' }}>

@@ -4,6 +4,7 @@ import statsRoutes from './stats';
 import examsRoutes from "./exams";
 import correctionRoutes from "./correction";
 import examPdfRoutes from './examPdf'
+import questionsRoutes from './questions';
 
 const router = Router();
 
@@ -14,10 +15,16 @@ router.use(healthRoutes);
 router.use(statsRoutes);
 
 
+// Question bank routes
+router.use('/questions', questionsRoutes);
+
+// Question bank routes
+router.use('/questions', questionsRoutes);
+
 // Exams routes (v1)
-router.use('/v1/exams', examsRoutes);
+router.use('/exams', examsRoutes);
 router.use(correctionRoutes);
-router.use('/v1/exams', examPdfRoutes);
+router.use('/exams', examPdfRoutes);
 
 export default router;
 
