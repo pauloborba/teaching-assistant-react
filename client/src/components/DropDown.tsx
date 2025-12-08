@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface DropdownProps {
   subjects: string[];
@@ -13,6 +13,11 @@ const Dropdown: React.FC<DropdownProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string>(initialText);
+
+  // Sync with parent component's selectedExam state
+  useEffect(() => {
+    setSelected(initialText);
+  }, [initialText]);
 
   const handleSelect = (subject: string) => {
     setSelected(subject);

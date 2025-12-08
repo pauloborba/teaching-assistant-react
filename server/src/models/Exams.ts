@@ -37,10 +37,40 @@ export interface StudentWithExam {
 export class Exams {
   private exams: ExamRecord[] = [];
   private studentExams: StudentExamRecord[] = [];
+  private nextId = 1;
 
   constructor(exams: ExamRecord[] = [], studentExams: StudentExamRecord[] = []) {
     this.exams = exams;
     this.studentExams = studentExams;
+    this.nextId = this.calculateNextId();
+  }
+
+  /**
+   * Calculate the next available exam ID
+   * @returns The next ID to use
+   */
+  private calculateNextId(): number {
+    if (this.exams.length === 0) {
+      return 1;
+    }
+    const maxId = this.exams.reduce((max, exam) => Math.max(max, exam.id), 0);
+    return maxId + 1;
+  }
+
+  /**
+   * Get the next exam ID and increment the counter
+   * @returns The next available exam ID
+   */
+  public getNextExamId(): number {
+    return this.nextId++;
+  }
+
+  /**
+   * Refresh the nextId counter based on current exams
+   * Should be called after loading exams from file
+   */
+  public refreshNextId(): void {
+    this.nextId = this.calculateNextId();
   }
 
   /**
@@ -106,6 +136,15 @@ export class Exams {
    */
   getExamById(examId: number): ExamRecord | undefined {
     return this.exams.find(exam => exam.id === examId);
+  }
+
+  /**
+   * Replace all exams
+   * @param exams - Array of exam records
+   */
+  replaceAll(exams: ExamRecord[]): void {
+    this.exams = exams;
+    this.refreshNextId();
   }
 
   /**

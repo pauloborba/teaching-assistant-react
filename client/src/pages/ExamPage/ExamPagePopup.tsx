@@ -80,6 +80,15 @@ export default function ExamCreatePopup({
     (q) => q.type === "closed" && selectedQuestions.has(q.id)
   ).length;
 
+  // Update form with selected question counts
+  useEffect(() => {
+    setForm((prevForm) => ({
+      ...prevForm,
+      abertas: selectedOpenCount.toString(),
+      fechadas: selectedClosedCount.toString(),
+    }));
+  }, [selectedOpenCount, selectedClosedCount]);
+
   return (
     <Modal title="Criar Prova" isOpen={isOpen} onClose={onClose}>
       <div className="popup-form" data-testid="exam-popup">
@@ -94,33 +103,6 @@ export default function ExamCreatePopup({
             data-testid="exam-title"
           />
         </label>
-
-        {/* Abertas / Fechadas */}
-        <div className="popup-row">
-          <label>
-            Quantidade de questões abertas
-            <input
-              type="number"
-              name="abertas"
-              min={0}
-              value={form.abertas}
-              onChange={handleChange}
-              data-testid="open-questions"
-            />
-          </label>
-
-          <label>
-            Quantidade de questões fechadas
-            <input
-              type="number"
-              name="fechadas"
-              min={0}
-              value={form.fechadas}
-              onChange={handleChange}
-              data-testid="closed-questions"
-            />
-          </label>
-        </div>
 
         {/* Questions Selection */}
         <div className="questions-section">

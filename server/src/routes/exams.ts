@@ -7,6 +7,7 @@ import {
   getStudentsWithExamsForClass,
   getExamsForClass,
   addExam,
+  getNextExamId,
   triggerSaveExams,
   generateStudentExams,
   getQuestionById,
@@ -495,10 +496,8 @@ router.post("/", (req: Request, res: Response) => {
       });
     }
 
-    // Generate sequential ID
-    const allExamsGlobal = examsManager.getAllExams();
-    const maxId = allExamsGlobal.reduce((max, exam) => Math.max(max, exam.id), 0);
-    const examId = maxId + 1;
+    // Generate sequential ID using nextId counter to prevent reuse
+    const examId = getNextExamId();
 
     // Validate that all provided question IDs exist
     const questions = getQuestionsByIds(questionIds);
