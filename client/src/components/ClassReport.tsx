@@ -131,7 +131,7 @@ const ClassReport: React.FC<ClassReportProps> = ({ classObj, onClose, onError })
 
               {/* Students Table */}
               {reportData.students && reportData.students.length > 0 && (
-                <div className="students-performance">
+                <div className="students-results">
                   <h4>Student Results</h4>
                   <div className="table-container">
                     <table className="students-table">

@@ -1401,6 +1401,90 @@ tbody tr:last-child td {
   margin: 0;
 }
 
+/* Student Results Section */
+.students-results {
+  background-color: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.students-results h4 {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 0.5rem;
+}
+
+.students-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  background-color: white;
+}
+
+.students-table th,
+.students-table td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.students-table th {
+  background-color: #667eea;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.students-table th:first-child {
+  text-align: left;
+}
+
+.students-table td:first-child {
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+}
+
+.students-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Student Status Colors */
+.status-approved {
+  background-color: #d1fae5;
+  color: #065f46;
+  font-weight: 600;
+}
+
+.status-approved-final {
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.status-failed {
+  background-color: #fecaca;
+  color: #991b1b;
+  font-weight: 600;
+}
+
+.status-failed-by-absence {
+  background-color: #fed7aa;
+  color: #9a3412;
+  font-weight: 600;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+  font-weight: 600;
+}
+
 /* Report Actions */
 .report-actions {
   display: flex;
@@ -1427,6 +1511,15 @@ tbody tr:last-child td {
   
   .performance-table th,
   .performance-table td {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .students-table {
+    font-size: 0.8rem;
+  }
+  
+  .students-table th,
+  .students-table td {
     padding: 0.5rem 0.25rem;
   }
   
