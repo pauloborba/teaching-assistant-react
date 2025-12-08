@@ -64,22 +64,19 @@
 }
 
 .form-row {
-  display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
-  align-items: center;
-  column-gap: 1.25rem;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;;
 }
 
 .form-row label {
-  margin: 0;
   font-weight: 600;
-  justify-self: flex-start;
+  align-self: flex-start;
 }
 
 .form-row-textarea label {
-  align-self: flex-start;
-  padding-top: 0.35rem;
+  padding-top: 0;
 }
 
 .form-row input,
@@ -91,6 +88,7 @@
   font-size: 1rem;
   background-color: #fdfefe;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
 }
 
 .form-row textarea {
@@ -107,13 +105,8 @@
 }
 
 @media (max-width: 640px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .form-row label,
-  .form-row-textarea label {
-    padding-top: 0;
+  .question-form {
+    padding: 1.5rem;
   }
 }
 
@@ -150,10 +143,15 @@
   border: 1px solid #cfd8ff;
   color: #4b57d5;
   cursor: pointer;
-  padding: 0.4rem 0.85rem;
+  padding: 0.75rem 0.45rem;
   border-radius: 999px;
   font-weight: 500;
   transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.actions-cell button {  
+  min-width: 88px;
+  text-align: center;
 }
 
 .add-option:hover,
@@ -162,6 +160,9 @@
 .cancel-edit:hover {
   background: #dfe5ff;
   border-color: #b6c2ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .form-actions {
@@ -174,6 +175,7 @@
 .questions-list table {
   width: 100%;
   border-collapse: collapse;
+  vertical-align: middle;
 }
 
 .questions-list th,
@@ -181,13 +183,16 @@
   border-bottom: 1px solid #e2e5ec;
   text-align: left;
   padding: 0.75rem 0.5rem;
+  vertical-align: middle;
 }
 
 .questions-list th {
   font-weight: 600;
+  vertical-align: middle;
 }
 
 .actions-cell {
   display: flex;
   gap: 0.5rem;
+  vertical-align: middle;
 }
