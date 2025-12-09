@@ -659,5 +659,64 @@ describe('Autocorrection Service - Closed Questions', () => {
         expect.any(String)
       );
     });
+
+    it('should count only closed questions in exam with mixed open and closed questions', () => {
+      // Arrange: exam has 3 closed questions and 1 open question
+      // Student answers 2 of 3 closed questions correctly
+      const studentCPF = '12345678901';
+      const examId = 3;
+
+      const mockExamsData = {
+        exams: [createMockExam(examId, [1, 2, 3, 4])],
+      };
+
+      const mockQuestionsData = {
+        questions: [
+          {
+            id: 1,
+            type: 'closed',
+            options: [{ id: 1, isCorrect: true }],
+          },
+          {
+            id: 2,
+            type: 'closed',
+            options: [{ id: 1, isCorrect: true }],
+          },
+          {
+            id: 3,
+            type: 'closed',
+            options: [{ id: 1, isCorrect: true }],
+          },
+          {
+            id: 4,
+            type: 'open',
+            options: [],
+          },
+        ],
+      };
+
+      const mockResponsesData = {
+        responses: [
+          createMockResponse(studentCPF, examId, [
+            createMockAnswer(1, '1'),                // correct
+            createMockAnswer(2, '1'),                // correct
+            createMockAnswer(3, '2'),                // incorrect (wrong option)
+            createMockAnswer(4, 'some text response'), // open question (ignored)
+          ]),
+        ],
+      };
+
+      mockFileSystem(mockExamsData, mockQuestionsData, mockResponsesData);
+
+      // Act
+      const result = Correction.correctExam(examId);
+
+      // Assert: grade is 66.7 (2 correct out of 3 closed questions; open question ignored)
+      expect(result.examId).toBe(examId);
+      expect(result.correctedCount).toBe(1);
+      expect(result.results).toHaveLength(1);
+      expect(result.results[0].studentCPF).toBe(studentCPF);
+      expect(result.results[0].finalGrade).toBeCloseTo(66.7, 1);
+    });
   });
 });

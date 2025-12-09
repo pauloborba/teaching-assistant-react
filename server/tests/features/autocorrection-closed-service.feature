@@ -93,3 +93,14 @@ Feature: Exam autocorrection service
         Given exam "2" exists and no students submitted responses
         When the system retrieves the answers for exam "2"
         Then the system returns an empty list
+
+    @autocorrection-service
+    Scenario: Exam with mixed open and closed questions counts only closed toward grade
+        Given exam "3" has questions "1", "2", "3" and "4"
+        And questions "1", "2" and "3" are closed questions
+        And question "4" is an open question
+        And correct answers for closed questions are "a", "b" and "c"
+        And student "12345678901" answered "a" for question "1", "b" for question "2", and "d" for question "3" in exam "3"
+        And student "12345678901" answered "some text response" for the open question "4" in exam "3"
+        When the system autocorrects the exam "3"
+        Then student "12345678901" is registered with grade "66.7" for exam "3"
