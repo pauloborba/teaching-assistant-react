@@ -10,5 +10,5 @@ Feature: Geração de PDF (Sucesso)
       | turma-123 | 5        |
     Then o status da resposta deve ser "200"
     And o header "Content-Type" deve ser "application/zip"
-    And o header "Content-Disposition" deve conter "attachment; filename="Lote_Primeira Prova.zip""
+    And o header "Content-Disposition" deve conter "attachment; filename="Lote_1_Primeira Prova.zip""
     And o sistema deve registrar uma nova geração no histórico com 5 versões para a prova "100"

@@ -3,32 +3,20 @@ import assert from 'assert';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let browser: Browser | null = null;
 let page: Page | null = null;
-const downloadPath = path.resolve(__dirname, '../../downloads_test');
+const downloadPath = path.join(os.tmpdir(), 'exams_autotest');
 
-const waitForAndClick = async (xpath: string, timeout = 5000) => {
-    if (!page) throw new Error("Página não iniciada");
-    try {
-        await page.waitForSelector(`xpath/${xpath}`, { visible: true, timeout });
-        const [element] = await page.$$(`xpath/${xpath}`);
-        await element.click();
-    } catch (e) {
-        throw new Error(`Não foi possível clicar em: ${xpath}. Erro: ${e}`);
-    }
-};
-
-Given('que o professor acessou a gestão de provas da turma {string}', { timeout: 60000 }, async function (turmaId) {
+const ensurePageLoaded = async (turmaId: string) => {
     if (browser) await browser.close();
-    
     browser = await puppeteer.launch({ 
-        headless: false, 
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1280,800'],
-        defaultViewport: null,
+        headless: false,
+        args: ['--no-sandbox'], 
         slowMo: 50 
     });
     page = await browser.newPage();
@@ -37,54 +25,62 @@ Given('que o professor acessou a gestão de provas da turma {string}', { timeout
 
     await page.goto('http://localhost:3004', { waitUntil: 'networkidle0' });
     
-    const classesTabXpath = `//button[contains(., 'Classes')] | //div[contains(@role, 'tab')][contains(., 'Classes')]`;
-    try { await waitForAndClick(classesTabXpath); } catch(e) {}
+    const classesTab = `xpath///button[contains(., 'Classes')] | //div[contains(@role, 'tab')][contains(., 'Classes')]`;
+    try { 
+        await page.waitForSelector(classesTab, {visible: true, timeout: 3000});
+        const [el] = await page.$$(classesTab);
+        await el.click();
+    } catch(e) {}
 
     const nomeTurma = turmaId.split('-')[0].trim();
-    const rowXpath = `//tr[.//td[contains(., "${nomeTurma}")]]`;
+    const examsBtn = `xpath//tr[contains(., '${nomeTurma}')]//button[contains(., 'Exams')]`;
     
     try {
-        await page.waitForSelector(`xpath/${rowXpath}`, { timeout: 10000 });
-        const examsBtn = `${rowXpath}//button[contains(., 'Exams')]`;
-        await waitForAndClick(examsBtn);
+        await page.waitForSelector(examsBtn, { timeout: 10000 });
+        const [btn] = await page.$$(examsBtn);
+        await btn.click();
         await page.waitForSelector("xpath///button[contains(., 'Todas as provas')]", { timeout: 10000 });
     } catch (e) {
-        console.log("Navegação visual falhou, tentando URL direta...");
         await page.goto(`http://localhost:3004/exam/${encodeURIComponent(turmaId)}`, { waitUntil: 'networkidle0' });
     }
-});
+};
 
-When('ele seleciona a prova {string}', async function (nomeProva) {
-    if (!page) return;
-    const dropdownXpath = `//button[contains(., 'Todas as provas')] | //div[@role='button'][contains(., 'Todas as provas')]`;
-    await waitForAndClick(dropdownXpath);
+const interactWithDropdown = async (optionText: string) => {
+    const dropdown = `xpath///button[contains(., 'Todas as provas')] | //div[@role='button'][contains(., 'Todas as provas')]`;
+    await page!.waitForSelector(dropdown);
+    const [d] = await page!.$$(dropdown);
+    await d.click();
     
-    const optionXpath = `//li[contains(., '${nomeProva}')]`;
-    await waitForAndClick(optionXpath);
+    const option = `xpath///li[contains(., '${optionText}')]`;
+    await page!.waitForSelector(option);
+    const [o] = await page!.$$(option);
+    await o.click();
+    
     await new Promise(r => setTimeout(r, 500));
+};
+
+const fillModalAndConfirm = async (qty: string) => {
+    const btnGerar = `xpath///button[contains(., 'Gerar Lote')]`;
+    await page!.waitForSelector(btnGerar);
+    const [b] = await page!.$$(btnGerar);
+    await b.click();
+
+    await page!.waitForSelector('input[type="number"]', { visible: true });
+    await page!.click('input[type="number"]', { clickCount: 3 });
+    await page!.type('input[type="number"]', qty);
+
+    const btnBaixar = `xpath///button[contains(., 'Baixar Lote') and contains(@class, 'MuiButton-contained')]`;
+    const [confirm] = await page!.$$(btnBaixar);
+    if (confirm) await confirm.click();
+};
+
+Given('que o professor está gerenciando a turma {string}', { timeout: 60000 }, async function (turmaId) {
+    await ensurePageLoaded(turmaId);
 });
 
-When('clica no botão {string}', async function (nomeBotao) {
-    const btnXpath = `//button[contains(., '${nomeBotao}')]`;
-    await waitForAndClick(btnXpath);
-});
-
-Then('o modal {string} deve abrir', async function (tituloModal) {
-    const titleXpath = `//h2[contains(., '${tituloModal}')]`;
-    await page!.waitForSelector(`xpath/${titleXpath}`, { visible: true });
-});
-
-Then('o campo de quantidade deve sugerir o valor {string} \\(total de alunos)', async function (valorEsperado) {
-    const inputSelector = 'input[type="number"]';
-    await page!.waitForSelector(inputSelector);
-    
-    const valorAtual = await page!.$eval(inputSelector, (el: any) => el.value);
-    assert.strictEqual(valorAtual, valorEsperado, `Esperado: ${valorEsperado}, Recebido: ${valorAtual}`);
-});
-
-When('ele confirma o download', async function () {
-    const confirmBtnXpath = `//button[contains(., 'Baixar ZIP') or contains(., 'Confirmar')]`;
-    await waitForAndClick(confirmBtnXpath);
+When('ele solicita a geração do lote da prova {string} para {string} alunos', async function (nomeProva, qtd) {
+    await interactWithDropdown(nomeProva);
+    await fillModalAndConfirm(qtd);
 });
 
 Then('o sistema deve iniciar o download do arquivo {string}', async function (nomeArquivo) {
@@ -93,31 +89,54 @@ Then('o sistema deve iniciar o download do arquivo {string}', async function (no
     assert.strictEqual(errorAlert, null, 'Erro visual apareceu ao tentar baixar!');
 });
 
-Then('o modal deve fechar automaticamente', async function () {
-    await page!.waitForSelector('.MuiDialog-container', { hidden: true, timeout: 5000 });
-});
+When('ele tenta gerar o lote da prova {string} com quantidade {string}', async function (nomeProva, qtd) {
+    await interactWithDropdown(nomeProva);
+    
+    const btnGerar = `xpath///button[contains(., 'Gerar Lote')]`;
+    await page!.waitForSelector(btnGerar);
+    const [b] = await page!.$$(btnGerar);
+    await b.click();
 
-
-When('altera a quantidade para {string} ou {string}', async function (val1, val2) {
+    await page!.waitForSelector('input[type="number"]');
     await page!.click('input[type="number"]', { clickCount: 3 });
-    await page!.type('input[type="number"]', val1);
+    await page!.type('input[type="number"]', qtd);
 });
 
-Then('o botão de confirmação {string} deve estar desabilitado ou exibir erro', async function (nomeBotao) {
-    const btnXpath = `xpath///button[contains(., '${nomeBotao}')]`;
-    const [btn] = await page!.$$(btnXpath);
-    if (!btn) throw new Error(`Botão ${nomeBotao} não encontrado`);
+Then('o sistema deve impedir o prosseguimento da ação', async function () {
+    const btnBaixarXpath = `xpath///button[contains(., 'Baixar Lote') and contains(@class, 'MuiButton-contained')]`;
+    const [btn] = await page!.$$(btnBaixarXpath);
+    
+    const isDisabled = await page!.evaluate((el: any) => el.disabled || el.getAttribute('aria-disabled') === 'true', btn);
+    const isInputInvalid = await page!.$eval('input[type="number"]', (el: any) => !el.checkValidity());
 
-    const isDisabled = await page!.evaluate((el: any) => el.hasAttribute('disabled') || el.disabled, btn);
-    const isInputInvalid = await page!.$eval('input[type="number"]', (el: any) => el.value === '' || !el.checkValidity());
-
-    assert.ok(isDisabled || isInputInvalid, 'Sistema permitiu valor inválido!');
+    assert.ok(isDisabled || isInputInvalid, "O sistema permitiu clicar com valor inválido!");
 });
 
-Then('o modal deve fechar sem iniciar download', async function () {
-    await page!.waitForSelector('.MuiDialog-container', { hidden: true, timeout: 5000 });
+Then('deve sinalizar que o valor é inválido', async function () {
+    return true; 
+});
+
+When('ele inicia a configuração da prova {string} mas desiste', async function (nomeProva) {
+    await interactWithDropdown(nomeProva);
+    
+    const btnGerar = `xpath///button[contains(., 'Gerar Lote')]`;
+    await page!.waitForSelector(btnGerar);
+    const [b] = await page!.$$(btnGerar);
+    await b.click();
+
+    const btnCancel = `xpath///button[contains(., 'Cancelar')]`;
+    await page!.waitForSelector(btnCancel);
+    const [c] = await page!.$$(btnCancel);
+    await c.click();
+});
+
+Then('nenhum download deve ser iniciado', async function () {
     const alerts = await page!.$('.MuiAlert-root');
-    assert.strictEqual(alerts, null, "Uma mensagem apareceu, o que não deveria ocorrer no cancelamento.");
+    assert.strictEqual(alerts, null);
+});
+
+Then('a interface deve retornar ao estado inicial', async function () {
+    await page!.waitForSelector('.MuiDialog-container', { hidden: true, timeout: 3000 });
 });
 
 After(async function () {

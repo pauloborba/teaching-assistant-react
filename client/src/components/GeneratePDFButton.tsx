@@ -74,7 +74,7 @@ export const GeneratePDFButton: React.FC<GeneratePDFButtonProps> = ({
       onClose={onClose}
       onConfirm={handleConfirmGeneration}
       title="Gerar Lote de Provas"
-      confirmText={isLoading ? "Gerando..." : "Baixar ZIP"}
+      confirmText={isLoading ? "Gerando..." : "Baixar Lote"}
       cancelText="Cancelar"
     >
       <Typography gutterBottom>

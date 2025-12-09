@@ -38,6 +38,7 @@ defineFeature(feature, (test) => {
 
           (dataService.getQuestionsByIds as jest.Mock).mockReturnValue(mockQuestionsDB);
           (dataService.shuffleArray as jest.Mock).mockImplementation((arr) => arr);
+          (dataService.getNextGenerationId as jest.Mock).mockReturnValue("1");
           (dataService.addExamGeneration as jest.Mock).mockImplementation(() => {});
       });
 

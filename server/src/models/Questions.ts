@@ -208,7 +208,7 @@ export class Questions {
       throw new Error('At least one option must be marked as correct');
     }
 
-    return sanitized;
+    return sanitized as QuestionOptionRecord[];
   }
 
   private normalizeOpenAnswer(answer: string): string {

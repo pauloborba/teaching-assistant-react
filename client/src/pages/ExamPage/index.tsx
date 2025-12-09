@@ -38,6 +38,7 @@ export default function ExamPage() {
 
   const [rows, setRows] = useState<any[]>([]);
   const [exams, setExams] = useState<any[]>([]);
+  const [totalStudents, setTotalStudents] = useState(0);
 
   const [selectedExam, setSelectedExam] = useState("Todas as provas");
 
@@ -120,9 +121,16 @@ export default function ExamPage() {
     try {
       setTableLoading(true);
 
-      const examsResponse = await ExamsService.getExamsForClass(classID);
+      const [examsResponse, studentsResponse] = await Promise.all([
+        ExamsService.getExamsForClass(classID),
+        ExamsService.getStudentsWithExamsForClass(classID)
+      ]);
       setExams(examsResponse.data || []);
 
+      if (studentsResponse.data && Array.isArray(studentsResponse.data)) {
+        const uniqueStudents = new Set(studentsResponse.data.map((s: any) => s.studentName));
+        setTotalStudents(uniqueStudents.size);
+      }
       // Fetch all generations for all exams in the class
       const allGenerations: any[] = [];
       for (const exam of (examsResponse.data || [])) {
@@ -323,7 +331,7 @@ export default function ExamPage() {
             onClick={handleOpenPdfDialog}
             style={{ marginLeft: "10px", height: "40px", textTransform: "none" }}
           >
-            Baixar Lote
+            Gerar Lote
           </Button>
         )}
 
@@ -383,7 +391,7 @@ export default function ExamPage() {
           onClose={() => setPdfDialogOpen(false)}
           examId={selectedExamIdForPdf}
           classId={classID}
-          defaultQuantity={rows.length > 0 ? rows.length : 30}
+          defaultQuantity={totalStudents > 0 ? totalStudents : 30}
           onSuccess={loadAllData}
         />
       )}

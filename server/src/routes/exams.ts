@@ -22,6 +22,7 @@ import {
   getExamById,
   examsManager,
   triggerSaveStudentsExams,
+  getNextGenerationId,
   cleanCPF,
   addStudentExam,
   questions,
@@ -204,7 +205,7 @@ const handleGetExamZIP = async (req: Request, res: Response) => {
     const formattedDate = formatDateExtended(date as string);
 
     const timestamp = new Date();
-    const generationId = `${examIdNum}-${timestamp.getTime()}`;
+    const generationId = getNextGenerationId();
 
     const newGenerationRecord: ExamGenerationRecord = {
       id: generationId,
@@ -216,7 +217,7 @@ const handleGetExamZIP = async (req: Request, res: Response) => {
     };
 
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename="Lote_${examDef.title}.zip"`);
+    res.setHeader('Content-Disposition', `attachment; filename="Lote_${generationId}_${examDef.title}.zip"`);
 
     const archive = archiver('zip', { zlib: { level: 9 } });
     archive.on('error', (err) => { throw err; });

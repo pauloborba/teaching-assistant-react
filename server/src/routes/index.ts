@@ -3,7 +3,6 @@ import healthRoutes from './health';
 import statsRoutes from './stats';
 import examsRoutes from "./exams";
 import correctionRoutes from "./correction";
-import examPdfRoutes from './examPdf'
 import questionsRoutes from './questions';
 
 const router = Router();
@@ -24,7 +23,6 @@ router.use('/questions', questionsRoutes);
 // Exams routes
 router.use('/exams', examsRoutes);
 router.use(correctionRoutes);
-router.use('/exams', examPdfRoutes);
 
 export default router;
 
