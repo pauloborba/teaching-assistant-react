@@ -119,6 +119,7 @@ Given('there is a student with CPF {string}', async function (cpf: string) {
 
     if (response.status === 201) {
       createdStudentCPF = cpf;
+      console.log("student created with cpf:", cpf);
 
       console.log(`Server setup: Created student with CPF: ${cpf}`);
     } else {
@@ -233,22 +234,24 @@ Given('this answer contains a task with ID {string} and grade {string}', async f
     console.log(`Fetched script answer for update:`, scriptAnswer);
 
     // Add task answer to the script answer
-    scriptAnswer.answers.push({
+    const taskAnswerReq = {
       id: `ta-${cleanTaskId}`,
       task: cleanTaskId,
       answer: 'Test answer',
       grade: cleanGrade,
       comments: ''
-    });
+    };
+
+    console.log(`Adding task answer to script answer ${lastCreatedScriptAnswerId}:`, taskAnswerReq);
 
     // Update the script answer with the new task
     const postResponse = await fetch(`${serverUrl}/api/scriptanswers/${lastCreatedScriptAnswerId}/tasks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(scriptAnswer)
+      body: JSON.stringify(taskAnswerReq)
     });
 
-    if (postResponse.status === 200) {
+    if (postResponse.status === 201) {
       console.log(`Server setup: Added task ${cleanTaskId} with grade ${cleanGrade} to answer ${lastCreatedScriptAnswerId}`);
     } else {
       console.error(`Failed to update script answer: Status ${postResponse.status}`);
