@@ -8,17 +8,17 @@
     {
       "name": "Maria Modularidade",
       "cpf": "22222222222",
-      "email": "mm@cin.ufpe.br"
+      "email": "raasa@cin.ufpe.br"
     },
     {
       "name": "João Elegância",
       "cpf": "33333333333",
-      "email": "je@cin.ufpe.br"
+      "email": "raasa@cin.ufpe.br"
     },
     {
       "name": "Joana Refatoração",
       "cpf": "55555555555",
-      "email": "jr@gmail.com"
+      "email": "raasa@gmail.com"
     }
   ],
   "classes": [
@@ -98,7 +98,15 @@
             },
             {
               "goal": "Project Management",
-              "grade": "MPA"
+              "grade": "MANA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
             }
           ]
         }

@@ -5,26 +5,67 @@ import { Student } from './models/Student';
 import { Evaluation } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
-import { Report } from './models/Report';
 import * as fs from 'fs';
 import * as path from 'path';
-import EventEmitter from 'node:events';
-import { notesUpdatesender } from './services/notifications';
+import { notificarResultadoDisciplina, notificarAlunosEmLote } from './services/gradenotification';
+import { notesUpdateSender, notesUpdateBatchSender } from './services/notifications/notes-update-sender';
+import { Enrollment } from './models/Enrollment';
 
-// EventEmitter global único
-const eventEmitter = new EventEmitter();
+// Sistema de controle de notificações (em memória - resetado a cada reinicialização do servidor)
+interface NotificationCache {
+  [studentCPF: string]: {
+    [disciplina: string]: {
+      gradeResult?: string; // Data da última notificação de resultado (YYYY-MM-DD)
+      gradeUpdate?: string; // Data da última notificação de atualização (YYYY-MM-DD)
+    }
+  }
+}
 
-// Configurar listener para o evento UPDATED_NOTES
-eventEmitter.on('UPDATED_NOTES', (data) => {
+const notificationCache: NotificationCache = {};
+
+// Função para verificar se uma notificação já foi enviada hoje
+const isNotificationSentToday = (studentCPF: string, disciplina: string, type: 'gradeResult' | 'gradeUpdate'): boolean => {
+  const today = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
   
-  notesUpdatesender({
-    emailAluno: data.students[0].email,
-    professor: 'Professor X',
+  if (!notificationCache[studentCPF]) {
+    return false;
+  }
+  
+  if (!notificationCache[studentCPF][disciplina]) {
+    return false;
+  }
+  
+  return notificationCache[studentCPF][disciplina][type] === today;
+};
 
+// Função para marcar uma notificação como enviada
+const markNotificationAsSent = (studentCPF: string, disciplina: string, type: 'gradeResult' | 'gradeUpdate'): void => {
+  const today = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+  
+  if (!notificationCache[studentCPF]) {
+    notificationCache[studentCPF] = {};
+  }
+  
+  if (!notificationCache[studentCPF][disciplina]) {
+    notificationCache[studentCPF][disciplina] = {};
+  }
+  
+  notificationCache[studentCPF][disciplina][type] = today;
+};
+
+// Função para obter estatísticas de notificações (para debug)
+const getNotificationStats = (disciplina: string, type: 'gradeResult' | 'gradeUpdate') => {
+  const today = new Date().toISOString().split('T')[0];
+  let sentToday = 0;
+  
+  Object.keys(notificationCache).forEach(cpf => {
+    if (notificationCache[cpf][disciplina]?.[type] === today) {
+      sentToday++;
+    }
   });
-
-  // console.log('📚 Students updated:', JSON.stringify(data.students, null, 2));
-});
+  
+  return { sentToday };
+}
 
 // usado para ler arquivos em POST
 const multer = require('multer');
@@ -32,7 +73,7 @@ const multer = require('multer');
 // pasta usada para salvar os upload's feitos
 const upload_dir = multer({dest: 'tmp_data/'})
 
-const app = express();
+export const app = express();
 const PORT = 3005;
 
 // Middleware
@@ -73,9 +114,6 @@ const saveDataToFile = (): void => {
     
     ensureDataDirectory();
     fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
-    
-    const {students} = data;
-    eventEmitter.emit('UPDATED_NOTES', {students});
   } catch (error) {
     console.error('Error saving students to file:', error);
   }
@@ -154,22 +192,15 @@ const loadDataFromFile = (): void => {
   }
 };
 
-// Test mode flag to disable file persistence
-const isTestMode = process.env.NODE_ENV === 'test';
-
 // Trigger save after any modification (async to not block operations)
 const triggerSave = (): void => {
-  if (!isTestMode) {
-    setImmediate(() => {
-      saveDataToFile();
-    });
-  }
+  setImmediate(() => {
+    saveDataToFile();
+  });
 };
 
-// Load existing data on startup (only in non-test mode)
-if (!isTestMode) {
-  loadDataFromFile();
-}
+// Load existing data on startup
+loadDataFromFile();
 
 // Helper function to clean CPF
 const cleanCPF = (cpf: string): string => {
@@ -244,44 +275,6 @@ app.delete('/api/students/:cpf', (req: Request, res: Response) => {
     res.status(400).json({ error: (error as Error).message });
   }
 });
-
-// PUT /api/students/:cpf/evaluation - Update a specific evaluation
-// DEPRECATED: Evaluations are now handled through class enrollments
-/*
-app.put('/api/students/:cpf/evaluation', (req: Request, res: Response) => {
-  try {
-    const { cpf } = req.params;
-    const { goal, grade } = req.body;
-    
-    if (!goal) {
-      return res.status(400).json({ error: 'Goal is required' });
-    }
-    
-    const cleanedCPF = cleanCPF(cpf);
-    const student = studentSet.findStudentByCPF(cleanedCPF);
-    
-    if (!student) {
-      return res.status(404).json({ error: 'Student not found' });
-    }
-    
-    if (grade === '' || grade === null || grade === undefined) {
-      // Remove evaluation
-      student.removeEvaluation(goal);
-    } else {
-      // Add or update evaluation
-      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
-        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
-      }
-      student.addOrUpdateEvaluation(goal, grade);
-    }
-    
-    triggerSave(); // Save to file after evaluation update
-    res.json(student.toJSON());
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
-  }
-});
-*/
 
 // GET /api/students/:cpf - Get a specific student
 app.get('/api/students/:cpf', (req: Request, res: Response) => {
@@ -517,50 +510,247 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
   res.status(501).json({ error: "Endpoint ainda não implementado." });
 });
 
-// GET /api/classes/:classId/report - Generate statistics report for a class
-app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
+// POST /api/notifications/grade-result - Enviar notificação de resultado da disciplina
+app.post('/api/notifications/grade-result', async (req: Request, res: Response) => {
   try {
-    const { classId } = req.params;
+    const { studentCPF, disciplina, professorNome } = req.body;
     
-    const classObj = classes.findClassById(classId);
-    if (!classObj) {
-      return res.status(404).json({ error: 'Class not found' });
+    if (!studentCPF || !disciplina || !professorNome) {
+      return res.status(400).json({ error: 'StudentCPF, disciplina e professorNome são obrigatórios' });
     }
 
-    const report = new Report(classObj);
-    res.json(report.toJSON());
+    const cleanedCPF = cleanCPF(studentCPF);
+    
+    // Verificar se já foi enviada hoje
+    if (isNotificationSentToday(cleanedCPF, disciplina, 'gradeResult')) {
+      return res.status(409).json({ 
+        error: 'Notificação já enviada hoje para este aluno nesta disciplina',
+        message: 'Uma notificação de resultado já foi enviada para este aluno hoje nesta disciplina'
+      });
+    }
+    
+    const student = studentSet.findStudentByCPF(cleanedCPF);
+    
+    if (!student) {
+      return res.status(404).json({ error: 'Aluno não encontrado' });
+    }
+
+    // Encontrar a matrícula do aluno na disciplina para obter a nota
+    const classObj = classes.findClassesByTopic(disciplina)[0];
+    if (!classObj) {
+      return res.status(404).json({ error: 'Disciplina não encontrada' });
+    }
+
+    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
+    if (!enrollment) {
+      return res.status(404).json({ error: 'Aluno não matriculado nesta disciplina' });
+    }
+
+    const nota = enrollment.getMediaPreFinal() ?? 0;
+
+    await notificarResultadoDisciplina(student, nota, disciplina, professorNome);
+    
+    // Marcar como enviada
+    markNotificationAsSent(cleanedCPF, disciplina, 'gradeResult');
+    
+    res.status(200).json({ message: 'Notificação enviada com sucesso' });
   } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
+    console.error('Erro ao enviar notificação:', error);
+    res.status(500).json({ error: 'Erro ao enviar notificação de resultado' });
   }
 });
 
-app.get('/api/event-emmiter', (req: Request, res: Response) => {
-  console.log('🚀 Endpoint /api/event-emmiter called');
-  
-  // Usar o EventEmitter global em vez de criar um novo
-  console.log('📡 Emitting UPDATED_NOTES event...');
+// POST /api/notifications/batch-result - Enviar notificação de resultado da disciplina em lote
+app.post('/api/notifications/batch-result', async (req: Request, res: Response) => {
+  try {
+    const { classId, disciplina, professorNome } = req.body;
+    
+    if (!classId || !disciplina || !professorNome) {
+      return res.status(400).json({ error: 'classId, disciplina e professorNome são obrigatórios' });
+    }
 
-  eventEmitter.emit('UPDATED_NOTES', {
-    students: [
-      {cpf: '12345678900', email: 'teste@test.com', name: 'Aluno Teste'},
-      {cpf: '12345678999', email: 'teste2@test.com', name: 'Aluno Teste 2'},
-    ]
-  });
+    const classObj = classes.findClassById(classId);
+    
+    if (!classObj) {
+      return res.status(404).json({ error: 'Disciplina não encontrada' });
+    }
 
-  console.log('✅ Event emitted successfully');
+    const allStudents = classObj.getEnrollments().map((e: Enrollment) => e.getStudent());
+    
+    if (allStudents.length === 0) {
+      return res.status(404).json({ error: 'Nenhum aluno matriculado nesta disciplina' });
+    }
 
-  return res.json({ 
-    message: 'Event emitted successfully',
-    timestamp: new Date().toISOString()
-  });
+    // Filtrar alunos que ainda não receberam notificação hoje
+    const studentsToNotify = allStudents.filter(student => 
+      !isNotificationSentToday(student.getCPF(), disciplina, 'gradeResult')
+    );
+
+    console.log(`Total de alunos na turma: ${allStudents.length}`);
+    console.log(`Alunos que receberão notificação: ${studentsToNotify.length}`);
+    console.log(`Alunos que já receberam hoje: ${allStudents.length - studentsToNotify.length}`);
+
+    if (studentsToNotify.length === 0) {
+      return res.status(409).json({ 
+        error: 'Todas as notificações já foram enviadas hoje',
+        message: `Todos os ${allStudents.length} alunos já receberam a notificação de resultado hoje`,
+        totalAlunos: allStudents.length,
+        jaNotificados: allStudents.length
+      });
+    }
+
+    // A lógica de cálculo da nota será implementada agora
+    const totalEnviados = await notificarAlunosEmLote(studentsToNotify, disciplina, professorNome, (student) => {
+      const enrollment = classObj.findEnrollmentByStudentCPF(student.getCPF());
+      return enrollment?.getMediaPreFinal() ?? 0;
+    }); 
+    
+    // Marcar todos os alunos notificados como enviados
+    studentsToNotify.forEach(student => {
+      markNotificationAsSent(student.getCPF(), disciplina, 'gradeResult');
+    });
+    
+    res.status(200).json({ 
+      message: 'Notificações enviadas com sucesso',
+      totalEnviados: totalEnviados,
+      totalAlunos: allStudents.length,
+      jaNotificados: allStudents.length - studentsToNotify.length
+    });
+  } catch (error) {
+    console.error('Erro ao enviar notificações em lote:', error);
+    res.status(500).json({ error: 'Erro ao enviar notificações em lote' });
+  }
 });
 
-// Export the app for testing
-export { app, studentSet, classes };
+// POST /api/notifications/grade-update - Enviar notificação de atualização de nota individual
+app.post('/api/notifications/grade-update', async (req: Request, res: Response) => {
+  try {
+    const { studentCPF, disciplina, professorNome } = req.body;
+    
+    if (!studentCPF || !disciplina || !professorNome) {
+      return res.status(400).json({ error: 'StudentCPF, disciplina e professorNome são obrigatórios' });
+    }
 
-// Only start the server if this file is run directly (not imported for testing)
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
+    const cleanedCPF = cleanCPF(studentCPF);
+    
+    // Verificar se já foi enviada hoje
+    if (isNotificationSentToday(cleanedCPF, disciplina, 'gradeUpdate')) {
+      return res.status(409).json({ 
+        error: 'Notificação já enviada hoje para este aluno nesta disciplina',
+        message: 'Uma notificação de atualização já foi enviada para este aluno hoje nesta disciplina'
+      });
+    }
+    
+    const student = studentSet.findStudentByCPF(cleanedCPF);
+    
+    if (!student) {
+      return res.status(404).json({ error: 'Aluno não encontrado' });
+    }
+
+    // Verificar se o aluno está matriculado na disciplina
+    const classObj = classes.findClassesByTopic(disciplina)[0];
+    if (!classObj) {
+      return res.status(404).json({ error: 'Disciplina não encontrada' });
+    }
+
+    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
+    if (!enrollment) {
+      return res.status(404).json({ error: 'Aluno não matriculado nesta disciplina' });
+    }
+
+    await notesUpdateSender({
+      student,
+      disciplina,
+      professor: professorNome
+    });
+
+    // Marcar como enviada
+    markNotificationAsSent(cleanedCPF, disciplina, 'gradeUpdate');
+
+    res.status(200).json({ message: 'Notificação de atualização enviada com sucesso' });
+  } catch (error) {
+    console.error('Erro ao enviar notificação de atualização:', error);
+    res.status(500).json({ error: 'Erro ao enviar notificação de atualização' });
+  }
+});
+
+// POST /api/notifications/batch-update - Enviar notificação de atualização de nota em lote
+app.post('/api/notifications/batch-update', async (req: Request, res: Response) => {
+  try {
+    const { classId, disciplina, professorNome } = req.body;
+    
+    if (!classId || !disciplina || !professorNome) {
+      return res.status(400).json({ error: 'classId, disciplina e professorNome são obrigatórios' });
+    }
+
+    const classObj = classes.findClassById(classId);
+    
+    if (!classObj) {
+      return res.status(404).json({ error: 'Disciplina não encontrada' });
+    }
+
+    const allStudents = classObj.getEnrollments().map((e: Enrollment) => e.getStudent());
+    
+    if (allStudents.length === 0) {
+      return res.status(404).json({ error: 'Nenhum aluno matriculado nesta disciplina' });
+    }
+
+    // Filtrar alunos que ainda não receberam notificação de atualização hoje
+    const studentsToNotify = allStudents.filter(student => 
+      !isNotificationSentToday(student.getCPF(), disciplina, 'gradeUpdate')
+    );
+
+    console.log(`Total de alunos na turma: ${allStudents.length}`);
+    console.log(`Alunos que receberão notificação de atualização: ${studentsToNotify.length}`);
+    console.log(`Alunos que já receberam hoje: ${allStudents.length - studentsToNotify.length}`);
+
+    if (studentsToNotify.length === 0) {
+      return res.status(409).json({ 
+        error: 'Todas as notificações já foram enviadas hoje',
+        message: `Todos os ${allStudents.length} alunos já receberam a notificação de atualização hoje`,
+        totalAlunos: allStudents.length,
+        jaNotificados: allStudents.length
+      });
+    }
+
+    const totalEnviados = await notesUpdateBatchSender(
+      studentsToNotify, 
+      disciplina, 
+      professorNome
+    ); 
+    
+    // Marcar todos os alunos notificados como enviados
+    studentsToNotify.forEach(student => {
+      markNotificationAsSent(student.getCPF(), disciplina, 'gradeUpdate');
+    });
+    
+    res.status(200).json({ 
+      message: 'Notificações de atualização enviadas com sucesso',
+      totalEnviados: totalEnviados,
+      totalAlunos: allStudents.length,
+      jaNotificados: allStudents.length - studentsToNotify.length
+    });
+  } catch (error) {
+    console.error('Erro ao enviar notificações de atualização em lote:', error);
+    res.status(500).json({ error: 'Erro ao enviar notificações de atualização em lote' });
+  }
+});
+
+// GET /api/notifications/stats/:disciplina - Obter estatísticas de notificações (endpoint para debug)
+app.get('/api/notifications/stats/:disciplina', (req: Request, res: Response) => {
+  try {
+    const { disciplina } = req.params;
+    
+    const gradeResultStats = getNotificationStats(disciplina, 'gradeResult');
+    const gradeUpdateStats = getNotificationStats(disciplina, 'gradeUpdate');
+    
+    res.json({
+      disciplina,
+      date: new Date().toISOString().split('T')[0],
+      gradeResult: gradeResultStats,
+      gradeUpdate: gradeUpdateStats
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao obter estatísticas' });
+  }
+});

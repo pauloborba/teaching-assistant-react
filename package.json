@@ -16,7 +16,10 @@
     "lint": "npm run lint --prefix client"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@types/jest": "^30.0.0",
+    "concurrently": "^8.2.2",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6"
   },
   "keywords": [
     "react",

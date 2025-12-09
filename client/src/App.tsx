@@ -7,9 +7,10 @@ import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
+import Notifications from './components/Notifications';
 import './App.css';
 
-type TabType = 'students' | 'evaluations' | 'classes';
+type TabType = 'students' | 'evaluations' | 'classes' | 'notifications';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -19,6 +20,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('students');
+  const [successMessage, setSuccessMessage] = useState<string>('');
 
   const loadStudents = useCallback(async () => {
     try {
@@ -107,7 +109,16 @@ const App: React.FC = () => {
 
   const handleError = (errorMessage: string) => {
     setError(errorMessage);
+    setSuccessMessage('');
+    setTimeout(() => setError(''), 2000);
   };
+
+  const handleSuccess = (message: string) => {
+    setSuccessMessage(message);
+    setError('');
+    setTimeout(() => setSuccessMessage(''), 2000);
+  };
+
 
   return (
     <div className="App">
@@ -120,6 +131,12 @@ const App: React.FC = () => {
         {error && (
           <div className="error-message">
             <strong>Error:</strong> {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="success-message">
+            <strong>Success:</strong> {successMessage}
           </div>
         )}
 
@@ -145,6 +162,12 @@ const App: React.FC = () => {
             data-testid="classes-tab"
           >
             Classes
+          </button>
+          <button
+            className={`tab-button ${activeTab === 'notifications' ? 'active' : ''}`}
+            onClick={() => setActiveTab('notifications')}
+          >
+            Notifications
           </button>
         </div>
 
@@ -213,6 +236,13 @@ const App: React.FC = () => {
               onClassUpdated={handleClassUpdated}
               onClassDeleted={handleClassDeleted}
               onError={handleError}
+            />
+          )}
+
+          {activeTab === 'notifications' && (
+            <Notifications
+              onError={handleError}
+              onSuccess={handleSuccess}
             />
           )}
         </div>
