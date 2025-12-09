@@ -217,7 +217,7 @@ const handleGetExamZIP = async (req: Request, res: Response) => {
     };
 
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename="Lote_${examDef.title}.zip"`);
+    res.setHeader('Content-Disposition', `attachment; filename="Lote_${generationId}_${examDef.title}.zip"`);
 
     const archive = archiver('zip', { zlib: { level: 9 } });
     archive.on('error', (err) => { throw err; });
