@@ -15,6 +15,10 @@ export class Script {
     return this.id;
   }
 
+  getTasks(): Task[] {
+    return this.tasks;
+  }
+
 toJSON() {
   return {
     id: this.id,
