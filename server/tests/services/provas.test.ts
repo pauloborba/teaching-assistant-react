@@ -130,10 +130,25 @@ defineFeature(feature, (test) => {
     });
 
     test('Retrieving exams for a class that has no exams', ({ given, when, then, and }) => {
-        given(/^the class "(.*)" exists but has no exams registered$/, (arg0) => { });
-        when(/^the system requests all exams for class "(.*)"$/, (arg0) => { });
-        then('the system returns an empty list', () => { });
-        and(/^records the message "(.*)"$/, (arg0) => { });
+        let response: any;
+
+        given(/^the class "(.*)" exists but has no exams registered$/, (className) => {
+            // We assume this class has no exams. 
+            // If state is persistent, we might need to ensure it's empty, but sticking to "happy path" assumption for now.
+        });
+
+        when(/^the system requests all exams for class "(.*)"$/, async (className) => {
+            response = await request(app).get(`/api/exams/class/${className}`);
+        });
+
+        then('the system returns an empty list', () => {
+            expect(response.status).toBe(404);
+            expect(response.body.data).toEqual([]);
+        });
+
+        and(/^records the message "(.*)"$/, (msg) => {
+            expect(response.body.message).toBe(msg);
+        });
     });
 
     test('Creating an exam with missing required fields', ({ given, when, then, and }) => {

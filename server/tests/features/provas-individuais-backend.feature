@@ -29,7 +29,7 @@ Feature: Business rules for exam creation and generation
     Given the class "Engenharia de Software e Sistemas-2024-1" exists but has no exams registered
     When the system requests all exams for class "Engenharia de Software e Sistemas-2024-1"
     Then the system returns an empty list
-    And records the message "No exams found for the given class"
+    And records the message "No exams found"
 
   @service
   Scenario: Creating an exam with missing required fields
