@@ -4,7 +4,7 @@ const API_BASE_URL = 'http://localhost:3005';
 
 class AICorrectionService {
   static async triggerAICorrection(
-    classId: string,
+    examId: number,
     model: string
   ): Promise<TriggerAICorrectionResponse> {
     try {
@@ -13,7 +13,7 @@ class AICorrectionService {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ classId, model }),
+        body: JSON.stringify({ examId, model }),
       });
 
       if (!response.ok) {

@@ -9,6 +9,7 @@ import ExamsService from "../../services/ExamsService";
 import ModelSelectionModal from "../../components/ModelSelectionModal";
 import SuccessModal from "../../components/SuccessModal";
 import AICorrectionService from "../../services/AICorrectionService";
+import CorrectionService from "../../services/CorrectionService";
 import QuestionService from "../../services/QuestionService";
 import { Button } from "@mui/material";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -295,13 +296,28 @@ export default function ExamPage() {
   };
 
   // -------------------------------------------
-  // Correção de IA
+  // Correção de IA (Abertas)
   // -------------------------------------------
   const handleStartAICorrection = () => {
-    if (!classID) {
-      alert("ID da turma não encontrado");
+    if (selectedExam === "Todas as provas") {
+      setAlertConfig({
+        open: true,
+        message: "Selecione uma prova específica para corrigir questões abertas.",
+        severity: "warning"
+      });
       return;
     }
+
+    const examId = getExamIdByTitle(selectedExam);
+    if (!examId) {
+      setAlertConfig({
+        open: true,
+        message: "Prova não encontrada.",
+        severity: "error"
+      });
+      return;
+    }
+
     setErrorMessage("");
     setModelSelectionModalOpen(true);
   };
@@ -322,12 +338,13 @@ export default function ExamPage() {
     try {
       setCorrectionLoading(true);
 
-      if (!classID) {
-        throw new Error("ID da turma não encontrado");
+      const examId = getExamIdByTitle(selectedExam);
+      if (!examId) {
+        throw new Error("Prova não encontrada");
       }
 
       const response = await AICorrectionService.triggerAICorrection(
-        classID,
+        Number(examId),
         model
       );
 
@@ -342,10 +359,101 @@ export default function ExamPage() {
       const errorMsg = error instanceof Error 
         ? error.message 
         : "Erro ao iniciar a correção. Por favor, tente novamente.";
-      setErrorMessage("Erro ao iniciar a correção. Por favor, tente novamente.");
-      alert("Erro ao iniciar a correção. Por favor, tente novamente.");
+      setErrorMessage(errorMsg);
+      setAlertConfig({
+        open: true,
+        message: errorMsg,
+        severity: "error"
+      });
     } finally {
       setCorrectionLoading(false);
+    }
+  };
+
+  // -------------------------------------------
+  // Correção de Fechadas
+  // -------------------------------------------
+  const handleCorrectClosedQuestions = async () => {
+    if (selectedExam === "Todas as provas") {
+      setAlertConfig({
+        open: true,
+        message: "Selecione uma prova específica para corrigir questões fechadas.",
+        severity: "warning"
+      });
+      return;
+    }
+
+    const examId = getExamIdByTitle(selectedExam);
+    if (!examId || !classID) {
+      setAlertConfig({
+        open: true,
+        message: "Dados insuficientes para corrigir.",
+        severity: "error"
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Busca os dados da prova
+      const examData = exams.find((e) => e.id.toString() === examId);
+      if (!examData) {
+        throw new Error("Prova não encontrada");
+      }
+
+      // Garante que o examData tenha a estrutura correta para o CorrectionService
+      const examForCorrection = {
+        id: examData.id.toString(),
+        title: examData.title || selectedExam,
+        date: examData.date || '',
+        durationMinutes: examData.durationMinutes || 0
+      };
+
+      // Busca os estudantes com exames para esta prova
+      const studentsResponse = await ExamsService.getStudentsWithExamsForClass(
+        classID,
+        Number(examId)
+      );
+
+      // A API retorna { data: [...] } ou array direto
+      const studentsData = studentsResponse?.data || studentsResponse;
+      
+      if (!studentsData || !Array.isArray(studentsData) || studentsData.length === 0) {
+        setAlertConfig({
+          open: true,
+          message: "Nenhum estudante encontrado para esta prova.",
+          severity: "warning"
+        });
+        return;
+      }
+
+      // Converte para o formato esperado pelo CorrectionService (Student interface)
+      const students = studentsData.map((s: any) => ({
+        cpf: s.cpf || s.studentCPF,
+        name: s.studentName || s.name || '',
+        email: s.email || s.studentEmail || ''
+      }));
+
+      // Usa o CorrectionService para corrigir questões fechadas
+      await CorrectionService.correctAllExams(students, examForCorrection);
+
+      setAlertConfig({
+        open: true,
+        message: "Questões fechadas corrigidas com sucesso!",
+        severity: "success"
+      });
+
+      // Recarrega os dados
+      await handleExamSelect(selectedExam);
+    } catch (err) {
+      setAlertConfig({
+        open: true,
+        message: err instanceof Error ? err.message : "Erro ao corrigir questões fechadas",
+        severity: "error"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -395,6 +503,28 @@ export default function ExamPage() {
         <div style={{ marginLeft: "auto" }}>
           {/* Botão alinhado à direita */}
           <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
+            {/* Botões de correção - só aparecem quando uma prova específica está selecionada */}
+            {selectedExam !== "Todas as provas" && (
+              <>
+                <CustomButton
+                  label="Corrigir Fechadas"
+                  onClick={handleCorrectClosedQuestions}
+                  disabled={loading || !correctionActive}
+                  style={{
+                    backgroundColor: correctionActive ? undefined : "#cccccc",
+                  }}
+                />
+                <CustomButton
+                  label="Corrigir Abertas"
+                  onClick={handleStartAICorrection}
+                  disabled={correctionLoading || !correctionActive}
+                  style={{
+                    backgroundColor: correctionActive ? undefined : "#cccccc",
+                  }}
+                />
+              </>
+            )}
+
             {/* Botão de deletar - só aparece quando uma prova específica está selecionada */}
             {selectedExam !== "Todas as provas" && (
               <CustomButton
@@ -451,9 +581,6 @@ export default function ExamPage() {
           computeDetailRow={(detail) => detail}
           correctionActive={correctionActive}
           onCorrectionFinished={handleExamSelect}
-          onAICorrection={handleStartAICorrection}
-          aiCorrectionLoading={correctionLoading}
-          classID={classID}
         />
       )}
 
@@ -486,7 +613,7 @@ export default function ExamPage() {
           }}
           model={correctionResult.model || selectedModel}
           estimatedTime={correctionResult.estimatedTime || ""}
-          totalStudentExams={correctionResult.totalStudentExams || 0}
+          totalStudentExams={correctionResult.totalResponses || 0}
           totalOpenQuestions={correctionResult.totalOpenQuestions || 0}
           queuedMessages={correctionResult.queuedMessages || 0}
         />

@@ -1,12 +1,12 @@
 export interface TriggerAICorrectionRequest {
-  classId: string;
+  examId: number;
   model: string;
 }
 
 export interface TriggerAICorrectionResponse {
   message: string;
   estimatedTime: string;
-  totalStudentExams: number;
+  totalResponses: number;
   totalOpenQuestions: number;
   queuedMessages: number;
   errors?: string[];

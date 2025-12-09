@@ -41,7 +41,7 @@ export default function SuccessModal({
             <span className="success-detail-value">{estimatedTime}</span>
           </div>
           <div className="success-detail-item">
-            <span className="success-detail-label">Exames de estudantes:</span>
+            <span className="success-detail-label">Respostas encontradas:</span>
             <span className="success-detail-value">{totalStudentExams}</span>
           </div>
           <div className="success-detail-item">
