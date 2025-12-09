@@ -163,14 +163,6 @@ export default function CorrectionsViewModal({
             </div>
           </div>
         )}
-
-        <div className="corrections-modal-actions">
-          <CustomButton
-            label="Fechar"
-            variant="primary"
-            onClick={onClose}
-          />
-        </div>
       </div>
     </Modal>
   );
