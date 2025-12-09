@@ -364,8 +364,8 @@ app.get('/api/classes/:id/metas', (req: Request, res: Response) => {
       const metas = classes.getClassMetas(id);
       res.json({ metas });
     } catch (error) {
-      if ((error as Error).message === 'Class not found') {
-        return res.status(404).json({ error: 'Class not found' });
+      if ((error as Error).message === 'Turma não encontrada!') {
+        return res.status(404).json({ error: 'Turma não encontrada!' });
       }
       throw error;
     }

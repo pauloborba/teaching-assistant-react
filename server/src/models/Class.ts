@@ -11,14 +11,23 @@ export class Class {
   private metas: string[];
   private metasLocked: boolean;
 
-  constructor(topic: string, semester: number, year: number, metas: string[] = [], especificacaoDoCalculoDaMedia: EspecificacaoDoCalculoDaMedia, enrollments: Enrollment[] = []) {
+  // Update constructor to accept metasLocked (optional, default false)
+  constructor(
+    topic: string, 
+    semester: number, 
+    year: number, 
+    metas: string[] = [], 
+    especificacaoDoCalculoDaMedia: EspecificacaoDoCalculoDaMedia, 
+    enrollments: Enrollment[] = [],
+    metasLocked: boolean = false // Add this parameter
+  ) {
     this.topic = topic;
     this.semester = semester;
     this.year = year;
     this.especificacaoDoCalculoDaMedia = especificacaoDoCalculoDaMedia;
-    this.enrollments = enrollments;
     this.metas = metas;
-    this.metasLocked = metas.length > 0;
+    this.enrollments = enrollments;
+    this.metasLocked = metasLocked; // Initialize properly
   }
 
   // Getters
@@ -86,7 +95,7 @@ export class Class {
       throw new Error('Metas não podem conter duplicatas!');
     }
     this.metas = metas;
-    this.metasLocked = true;
+    this.metasLocked = true; // Lock it immediately after setting
   }
 
   // Enrollment management
@@ -126,7 +135,7 @@ export class Class {
     return this.enrollments.map(enrollment => enrollment.getStudent());
   }
   
-  // Convert to JSON for API responses
+  // Convert to JSON for API responses AND persistence
   toJSON() {
     return {
       id: this.getClassId(),
@@ -134,35 +143,47 @@ export class Class {
       semester: this.semester,
       year: this.year,
       metas: this.metas,
-      metasLocked: this.metasLocked,
-      especificacaoDoCalculoDaMedia: this.especificacaoDoCalculoDaMedia.toJSON(),
+      metasLocked: this.metasLocked, // Persist the state
+      // Check if toJSON exists (it might be a plain object if loaded incorrectly previously)
+      especificacaoDoCalculoDaMedia: this.especificacaoDoCalculoDaMedia.toJSON ? this.especificacaoDoCalculoDaMedia.toJSON() : this.especificacaoDoCalculoDaMedia,
       enrollments: this.enrollments.map(enrollment => enrollment.toJSON())
     };
   }
 
   // Create Class from JSON object
-  static fromJSON(data: { topic: string; semester: number; year: number; metas: string[]; especificacaoDoCalculoDaMedia: any, enrollments: any[] }, allStudents: Student[]): Class {
-    const enrollments = data.enrollments
-      ? data.enrollments.map((enrollmentData: any) => {
-          const student = allStudents.find(s => s.getCPF() === enrollmentData.student.cpf);
-          if (!student) {
-            throw new Error(`Student with CPF ${enrollmentData.student.cpf} not found`);
-          }
-          return Enrollment.fromJSON(enrollmentData, student);
-        })
-      : [];
+  static fromJSON(data: { 
+    topic: string; 
+    semester: number; 
+    year: number; 
+    metas: string[]; 
+    especificacaoDoCalculoDaMedia: any, 
+    enrollments: any[],
+    metasLocked?: boolean // Add type definition here
+  }, allStudents: Student[]): Class {
+    const enrollments = data.enrollments.map(e => {
+      const studentCpf = e.student ? (e.student.cpf || e.student._cpf) : null;
+      const student = allStudents.find(s => s.getCPF() === studentCpf);
+      
+      if (!student) {
+        // If student is not found (data inconsistency), we throw an error
+        throw new Error(`Student with CPF ${studentCpf} not found for enrollment in class ${data.topic}`);
+      }
+      
+      return Enrollment.fromJSON(e, student);
+    });
     
-    // Novo carregamento do EspecificacaoDoCalculoDaMedia
-    const especificacaoDoCalculoDaMedia = EspecificacaoDoCalculoDaMedia.fromJSON(data.especificacaoDoCalculoDaMedia);
+    const isLocked = data.metasLocked !== undefined 
+      ? data.metasLocked 
+      : (data.metas && data.metas.length > 0);
 
-    const metas = Array.isArray(data.metas) ? data.metas : [];
-    const cls = new Class(data.topic, data.semester, data.year, metas, especificacaoDoCalculoDaMedia, enrollments);
-    // Se o JSON já veio com metas e quisermos respeitar lock vindo do arquivo, checar data.metasLocked
-    if ((data as any).metasLocked) {
-      // forçar lock mesmo que metas tenha sido passada vazia (já tratada acima)
-      (cls as any).metasLocked = true;
-    }
-
-    return cls;
+    return new Class(
+      data.topic, 
+      data.semester, 
+      data.year, 
+      data.metas, 
+      data.especificacaoDoCalculoDaMedia, 
+      enrollments,
+      isLocked
+    );
   }
 }

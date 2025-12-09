@@ -3,9 +3,6 @@ import { Browser, Page, launch } from 'puppeteer';
 import expect from 'expect';
 import { scope } from './setup';
 
-// Set default timeout for all steps
-// setDefaultTimeout(30 * 1000); // 30 seconds
-
 // Helper function to format CPF like the frontend does
 function formatCPF(value: string): string {
   const digits = value.replace(/\D/g, '');

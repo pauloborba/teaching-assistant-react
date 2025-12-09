@@ -127,7 +127,7 @@ export class Classes {
   getClassMetas(id: string): any[] {
     const classObj = this.findClassById(id);
     if (!classObj) {
-      throw new Error('Class not found');
+      throw new Error('Turma não encontrada!');
     }
     return classObj.getMetas();
   }

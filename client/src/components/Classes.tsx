@@ -163,7 +163,7 @@ const Classes: React.FC<ClassesProps> = ({
         // After creating a class, prepare localMetas for metas flow
         if (created && created.id) {
           setLocalMetas([]);
-          // open metas panel automatically for the newly created class
+          // open enrollment panel automatically for the newly created class
           setEnrollmentPanelClass(created);
         }
         onClassAdded();
@@ -418,8 +418,9 @@ const Classes: React.FC<ClassesProps> = ({
                 className="close-modal-btn"
                 onClick={handleCloseEnrollmentPanel}
                 title="Close"
+                aria-label="Close"
               >
-                ×
+                &times;
               </button>
             </div>
 
@@ -524,8 +525,9 @@ const Classes: React.FC<ClassesProps> = ({
                 className="close-modal-btn" 
                 onClick={() => setMetaPanelClass(null)}
                 title="Close"
+                aria-label="Close"
               >
-                ×
+                &times;
               </button>
             </div>
 

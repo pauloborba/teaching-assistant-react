@@ -1,9 +1,6 @@
-import { Given, When, Then, Before, After, setDefaultTimeout } from '@cucumber/cucumber';
-import { Browser, Page, launch } from 'puppeteer';
+import { Given, When, Then, After } from '@cucumber/cucumber';
 import expect from 'expect';
 import { scope } from './setup';
-
-// setDefaultTimeout(10 * 1000);
 
 const BASE = 'http://localhost:3004';
 const API = 'http://localhost:3005';
