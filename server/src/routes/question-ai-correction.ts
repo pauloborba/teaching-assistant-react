@@ -61,7 +61,7 @@ router.post('/question-ai-correction', async (req: Request, res: Response) => {
     const percentageScore = (aiCorrectionResponse.score / 10) * 100;
 
     // Atualiza a resposta com a pontuação (0% - 100%) que o aluno obteve na questão
-    const updated = updateResponseAnswerScore(Number(responseId), Number(questionId), percentageScore, studentAnswer);
+    const updated = updateResponseAnswerScore(Number(responseId), Number(questionId), percentageScore);
     if (!updated) {
       return res.status(404).json({ error: 'Resposta não encontrada para atualizar a nota' });
     }

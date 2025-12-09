@@ -370,7 +370,6 @@ export const updateResponseAnswerScore = (
   responseId: number,
   questionId: number,
   score: number,
-  answerText?: string
 ): boolean => {
   const resp = responses.find((r) => r.id === responseId);
   if (!resp || !Array.isArray(resp.answers)) return false;
@@ -378,9 +377,6 @@ export const updateResponseAnswerScore = (
   const answer = resp.answers.find((a: any) => a.questionId === questionId);
   if (!answer) return false;
 
-  if (answerText !== undefined) {
-    answer.answer = answerText;
-  }
   answer.grade = Math.max(0, Math.min(100, score));
   triggerSaveResponses();
   return true;
