@@ -63,7 +63,7 @@ export class Correction {
 
     studentResponses.forEach((response: ResponseItem) => {
       let gradeSum = 0;
-      let totalQuestions = 0;
+      let totalQuestions = exam.questions.length;
 
       response.answers.forEach((studentAnswer) => {
         let totalCorrectOpt = 0;
@@ -74,8 +74,6 @@ export class Correction {
         );
 
         if (!question) return;
-
-        totalQuestions++;
 
         question.options.forEach((opt: Options) => {
           if (opt.isCorrect) {
