@@ -237,13 +237,24 @@ class ExamsService {
         throw new Error(errorMessage);
       }
 
+      let filename = `Lote_Provas_${examId}.zip`;
+      const disposition = response.headers.get('Content-Disposition');
+      
+      if (disposition && disposition.indexOf('attachment') !== -1) {
+          const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+          const matches = filenameRegex.exec(disposition);
+          if (matches != null && matches[1]) {
+              filename = matches[1].replace(/['"]/g, '');
+          }
+      }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(
         new Blob([blob], { type: 'application/zip' })
       );
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `Lote_Provas_${examId}.zip`);
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

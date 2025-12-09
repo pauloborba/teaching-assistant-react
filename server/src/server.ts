@@ -9,7 +9,9 @@ const app = express();
 const PORT = 3005;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  exposedHeaders: ['Content-Disposition']
+}));
 app.use(express.json());
 
 // Load existing data on startup
