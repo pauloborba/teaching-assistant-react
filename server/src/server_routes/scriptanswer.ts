@@ -160,6 +160,9 @@ app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
       if (!scriptAnswer) {
         return res.status(404).json({ error: 'ScriptAnswer not found' });
       }
+      if (scriptAnswer.status === 'finished') {
+        return res.status(403).json({ error: 'ScriptAnswer is closed for new answers' });
+      }
       const task = TaskSet.findById(taskId);
       if (!task) {
         return res.status(404).json({ error: 'Task not found' });
@@ -189,6 +192,9 @@ app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
       const scriptAnswer = scriptAnswerSet.findById(id);
       if (!scriptAnswer) {
         return res.status(404).json({ error: 'ScriptAnswer not found' });
+      }
+      if (scriptAnswer.status === 'finished') {
+        return res.status(409).json({ error: 'ScriptAnswer already finished' });
       }
 
       const existingTask = scriptAnswer.findAnswerByTaskId(taskId);
