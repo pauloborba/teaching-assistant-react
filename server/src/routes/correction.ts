@@ -4,14 +4,11 @@ import { Correction } from "../models/Correction";
 
 const router = Router();
 
-router.post("/correct/:studentCPF/:examId", (req, res) => {
+router.post("/correct/:examId", (req, res) => {
   try {
-    const { studentCPF, examId } = req.params;
+    const { examId } = req.params;
 
-    const result = Correction.correctExam(
-      studentCPF,
-      Number(examId)
-    );
+    const result = Correction.correctExam(Number(examId));
 
     res.json(result);
   } catch (err: any) {

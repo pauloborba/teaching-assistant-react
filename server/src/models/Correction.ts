@@ -46,7 +46,7 @@ export class Correction {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
   }
 
-  static correctExam(studentCPF: string, examId: number) {
+  static correctExam(examId: number) {
     const examsData = this.loadJson(this.examsPath);
     const questionsData = this.loadJson(this.questionsPath);
     const responsesData = this.loadJson(this.responsesPath);
@@ -54,51 +54,60 @@ export class Correction {
     const exam: Exam = examsData.exams.find((e: Exam) => e.id === examId);
     if (!exam) throw new Error("Exam not found");
 
-    const response: ResponseItem = responsesData.responses
-      .find((r: ResponseItem) => r.examId === examId && r.studentCPF === studentCPF);
+    const studentResponses: ResponseItem[] = responsesData.responses
+      .filter((r: ResponseItem) => r.examId === examId);
 
-    if (!response) throw new Error("Answer key not found for this exam");
+    if (studentResponses.length === 0) throw new Error("No responses found for this exam");
 
-    let gradeSum = 0;
-    let totalQuestions = 0;
+    const results: Array<{ studentCPF: string; examId: number; finalGrade: number }> = [];
 
-    response.answers.forEach((studentAnswer) => {
-      let totalCorrectOpt = 0;
-      let correctCount = 0;
+    studentResponses.forEach((response: ResponseItem) => {
+      let gradeSum = 0;
+      let totalQuestions = 0;
 
-      const question = questionsData.questions.find(
-        (a: Question) => a.id === studentAnswer.questionId && a.type === "closed"
-      );
+      response.answers.forEach((studentAnswer) => {
+        let totalCorrectOpt = 0;
+        let correctCount = 0;
 
-      if (!question) return;
+        const question = questionsData.questions.find(
+          (a: Question) => a.id === studentAnswer.questionId && a.type === "closed"
+        );
 
-      totalQuestions++;
+        if (!question) return;
 
-      question.options.forEach((opt: Options) => {
-        if (opt.isCorrect) {
-          totalCorrectOpt++;
-        }
+        totalQuestions++;
 
-        if (opt.isCorrect && opt.id.toString() === studentAnswer.answer) {
-          correctCount++;
-        }
+        question.options.forEach((opt: Options) => {
+          if (opt.isCorrect) {
+            totalCorrectOpt++;
+          }
+
+          if (opt.isCorrect && opt.id.toString() === studentAnswer.answer) {
+            correctCount++;
+          }
+        });
+
+        const questionGrade = totalCorrectOpt > 0 ? (correctCount / totalCorrectOpt) * 100 : 0;
+        gradeSum += questionGrade;
+        studentAnswer.grade = questionGrade;
       });
 
-      const questionGrade = totalCorrectOpt > 0 ? (correctCount / totalCorrectOpt) * 100 : 0;
-      gradeSum += questionGrade;
-      studentAnswer.grade = questionGrade;
-    });
-    
-    const finalGrade = totalQuestions > 0 ? (gradeSum / totalQuestions) : 0;
+      const finalGrade = totalQuestions > 0 ? (gradeSum / totalQuestions) : 0;
+      response.grade_closed = finalGrade;
 
-    response.grade_closed = finalGrade;
+      results.push({
+        studentCPF: response.studentCPF,
+        examId,
+        finalGrade,
+      });
+    });
 
     this.saveJson(this.responsesPath, responsesData);
 
     return {
-      studentCPF,
       examId,
-      finalGrade,
+      correctedCount: results.length,
+      results,
     };
   }
 
