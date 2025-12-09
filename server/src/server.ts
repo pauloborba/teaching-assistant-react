@@ -463,7 +463,6 @@ app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
         try {
                 const { classId, studentCPF } = req.params;
-                console.log(classId);
                 const { goal, grade } = req.body;
 
                 if (!goal) {

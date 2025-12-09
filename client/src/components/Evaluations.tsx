@@ -7,9 +7,10 @@ import { ImportGradeComponent } from './ImportGrade';
 
 interface EvaluationsProps {
   onError: (errorMessage: string) => void;
+  onEvaluationChanged?: () => void;
 }
 
-const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
+const Evaluations: React.FC<EvaluationsProps> = ({ onError, onEvaluationChanged }) => {
   const [classes, setClasses] = useState<Class[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>(() => {
     // Load previously selected class from localStorage
@@ -92,6 +93,8 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
       await EnrollmentService.updateEvaluation(selectedClass.id, studentCPF, goal, grade);
       // Reload classes to get updated enrollment data
       await loadClasses();
+      // Notify parent component to reload classes
+      onEvaluationChanged?.();
     } catch (error) {
       onError(`Failed to update evaluation: ${(error as Error).message}`);
     }

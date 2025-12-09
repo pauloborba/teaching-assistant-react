@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Student } from './types/Student';
 import { Class } from './types/Class';
 import { studentService } from './services/StudentService';
@@ -22,6 +22,15 @@ const App: React.FC = () => {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('students');
   const [studentsStatus, setStudentsStatus] = useState<StudentStatus[]>([]);
+
+  // Create a dependency key that changes when enrollments change
+  const enrollmentsKey = useMemo(() => {
+    if (!selectedClass) return '';
+    return JSON.stringify(selectedClass.enrollments.map(e => ({
+      cpf: e.student.cpf,
+      evaluations: e.evaluations
+    })));
+  }, [selectedClass]);
 
   const loadStudents = useCallback(async () => {
     try {
@@ -61,13 +70,23 @@ const App: React.FC = () => {
     loadClasses();
   }, [loadStudents, loadClasses]);
 
+  // Update selectedClass when classes change
   useEffect(() => {
-    if (selectedClass) {
+    if (selectedClass?.id && classes.length > 0) {
+      const updatedClass = classes.find(c => c.id === selectedClass.id);
+      if (updatedClass) {
+        setSelectedClass(updatedClass);
+      }
+    }
+  }, [classes]);
+
+  useEffect(() => {
+    if (selectedClass?.id) {
       loadStudentStatus(selectedClass.id);
     } else {
       setStudentsStatus([]);
     }
-  }, [selectedClass, loadStudentStatus]);
+  }, [enrollmentsKey, selectedClass?.id, loadStudentStatus]);
 
 
   const handleStudentAdded = async () => {
@@ -164,7 +183,7 @@ const App: React.FC = () => {
             </>
           )}
 
-          {activeTab === 'evaluations' && <Evaluations onError={handleError} />}
+          {activeTab === 'evaluations' && <Evaluations onError={handleError} onEvaluationChanged={loadClasses} />}
 
           {activeTab === 'classes' && (
             <Classes
