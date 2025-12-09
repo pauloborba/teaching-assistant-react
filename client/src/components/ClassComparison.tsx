@@ -12,7 +12,7 @@ interface Props {
   setComparisonViewType: (v: 'table' | 'charts') => void;
   addClassToComparison: string;
   setAddClassToComparison: (id: string) => void;
-  handleAddClassToComparison: () => Promise<void>;
+  handleAddClassToComparison: (id?: string) => Promise<void>;
   handleRemoveFromComparisonPrompt: (classId: string) => void;
   handleExportComparison: () => void;
   handleCloseComparison: () => void;
@@ -78,27 +78,64 @@ const ClassComparison: React.FC<Props> = ({
           </button>
         </div>
 
-        <div className="comparison-add-controls" style={{ padding: '0 1.5rem 1rem' }}>
-          <select
-            value={addClassToComparison}
-            onChange={(e) => setAddClassToComparison(e.target.value)}
-            aria-label="Add class to comparison"
-          >
-            <option value="">-- Add class to comparison --</option>
-            {classes
-              .filter(c => !selectedClassesForComparison.has(c.id))
-              .map(c => (
-                <option key={c.id} value={c.id}>{`${c.topic} (${c.year}/${c.semester})`}</option>
-              ))}
-          </select>
-          <button
-            className="add-class-btn"
-            onClick={handleAddClassToComparison}
-            disabled={!addClassToComparison}
-            style={{ marginLeft: 8 }}
-          >
-            Add
-          </button>
+        <div
+          className="comparison-add-controls"
+          style={{
+            padding: '1.25rem 2rem',
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ width: 14, height: 14, backgroundColor: '#28a745', borderRadius: 3 }} aria-hidden />
+            <select
+              value={addClassToComparison}
+              onChange={(e) => {
+                const val = e.target.value;
+                setAddClassToComparison(val);
+                if (val) {
+                  handleAddClassToComparison(val);
+                }
+              }}
+              aria-label="Add class to comparison"
+              style={{ padding: '6px 8px', minWidth: 240 }}
+            >
+              <option value="">-- Add class to comparison --</option>
+              {classes
+                .filter(c => !selectedClassesForComparison.has(c.id))
+                .map(c => (
+                  <option key={c.id} value={c.id}>{`${c.topic} (${c.year}/${c.semester})`}</option>
+                ))}
+            </select>
+          </div>
+
+          <div style={{ width: '1px', height: '28px', backgroundColor: '#eee', margin: '0 0.5rem' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ width: 14, height: 14, backgroundColor: '#dc3545', borderRadius: 3 }} aria-hidden />
+            <select
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleRemoveFromComparisonPrompt(e.target.value);
+                  e.target.value = '';
+                }
+              }}
+              defaultValue=""
+              aria-label="Remove class from comparison"
+              style={{ padding: '6px 8px', minWidth: 240 }}
+            >
+              <option value="">-- Remove class from comparison --</option>
+              {Array.from(selectedClassesForComparison).map(classId => {
+                const classObj = classes.find(c => c.id === classId);
+                return classObj ? (
+                  <option key={classId} value={classId}>{`${classObj.topic} (${classObj.year}/${classObj.semester})`}</option>
+                ) : null;
+              })}
+            </select>
+          </div>
         </div>
 
         <div className="comparison-modal-content">
@@ -132,13 +169,6 @@ const ClassComparison: React.FC<Props> = ({
                       <p className="report-card-meta">
                         {classObj.year}/{classObj.semester}
                       </p>
-                      <button
-                        className="remove-class-btn"
-                        onClick={() => handleRemoveFromComparisonPrompt(classId)}
-                        title="Remove from comparison"
-                      >
-                        Remove
-                      </button>
                     </div>
 
                     <div className="report-card-content">

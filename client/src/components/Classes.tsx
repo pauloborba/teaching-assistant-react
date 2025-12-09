@@ -265,22 +265,24 @@ const Classes: React.FC<ClassesProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const handleAddClassToComparison = async () => {
-    if (!addClassToComparison) return;
+  const handleAddClassToComparison = async (classIdParam?: string) => {
+    const classId = classIdParam ?? addClassToComparison;
+    if (!classId) return;
     if (selectedClassesForComparison.size >= MAX_COMPARISON_SELECTION) {
       setComparisonError(`You cannot add more than ${MAX_COMPARISON_SELECTION} classes to the comparison`);
       return;
     }
 
     const newSelection = new Set(selectedClassesForComparison);
-    newSelection.add(addClassToComparison);
+    newSelection.add(classId);
     setSelectedClassesForComparison(newSelection);
 
     // Fetch report for newly added class
     try {
-      const report = await ClassService.getClassReport(addClassToComparison);
-      setComparisonReports(prev => ({ ...prev, [addClassToComparison]: report }));
+      const report = await ClassService.getClassReport(classId);
+      setComparisonReports(prev => ({ ...prev, [classId]: report }));
       clearComparisonError();
+      // clear controlled select value
       setAddClassToComparison('');
     } catch (err) {
       setComparisonError((err as Error).message || 'Failed to load report for the added class');
