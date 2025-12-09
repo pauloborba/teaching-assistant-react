@@ -27,7 +27,6 @@ import {
   addStudentExam,
   questions,
   classes,
-  getNextGenerationId,
 } from "../services/dataService";
 import { Correction } from "../models/Correction";
 
