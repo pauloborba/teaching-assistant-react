@@ -1,6 +1,7 @@
 import { Evaluation } from './Evaluation';
 
 export class Student {
+
   constructor(
     public name: string,
     public cpf: string,
@@ -39,7 +40,7 @@ export class Student {
     // - Domain: alphanumeric, hyphens (not starting/ending with hyphen), dots between labels
     // - TLD: at least 2 characters
     const emailRegex = /^[a-zA-Z0-9]+([._+-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$/;
-    
+
     if (!emailRegex.test(email)) {
       throw new Error('Invalid email format');
     }
