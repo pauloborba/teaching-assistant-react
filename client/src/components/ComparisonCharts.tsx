@@ -63,7 +63,7 @@ const ComparisonCharts: React.FC<ComparisonChartsProps> = ({
     return {
       name: `${classObj.topic.substring(0, 15)}...`,
       fullName: classObj.topic,
-      'Mean Grade': parseFloat(report.studentsAverage.toFixed(2)),
+      'Mean Grade': parseFloat(report.studentsAverage?.toFixed(2) ?? 'N/A'),
     };
   });
 

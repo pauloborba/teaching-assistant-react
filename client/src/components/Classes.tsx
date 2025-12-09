@@ -7,7 +7,7 @@ import { studentService } from '../services/StudentService';
 import EnrollmentService from '../services/EnrollmentService';
 import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA, EspecificacaoDoCalculoDaMedia } from '../types/EspecificacaoDoCalculoDaMedia';
 import ClassReport from './ClassReport';
-import ComparisonCharts from './ComparisonCharts';
+import ClassComparison, { MAX_COMPARISON_SELECTION } from './ClassComparison';
 
 interface ClassesProps {
   classes: Class[];
@@ -23,8 +23,6 @@ const DEFAULT_FORM_DATA: CreateClassRequest = {
   year: new Date().getFullYear(),
   especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA
 };
-
-const MAX_COMPARISON_SELECTION = 6;
 
 const Classes: React.FC<ClassesProps> = ({ 
   classes, 
@@ -725,183 +723,25 @@ const Classes: React.FC<ClassesProps> = ({
         />
       )}
 
-      {/* Comparison View Modal */}
+      { /* Class Comparisson */ }
       {Object.keys(comparisonReports).length > 0 && (
-        <div className="comparison-overlay">
-          <div className="comparison-modal">
-            <div className="comparison-modal-header">
-              <h3>Class Performance Comparison</h3>
-              <div className="comparison-header-actions">
-                <button 
-                  className="export-btn"
-                  onClick={handleExportComparison}
-                  title="Export comparison"
-                >
-                  Export
-                </button>
-                <button 
-                  className="close-modal-btn"
-                  onClick={handleCloseComparison}
-                  title="Close"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-
-            {/* View Type Selector */}
-            <div className="comparison-view-selector">
-              <button
-                className={`view-btn ${comparisonViewType === 'charts' ? 'active' : ''}`}
-                onClick={() => setComparisonViewType('charts')}
-              >
-                📊 Charts View
-              </button>
-              <button
-                className={`view-btn ${comparisonViewType === 'table' ? 'active' : ''}`}
-                onClick={() => setComparisonViewType('table')}
-              >
-                📋 Table View
-              </button>
-            </div>
-            {/* Add / Export Controls */}
-            <div className="comparison-add-controls" style={{ padding: '0 1.5rem 1rem' }}>
-              <select
-                value={addClassToComparison}
-                onChange={(e) => setAddClassToComparison(e.target.value)}
-                aria-label="Add class to comparison"
-              >
-                <option value="">-- Add class to comparison --</option>
-                {classes
-                  .filter(c => !selectedClassesForComparison.has(c.id))
-                  .map(c => (
-                    <option key={c.id} value={c.id}>{`${c.topic} (${c.year}/${c.semester})`}</option>
-                  ))}
-              </select>
-              <button
-                className="add-class-btn"
-                onClick={handleAddClassToComparison}
-                disabled={!addClassToComparison}
-                style={{ marginLeft: 8 }}
-              >
-                Add
-              </button>
-            </div>
-
-            <div className="comparison-modal-content">
-              {comparisonError && (
-                <div className="comparison-error">
-                  <p>{comparisonError}</p>
-                </div>
-              )}
-
-              {/* Charts View */}
-              {comparisonViewType === 'charts' && (
-                <ComparisonCharts 
-                  selectedClasses={selectedClassesWithReports}
-                  comparisonReports={comparisonReports}
-                />
-              )}
-
-              {/* Table View */}
-              {comparisonViewType === 'table' && (
-                <div className="comparison-reports-container">
-                  {Array.from(selectedClassesForComparison).map((classId) => {
-                    const report = comparisonReports[classId];
-                    const classObj = classes.find(c => c.id === classId);
-
-                    if (!classObj || !report) return null;
-
-                    return (
-                      <div key={classId} className="comparison-report-card">
-                        <div className="report-card-header">
-                          <h4>{classObj.topic}</h4>
-                          <p className="report-card-meta">
-                            {classObj.year}/{classObj.semester}
-                          </p>
-                          <button
-                            className="remove-class-btn"
-                            onClick={() => handleRemoveFromComparisonPrompt(classId)}
-                            title="Remove from comparison"
-                          >
-                            Remove
-                          </button>
-                        </div>
-
-                        <div className="report-card-content">
-                          <div className="metric-row">
-                            <span className="metric-label">Mean Grade:</span>
-                            <span className="metric-value">{report.studentsAverage?.toFixed(2) ?? 'N/A'}</span>
-                          </div>
-                          <div className="metric-row">
-                            <span className="metric-label">Enrolled:</span>
-                            <span className="metric-value">{report.totalEnrolled}</span>
-                          </div>
-                          <div className="metric-row approved">
-                            <span className="metric-label">Approved:</span>
-                            <span className="metric-value">{report.approvedCount}</span>
-                          </div>
-                          <div className="metric-row failed">
-                            <span className="metric-label">Failed:</span>
-                            <span className="metric-value">{report.notApprovedCount}</span>
-                          </div>
-                          <div className="metric-row">
-                            <span className="metric-label">Approval Rate:</span>
-                            <span className="metric-value">
-                              {report.totalEnrolled > 0 
-                                ? Math.round((report.approvedCount / report.totalEnrolled) * 100)
-                                : 0
-                              }%
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="comparison-actions">
-              <button 
-                className="cancel-btn"
-                onClick={handleCloseComparison}
-              >
-                Close Comparison
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Error Message for Comparison */}
-      {comparisonError && !Object.keys(comparisonReports).length && (
-        <div className="comparison-error-modal">
-          <div className="error-content">
-            <h4>Comparison Error</h4>
-            <p>{comparisonError}</p>
-            <button 
-              className="ok-btn"
-              onClick={() => setComparisonError(null)}
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Removal decision modal: when removing would leave fewer than 2 classes */}
-      {showRemovalDecision && (
-        <div className="comparison-error-modal">
-          <div className="error-content">
-            <h4>Not enough classes</h4>
-            <p>Removing this class would leave fewer than two classes for comparison. Do you want to clear the comparison display or keep the existing classes?</p>
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1rem' }}>
-              <button className="cancel-btn" onClick={handleConfirmClearDisplay}>Clear display</button>
-              <button className="ok-btn" onClick={handleCancelRemovalDecision}>Keep classes</button>
-            </div>
-          </div>
-        </div>
+        <ClassComparison
+          classes={classes}
+          selectedClassesForComparison={selectedClassesForComparison}
+          comparisonReports={comparisonReports}
+          comparisonError={comparisonError}
+          comparisonViewType={comparisonViewType}
+          setComparisonViewType={setComparisonViewType}
+          addClassToComparison={addClassToComparison}
+          setAddClassToComparison={setAddClassToComparison}
+          handleAddClassToComparison={handleAddClassToComparison}
+          handleRemoveFromComparisonPrompt={handleRemoveFromComparisonPrompt}
+          handleExportComparison={handleExportComparison}
+          handleCloseComparison={handleCloseComparison}
+          showRemovalDecision={showRemovalDecision}
+          handleConfirmClearDisplay={handleConfirmClearDisplay}
+          handleCancelRemovalDecision={handleCancelRemovalDecision}
+        />
       )}
     </div>
   );
