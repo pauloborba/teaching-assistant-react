@@ -9,6 +9,7 @@ interface CustomButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
     variant?: ButtonVariant;
     size?: ButtonSize;
     fullWidth?: boolean;
+    color?: string;
     className?: string;
 }
 
@@ -20,6 +21,7 @@ export default function CustomButton({
     onClick,
     type = 'button',
     fullWidth = false,
+    color,
     className = '',
     ...rest  // <-- captura data-testid e outros atributos
 }: CustomButtonProps) {
@@ -32,12 +34,36 @@ export default function CustomButton({
         className
     ].filter(Boolean).join(' ');
 
+    // 🔥 Estilos dinâmicos
+    const dynamicStyle: React.CSSProperties = {};
+
+    if (color) {
+        if (variant === 'primary') {
+            dynamicStyle.background = color;
+            dynamicStyle.borderColor = color;
+            dynamicStyle.color = '#fff';
+        }
+        if (variant === 'secondary') {
+            dynamicStyle.background = `${color}20`; // 20% opacity
+            dynamicStyle.borderColor = color;
+            dynamicStyle.color = color;
+        }
+        if (variant === 'outline') {
+            dynamicStyle.borderColor = color;
+            dynamicStyle.color = color;
+        }
+        if (variant === 'text') {
+            dynamicStyle.color = color;
+        }
+    }
+
     return (
         <button
             className={buttonClasses}
             onClick={onClick}
             disabled={disabled}
             type={type}
+            style={dynamicStyle}
             {...rest}  // <-- repassa para o DOM!
         >
             {label}

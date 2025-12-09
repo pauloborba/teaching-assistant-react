@@ -23,14 +23,16 @@
       "answers": [
         {
           "questionId": 1,
-          "answer": "1"
+          "answer": "1",
+          "grade": 100
         },
         {
           "questionId": 2,
           "answer": "Weeee"
         }
       ],
-      "timestamp": "2025-11-30T20:21:58.176Z"
+      "timestamp": "2025-11-30T20:21:58.176Z",
+      "grade_closed": 100
     },
     {
       "id": 1763335095698.9746,
@@ -39,14 +41,16 @@
       "answers": [
         {
           "questionId": 1,
-          "answer": "2"
+          "answer": "2",
+          "grade": 0
         },
         {
           "questionId": 2,
           "answer": "Oi"
         }
       ],
-      "timestamp": "2025-11-30T20:26:26.488Z"
+      "timestamp": "2025-11-30T20:26:26.488Z",
+      "grade_closed": 0
     },
     {
       "id": 1763335095691.9746,

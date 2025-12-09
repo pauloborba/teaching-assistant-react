@@ -398,10 +398,11 @@ tbody tr:last-child td {
 
 .class-form-container {
   margin-bottom: 2rem;
-  padding: 1.5rem;
-  background-color: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e3e8f4;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
 }
 
 .class-form {
@@ -410,52 +411,60 @@ tbody tr:last-child td {
   gap: 1.5rem;
 }
 
-.form-row {
+.class-form .form-row {
   display: flex;
   gap: 1rem;
-  align-items: end;
+  align-items: flex-end;
 }
 
-.topic-row {
+.class-form .topic-row {
   flex-direction: column;
 }
 
-.topic-row .form-group {
+.class-form .topic-row .form-group {
   width: 100%;
 }
 
-.topic-row .form-group input {
+.class-form .topic-row .form-group input {
   font-size: 1.1rem;
   padding: 0.875rem;
   font-weight: 500;
   border: 2px solid #d1d5db;
   border-radius: 6px;
+  width: 100%;
 }
 
-.topic-row .form-group input:focus {
+.class-form .topic-row .form-group input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.topic-row .form-group label {
+.class-form .topic-row .form-group label {
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
   color: #1f2937;
 }
 
-.year-semester-row {
-  max-width: 400px;
-  gap: 1.5rem;
+.class-form .year-semester-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  width: 100%;
 }
 
-.year-semester-row .form-group {
-  flex: 1;
-  min-width: 140px;
-  max-width: 180px;
+@media (max-width: 640px) {
+  .class-form .year-semester-row {
+    grid-template-columns: 1fr;
+  }
 }
 
-.year-semester-row .form-group select {
+.class-form .year-semester-row .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.class-form .year-semester-row .form-group select {
   font-size: 1.1rem;
   padding: 0.875rem;
   width: 100%;
@@ -463,13 +472,13 @@ tbody tr:last-child td {
   border-radius: 6px;
 }
 
-.year-semester-row .form-group select:focus {
+.class-form .year-semester-row .form-group select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.year-semester-row .form-group label {
+.class-form .year-semester-row .form-group label {
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 0.5rem;

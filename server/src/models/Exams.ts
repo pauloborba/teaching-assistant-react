@@ -15,6 +15,7 @@ export interface StudentExamRecord {
   id: number;
   studentCPF: string;
   examId: number;
+  grade?: number;
   answers: Array<{
     questionId: number;
     answer: string;
@@ -28,6 +29,7 @@ export interface StudentWithExam {
   classId: string;
   examTitle: string;
   studentExamId?: number;
+  grade?: number;
   answers?: Array<{
     questionId: number;
     answer: string;
@@ -112,6 +114,7 @@ export class Exams {
           classId: exam.classId,
           examTitle: exam.title,
           studentExamId: studentExam?.id,
+          grade: studentExam?.grade,
           answers: studentExam?.answers || []
         });
       });

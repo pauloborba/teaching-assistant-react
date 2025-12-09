@@ -34,6 +34,7 @@ export default function ExamPage() {
   const [popupOpen, setPopupOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(true);
+  const [correctionActive, setCorrectionActive] = useState(false);
 
   const [rows, setRows] = useState<any[]>([]);
   const [exams, setExams] = useState<any[]>([]);
@@ -165,6 +166,11 @@ export default function ExamPage() {
 
   const handleExamSelect = async (title: string) => {
     setSelectedExam(title);
+    if (title === "Todas as provas") {
+      setCorrectionActive(false);
+    } else {
+      setCorrectionActive(true);
+    }
 
     if (!classID) return;
 
@@ -368,6 +374,8 @@ export default function ExamPage() {
           rows={rows}
           detailTitle="Questões da Versão"
           computeDetailRow={(detail) => detail}
+          correctionActive={correctionActive}
+          onCorrectionFinished={handleExamSelect}
         />
       )}
       <ExamCreatePopup

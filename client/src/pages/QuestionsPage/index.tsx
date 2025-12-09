@@ -259,21 +259,20 @@ const QuestionsPage: React.FC = () => {
         </select>
       </section>
 
-      <section className="question-form">
+      <section className="question-form" data-testid="question-form">
         <h3>{form.id ? 'Edit question' : 'Create new question'}</h3>
         <form onSubmit={handleSubmit}>
-          <div className="form-row">
+          <div className="form-row form-row-textarea">
             <label htmlFor="question-text">Question</label>
-            <input
-              id="question-text"
-              type="text"
-              value={form.question}
-              onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                setForm((prev: FormState) => ({ ...prev, question: event.target.value }))
-              }
-              placeholder="Enter question text"
-              required
-            />
+              <textarea
+                  id="question-text"
+                  value={form.question}
+                  onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+                    setForm((prev: FormState) => ({ ...prev, question: event.target.value }))
+                  }
+                  placeholder="Enter question text"
+                  required
+              />
           </div>
 
           <div className="form-row">
@@ -305,7 +304,7 @@ const QuestionsPage: React.FC = () => {
           </div>
 
           {form.type === 'open' && (
-            <div className="form-row">
+            <div className="form-row form-row-textarea">
               <label htmlFor="question-answer">Answer</label>
               <textarea
                 id="question-answer"
@@ -366,6 +365,7 @@ const QuestionsPage: React.FC = () => {
               label={form.id ? 'Update question' : 'Create question'}
               type="submit"
               disabled={submitting}
+              data-testid="question-submit-button"
             />
             {form.id && (
               <button type="button" className="cancel-edit" onClick={resetForm}>
@@ -383,7 +383,7 @@ const QuestionsPage: React.FC = () => {
         ) : questions.length === 0 ? (
           <p>No questions found.</p>
         ) : (
-          <table>
+          <table data-testid="questions-table">
             <thead>
               <tr>
                 <th>ID</th>
@@ -395,16 +395,25 @@ const QuestionsPage: React.FC = () => {
             </thead>
             <tbody>
               {questions.map(question => (
-                <tr key={question.id}>
-                  <td>{question.id}</td>
-                  <td>{question.topic}</td>
-                  <td>{question.question}</td>
-                  <td>{question.type === 'open' ? 'Open' : 'Closed'}</td>
+                <tr key={question.id} data-testid={`question-row-${question.id}`}>
+                  <td data-testid="question-id">{question.id}</td>
+                  <td data-testid="question-topic">{question.topic}</td>
+                  <td data-testid="question-text">{question.question}</td>
+                  <td data-testid="question-type">{question.type === 'open' ? 'Open' : 'Closed'}</td>
                   <td className="actions-cell">
-                    <button type="button" onClick={() => handleEdit(question)}>
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(question)}
+                      data-testid={`edit-question-${question.id}`}
+                    >
                       Edit
                     </button>
-                    <button type="button" onClick={() => handleDelete(question)} disabled={submitting}>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(question)}
+                      disabled={submitting}
+                      data-testid={`delete-question-${question.id}`}
+                    >
                       Delete
                     </button>
                   </td>

@@ -20,7 +20,7 @@ router.use('/questions', questionsRoutes);
 // Question bank routes
 router.use('/questions', questionsRoutes);
 
-// Exams routes (v1)
+// Exams routes
 router.use('/exams', examsRoutes);
 router.use(correctionRoutes);
 

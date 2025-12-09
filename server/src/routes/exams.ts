@@ -27,6 +27,7 @@ import {
   addStudentExam,
   questions,
 } from "../services/dataService";
+import { Correction } from "../models/Correction";
 
 const formatDateExtended = (dateString: string) => {
   if (!dateString) return '___ de _________________ de ______';
@@ -369,12 +370,16 @@ router.get("/students", (req: Request, res: Response) => {
           };
         })
         .filter(Boolean);
-
+      
+      const finalGrade = Correction.getGrade(studentData.studentCPF, studentData.examId);
+      // Return table row format
       return {
+        cpf: studentData.studentCPF,
         studentName: studentData.studentName,
         examID: studentData.examId,
         qtdAberta: examDef.openQuestions,
         qtdFechada: examDef.closedQuestions,
+        grade_closed: finalGrade !== null ? finalGrade : "Não corrigido",
         ativo: "Sim",
         details: examQuestions,
       };

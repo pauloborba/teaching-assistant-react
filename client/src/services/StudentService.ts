@@ -78,14 +78,6 @@ export class StudentService {
     }
   }
 
-  async findExams(exams: Exam[]): Promise<Student[]> {
-    const students = await this.getAllStudents();
-    const studentsWithExams: Student[] = students.filter(student =>
-      exams.some(exam => exam.id === student.exam?.id)
-    );
-    return studentsWithExams;
-  }
-
   // Delete student by CPF
   async deleteStudent(cpf: string): Promise<void> {
     try {

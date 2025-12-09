@@ -312,7 +312,35 @@
       "question": "Qual é o Nome do melhor aluno de Paulo Borba?",
       "topic": "Conhecimentos Gerais",
       "type": "open",
-      "answer": "Rodrigo Sampaio"
+      "answer": "Vlsm"
+    },
+    {
+      "id": 27,
+      "question": "Quem é do piaui?",
+      "topic": "Conhecimentos Gerais",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Rafael",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Marcelo",
+          "isCorrect": false
+        },
+        {
+          "id": 3,
+          "option": "Vini",
+          "isCorrect": false
+        },
+        {
+          "id": 4,
+          "option": "Alvaro",
+          "isCorrect": true
+        }
+      ]
     }
   ]
 }
