@@ -152,10 +152,35 @@ defineFeature(feature, (test) => {
     });
 
     test('Creating an exam with missing required fields', ({ given, when, then, and }) => {
-        given(/^the request to create an exam is missing the "(.*)" field$/, (arg0) => { });
-        when('the system validates the rules', () => { });
-        then('the system rejects the creation of the exam', () => { });
-        and(/^records the message "(.*)"$/, (arg0) => { });
+        let payload: any = {};
+        let response: any;
+
+        given(/^the request to create an exam is missing the "(.*)" field$/, (field) => {
+            // Create a payload but omit the specified field
+            payload = {
+                nomeProva: "Prova Teste",
+                classId: "Engenharia de Software e Sistemas-2025-1",
+                quantidadeAberta: 2,
+                quantidadeFechada: 3,
+                questionIds: [1, 2, 3, 4, 5]
+            };
+            delete payload[field];
+        });
+
+        when('the system validates the rules', async () => {
+            response = await request(app)
+                .post('/api/exams')
+                .send(payload)
+                .set('Content-Type', 'application/json');
+        });
+
+        then('the system rejects the creation of the exam', () => {
+            expect(response.status).toBe(400); // Bad Request
+        });
+
+        and(/^records the message "(.*)"$/, (msg) => {
+            expect(response.body.error).toBe(msg); // Note: Server returns { error: "..." }, not { message: "..." } for 400s usually
+        });
     });
 
     test('Creating an exam for a non-existent class', ({ given, and, when, then }) => {

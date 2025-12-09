@@ -36,7 +36,7 @@ Feature: Business rules for exam creation and generation
     Given the request to create an exam is missing the "nomeProva" field
     When the system validates the rules
     Then the system rejects the creation of the exam
-    And records the message "nomeProva is required"
+    And records the message "nomeProva is required and must be a string"
 
   @service
   Scenario: Creating an exam for a non-existent class
