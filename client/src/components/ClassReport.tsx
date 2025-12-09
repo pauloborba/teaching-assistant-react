@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Class } from '../types/Class';
 import { ReportData } from '../types/Report';
 import ClassService from '../services/ClassService';
+import { StatusPieChart, EvaluationBarChart } from './charts';
 
 interface ClassReportProps {
   classObj: Class;
@@ -91,6 +92,24 @@ const ClassReport: React.FC<ClassReportProps> = ({ classObj, onClose, onError })
                     <span className="stat-label">Pending:</span>
                     <span className="stat-value pending">{reportData.pendingCount}</span>
                   </div>
+                </div>
+              </div>
+
+              {/* Charts Section */}
+              <div className="report-charts-section">
+                <div className="charts-grid">
+                  <StatusPieChart 
+                    data={{
+                      approvedCount: reportData.approvedCount,
+                      approvedFinalCount: reportData.approvedFinalCount,
+                      notApprovedCount: reportData.notApprovedCount,
+                      failedByAbsenceCount: reportData.failedByAbsenceCount,
+                      pendingCount: reportData.pendingCount
+                    }}
+                  />
+                  <EvaluationBarChart 
+                    data={reportData.evaluationPerformance}
+                  />
                 </div>
               </div>
 

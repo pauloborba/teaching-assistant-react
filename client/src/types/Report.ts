@@ -16,6 +16,14 @@ export interface EvaluationPerformance {
   evaluatedStudents: number;
 }
 
+export interface StatusCounts {
+  approvedCount: number;
+  approvedFinalCount: number;
+  notApprovedCount: number;
+  failedByAbsenceCount: number;
+  pendingCount: number;
+}
+
 export interface ReportFilter {
   type: 'ALL' | 'APPROVED' | 'APPROVED_FINAL' | 'FAILED' | 'FAILED_BY_ABSENCE' | 'PENDING' | 'BELOW_AVERAGE' | 'BELOW_THRESHOLD';
   threshold?: number; 
