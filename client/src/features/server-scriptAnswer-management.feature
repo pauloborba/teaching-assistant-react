@@ -36,7 +36,7 @@ Feature: Server Script Answers Management
     And the server should return a list containing answers "40", "41", "43"
 
   Scenario: Attempt to retrieve answers of a non-existent student
-    Given there is no student with CPF "99999999999"
+    Given there is no student with CPF "99999999999" in the server
     When I send a GET request to "/api/scriptanswers/student/99999999999"
     Then the server should return 404 "Not Found"
     And the server should return an error message "student not found"

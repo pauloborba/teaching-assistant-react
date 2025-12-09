@@ -167,24 +167,6 @@ Given('this student has script answers with IDs {string}, {string}, {string}', a
   }
 });
 
-Given('there is no student with CPF {string}', async function (cpf: string) {
-  // Verify that no student with this CPF exists
-  try {
-    const response = await fetch(`${serverUrl}/api/students/${cpf}`);
-    
-    if (response.status === 200) {
-      throw new Error(`Student with CPF ${cpf} already exists. Please use a different CPF.`);
-    } else if (response.status === 404) {
-      console.log(`Server setup: Confirmed no student with CPF ${cpf} exists`);
-    }
-  } catch (error) {
-    if ((error as Error).message.includes('already exists')) {
-      throw error;
-    }
-    // If there's a network error, we'll proceed anyway
-    console.log(`Server setup: Could not verify student non-existence for CPF ${cpf}`);
-  }
-});
 
 // ============================================================
 // Retrieval of grade for specific task
