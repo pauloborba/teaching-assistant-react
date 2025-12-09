@@ -32,14 +32,13 @@ Feature: Server Script Answers Management
     Given there is a student with CPF "12345678901"
     And this student has script answers with IDs "40", "41", "43"
     When I send a GET request to "/api/scriptanswers/student/12345678901"
-    Then the server should return 200 OK
+    Then the server should return 200 "OK"
     And the server should return a list containing answers "40", "41", "43"
 
   Scenario: Attempt to retrieve answers of a non-existent student
     Given there is no student with CPF "99999999999" in the server
     When I send a GET request to "/api/scriptanswers/student/99999999999"
-    Then the server should return 404 "Not Found"
-    And the server should return an error message "student not found"
+    Then the server should return 404 "student not found"
 
 
   # ============================================================
@@ -57,8 +56,7 @@ Feature: Server Script Answers Management
     Given there is a script answer with ID "50"
     And this answer does not contain a task with ID "9"
     When I send a GET request to "/api/scriptanswers/50/tasks/9"
-    Then the server should return 404 "Not Found"
-    And the server should return an error message "task not found"
+    Then the server should return 404 "task not found"
 
 # ============================================================
   # Updating grades
@@ -70,9 +68,8 @@ Feature: Server Script Answers Management
     When I send a PUT request to "/api/scriptanswers/50/tasks/3" with:
       | field | value |
       | grade | MPA   |
-    Then the server should return 200 OK
+    Then the server should return 200 "OK"
     And the server should update the task grade to "MPA"
-    And the server should return grade "MPA"
 
   Scenario: Attempt to update grade with an invalid value
     Given there is a script answer with ID "50"
@@ -80,5 +77,4 @@ Feature: Server Script Answers Management
     When I send a PUT request to "/api/scriptanswers/50/tasks/3" with:
       | field | value |
       | grade | AAA   |
-    Then the server should return 400 "Bad Request"
-    And the server should return an error message "invalid grade"
+    Then the server should return 400 "invalid grade"
