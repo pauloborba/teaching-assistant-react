@@ -48,7 +48,7 @@ export default function GradingPage({onError}: Props) {
 
   return (
     <div>
-      <h1>Grade Scripts</h1>
+      <h1 data-testid="grading-page-title">Grade Scripts</h1>
       <ScriptAnswerGrid
         scriptAnswers={scriptAnswers}
         onSelect={(sa) => setSelected(sa)}
