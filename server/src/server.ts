@@ -61,7 +61,8 @@ const saveDataToFile = (): void => {
           studentCPF: enrollment.getStudent().getCPF(),
           evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
         }))
-      }))
+      })),
+      scriptAnswers: scriptAnswerSet.getAll().map(sa => sa.toJSON())
     };
     
     ensureDataDirectory();
@@ -77,7 +78,6 @@ const loadDataFromFile = (): void => {
     if (fs.existsSync(dataFile)) {
       const fileContent = fs.readFileSync(dataFile, 'utf-8');
       const data = JSON.parse(fileContent);
-      
       // Load students
       if (data.students && Array.isArray(data.students)) {
         data.students.forEach((studentData: any) => {
@@ -135,6 +135,16 @@ const loadDataFromFile = (): void => {
             }
           } catch (error) {
             console.error(`Error adding class ${classData.topic}:`, error);
+          }
+        });
+      }
+      // Load scriptAnswers
+      if (data.scriptAnswers && Array.isArray(data.scriptAnswers)) {
+        data.scriptAnswers.forEach((saData: any) => {
+          try {
+            scriptAnswerSet.addScriptAnswer(saData);
+          } catch (error) {
+            console.error(`Error loading scriptAnswer ${saData.id}:`, error);
           }
         });
       }
@@ -535,11 +545,11 @@ import { setupTaskRoutes } from './server_routes/tasks';
 import { setupScriptRoutes } from './server_routes/scripts';
 import { loadMockScriptsAndAnswers } from './mock_scripts';
 
-setupScriptAnswerRoutes(app, scriptAnswerSet, studentSet);
+setupScriptAnswerRoutes(app, scriptAnswerSet, studentSet, taskset, classes, scripts); //saveDataToFile
 setupTaskRoutes(app, taskset);
 setupScriptRoutes(app, scripts);
 
-loadMockScriptsAndAnswers(taskset, scripts, scriptAnswerSet, "11111111111");
+loadMockScriptsAndAnswers(taskset, scripts, scriptAnswerSet, classes, studentSet, "11111111111");
 
 // Only start the server if this file is run directly (not imported for testing)
 if (require.main === module) {
