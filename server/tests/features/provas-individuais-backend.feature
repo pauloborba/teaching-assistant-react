@@ -13,10 +13,10 @@ Feature: Business rules for exam creation and generation
 
   @service
   Scenario: Deleting an exam
-    Given the system receives a request to delete the exam "Requisitos" from the class "Engenharia de Software e Sistemas-2025-1"
+    Given the system receives a request to delete the exam "Gestao de Projetos" from the class "Engenharia de Software e Sistemas-2025-1"
     When the system validates the rules
-    Then the system deletes the exam "Requisitos"
-    And the exam "Requisitos" is no longer available for the generation of individual versions
+    Then the system deletes the exam "Gestao de Projetos"
+    And the exam "Gestao de Projetos" is no longer available for the generation of individual versions
 
   @service
   Scenario: Retrieving all exams for a specific class

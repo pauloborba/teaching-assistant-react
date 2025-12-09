@@ -1,4 +1,5 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
+import { expect } from '@jest/globals';
 import request from 'supertest';
 import app from '../../src/server';
 
@@ -24,9 +25,6 @@ defineFeature(feature, (test) => {
         and(/^the request contains the questions "(.*)" and "(.*)" and "(.*)" and "(.*)" and "(.*)"$/, (q1, q2, q3, q4, q5) => {
             const questions = [q1, q2, q3, q4, q5].map(q => parseInt(q));
             examPayload.questionIds = questions;
-            // Assuming for this scenario they are all closed or open, let's say closed for simplicity 
-            // or we adjust based on valid logic. 
-            // The previous code snippet used closed=5.
             examPayload.quantidadeFechada = 3;
             examPayload.quantidadeAberta = 2;
         });
@@ -53,10 +51,46 @@ defineFeature(feature, (test) => {
     });
 
     test('Deleting an exam', ({ given, when, then, and }) => {
-        given(/^the system receives a request to delete the exam "(.*)" from the class "(.*)"$/, (arg0, arg1) => { });
-        when('the system validates the rules', () => { });
-        then(/^the system deletes the exam "(.*)"$/, (arg0) => { });
-        and(/^the exam "(.*)" is no longer available for the generation of individual versions$/, (arg0) => { });
+        let createdExamId: number;
+        let classId: string;
+        let deleteResponse: any;
+
+        given(/^the system receives a request to delete the exam "(.*)" from the class "(.*)"$/, async (examName, className) => {
+            // First, creating the exam to be deleted
+            const examPayload = {
+                nomeProva: examName,
+                classId: className,
+                quantidadeAberta: 2,
+                quantidadeFechada: 3,
+                questionIds: [1, 2, 3, 4, 5]
+            };
+
+            const createResponse = await request(app)
+                .post('/api/exams')
+                .send(examPayload)
+                .set('Content-Type', 'application/json');
+
+            expect(createResponse.status).toBe(201);
+            createdExamId = createResponse.body.data.id;
+            classId = className;
+        });
+
+        when('the system validates the rules', async () => {
+            deleteResponse = await request(app)
+                .delete(`/api/exams/${createdExamId}?classId=${classId}`);
+        });
+
+        then(/^the system deletes the exam "(.*)"$/, (arg0) => {
+            expect(deleteResponse.status).toBe(200);
+            expect(deleteResponse.body.message).toBe("Exam deleted successfully");
+        });
+
+        and(/^the exam "(.*)" is no longer available for the generation of individual versions$/, async (arg0) => {
+            const getResponse = await request(app).get(`/api/exams/${createdExamId}/zip?classId=Engenharia de Software e Sistemas-2025-1&quantity=1`);
+            // Expecting failure or not found since it was deleted.
+            // The zip endpoint might return 404 if exam not found.
+            expect(getResponse.status).toBe(404);
+        });
     });
 
     test('Retrieving all exams for a specific class', ({ given, when, then }) => {
