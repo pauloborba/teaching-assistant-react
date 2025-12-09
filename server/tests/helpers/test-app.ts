@@ -1,21 +1,15 @@
 import express from 'express';
 import cors from 'cors';
-import routes from '../../routes';
+import routes from '../../src/routes';
 
 /**
- * Cria uma instância do app Express para testes
- * Sem inicializar o servidor HTTP real
+ * Cria uma instância do app Express para testes (sem subir servidor real)
  */
 export function createTestApp() {
   const app = express();
-
-  // Middleware
   app.use(cors());
   app.use(express.json());
-
-  // Routes
   app.use('/api', routes);
-
   return app;
 }
 

@@ -18,25 +18,25 @@ router.post('/trigger-ai-correction', async (req: Request, res: Response) => {
     }
 
     if (model !== AIModel.GEMINI_2_5_FLASH) {
-      return res.status(400).json({ error: 'Invalid model. Only Gemini 2.5 Flash is supported' });
+      return res.status(400).json({ error: 'Modelo inválido. Apenas Gemini 2.5 Flash é suportado' });
     }
 
     // Valida exame
     const exam = examsManager.getExamById(Number(examId));
     if (!exam) {
-      return res.status(404).json({ error: 'Exam not found' });
+      return res.status(404).json({ error: 'Exame não encontrado' });
     }
 
     // Buscar respostas por examId
     const examResponses = getResponsesByExamId(Number(examId));
     if (examResponses.length === 0) {
-      return res.status(404).json({ error: 'No responses found for this exam' });
+      return res.status(404).json({ error: 'Nenhuma resposta encontrada para este exame' });
     }
 
     // Questões abertas do exame
     const openQuestions = getOpenQuestionsForExam(Number(examId));
     if (openQuestions.length === 0) {
-      return res.status(400).json({ error: 'No open questions found for this exam' });
+      return res.status(400).json({ error: 'Nenhuma questão aberta encontrada para este exame' });
     }
 
     // Monta mensagens para enfileirar
@@ -113,7 +113,6 @@ router.post('/trigger-ai-correction', async (req: Request, res: Response) => {
         qstashErrors.push(`${messagesToQueue.length - messageIds.length} mensagens falharam ao serem enfileiradas`);
       }
     } catch (error) {
-      console.error('Error publishing to QStash:', error);
       return res.status(500).json({ 
         error: 'Erro ao enviar mensagens para QStash',
         details: (error as Error).message

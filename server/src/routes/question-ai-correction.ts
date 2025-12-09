@@ -24,7 +24,7 @@ router.post('/question-ai-correction', async (req: Request, res: Response) => {
 
     // Valida modelo
     if (model !== AIModel.GEMINI_2_5_FLASH) {
-      return res.status(400).json({ error: 'Invalid model. Only Gemini 2.5 Flash is supported' });
+      return res.status(400).json({ error: 'Modelo inválido. Apenas Gemini 2.5 Flash é suportado' });
     }
 
     // Opcional: garantir que existe resposta correta armazenada
@@ -41,7 +41,7 @@ router.post('/question-ai-correction', async (req: Request, res: Response) => {
     // Valida configuração
     const isValid = await aiService.validateConfiguration();
     if (!isValid) {
-      return res.status(500).json({ error: 'AI service configuration is invalid' });
+      return res.status(500).json({ error: 'Configuração do serviço de IA é inválida' });
     }
 
     // Prepara requisição de correção
@@ -69,8 +69,12 @@ router.post('/question-ai-correction', async (req: Request, res: Response) => {
     // Salva as alterações
     triggerSaveResponses();
 
-    // Timeout de 1 minuto antes de retornar a resposta
-    await new Promise(resolve => setTimeout(resolve, 60000)); // 60 segundos = 1 minuto
+    // Timeout de 1 minuto antes de retornar a resposta (para rate limiting do Gemini)
+    // Em testes, pode ser configurado via variável de ambiente para acelerar
+    const timeoutMs = process.env.NODE_ENV === 'test' 
+      ? parseInt(process.env.AI_CORRECTION_TEST_TIMEOUT_MS || '100', 10)
+      : 60000; // 60 segundos = 1 minuto em produção
+    await new Promise(resolve => setTimeout(resolve, timeoutMs));
 
     // Retorna a resposta da API de correção
     res.json({

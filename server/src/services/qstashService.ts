@@ -39,9 +39,6 @@ export class QStashService {
     // Se baseUrl estiver configurado (para QStash CLI local), adiciona ao config
     if (qstashConfig.baseUrl && qstashConfig.baseUrl !== 'https://qstash.upstash.io') {
       clientConfig.baseUrl = qstashConfig.baseUrl;
-      console.log('🔧 [QStash] Usando QStash local:', qstashConfig.baseUrl);
-    } else {
-      console.log('🔧 [QStash] Usando QStash em produção');
     }
 
     this.client = new Client(clientConfig);

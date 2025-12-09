@@ -22,25 +22,17 @@ let envLoaded = false;
 if (fs.existsSync(serverEnvPath)) {
   const result = dotenv.config({ path: serverEnvPath });
   if (!result.error) {
-    console.log('✅ Carregado .env de:', serverEnvPath);
     envLoaded = true;
-  } else {
-    console.error('❌ Erro ao carregar .env de server:', result.error.message);
   }
 } else if (fs.existsSync(workspaceEnvPath)) {
   const result = dotenv.config({ path: workspaceEnvPath });
   if (!result.error) {
-    console.log('✅ Carregado .env de:', workspaceEnvPath);
     envLoaded = true;
-  } else {
-    console.error('❌ Erro ao carregar .env do workspace:', result.error.message);
   }
 }
 
 // Fallback: tenta carregar do diretório atual se nenhum arquivo específico foi encontrado
 if (!envLoaded) {
-  console.warn('⚠️  Arquivo .env não encontrado em:', serverEnvPath, 'ou', workspaceEnvPath);
-  console.warn('   Tentando carregar do diretório atual...');
   dotenv.config();
 }
 
@@ -62,12 +54,6 @@ export const geminiConfig = {
   maxRetries: parseInt(process.env.GEMINI_MAX_RETRIES || '3', 10),
 } as const;
 
-// Debug: mostra se as variáveis foram carregadas (apenas em desenvolvimento)
-if (process.env.NODE_ENV !== 'production') {
-  console.log('🔍 Debug - Variáveis carregadas:');
-  console.log('  GEMINI_API_KEY:', geminiConfig.apiKey ? '✅ Configurada' : '❌ Não configurada');
-  console.log('  QSTASH_TOKEN:', process.env.QSTASH_TOKEN ? '✅ Configurada' : '❌ Não configurada');
-}
 
 /**
  * Configuração do QStash
