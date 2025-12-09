@@ -4,14 +4,38 @@ import { Scripts } from './models/Scripts';
 import { ScriptAnswerSet } from './models/ScriptAnswerSet';
 import { Task } from './models/Task';
 import { TaskAnswer } from './models/TaskAnswer';
+import { Classes } from './models/Classes';
+import { Class } from './models/Class';
+import { StudentSet } from './models/StudentSet';
+import { Student } from './models/Student';
+import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
 
 export function loadMockScriptsAndAnswers(
   taskset: TaskSet,
   scripts: Scripts,
   scriptAnswerSet: ScriptAnswerSet,
+  classes: Classes,
+  studentSet: StudentSet,
   studentCPF: string = '11111111111'
 ): void {
+  
   try {
+    // Create mock student if not exists
+    let student = studentSet.findStudentByCPF(studentCPF);
+    if (!student) {
+      student = new Student('João Silva', studentCPF, 'joao@example.com');
+      studentSet.addStudent(student);
+      console.log('Mock student created:', studentCPF);
+    }
+    // Create mock class if not exists
+    let classe = classes.findClassById('Math 101-2024-2024');
+    if (!classe) {
+      classe = new Class('Math 101', 2024, 2024, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA);
+      classes.addClass(classe);
+      // Enroll student in class
+      classe.addEnrollment(student);
+      console.log('Mock class created:', classe.getClassId());
+    }
     // Create mock tasks if none exist
     if (taskset.getAllTasks().length === 0) {
       const task1 = taskset.addTask(
@@ -49,7 +73,11 @@ export function loadMockScriptsAndAnswers(
       if (foundTask2) script3.addTask(foundTask2);
       if (foundTask3) script3.addTask(foundTask3);
 
-      console.log('Mock scripts created:', [script1.getId(), script2.getId(), script3.getId()]);
+      const script4 = scripts.addScript(new (require('./models/Script').Script)('script-004', 'Quiz - Programming 202'));
+      if (foundTask2) script4.addTask(foundTask2);
+      if (foundTask3) script4.addTask(foundTask3);
+
+      console.log('Mock scripts created:', [script1.getId(), script2.getId(), script3.getId(), script4.getId()]);
     }
 
     // Create mock script answers if none exist
@@ -57,6 +85,7 @@ export function loadMockScriptsAndAnswers(
       const answer1 = scriptAnswerSet.addScriptAnswer({
         id: 'answer-001',
         scriptId: 'script-001',
+        classId: 'Math 101-2024-2024',
         studentId: studentCPF,
         taskAnswers: [
           new TaskAnswer(
@@ -82,11 +111,12 @@ export function loadMockScriptsAndAnswers(
           )
         ],
         grade: 'MA'
-      });
+      },classes, studentSet, scripts);
 
       const answer2 = scriptAnswerSet.addScriptAnswer({
         id: 'answer-002',
         scriptId: 'script-002',
+        classId: 'Math 101-2024-2024',
         studentId: studentCPF,
         taskAnswers: [
           new TaskAnswer(
@@ -112,11 +142,11 @@ export function loadMockScriptsAndAnswers(
           )
         ],
         grade: 'MA'
-      });
-
+      },classes, studentSet, scripts);
       const answer3 = scriptAnswerSet.addScriptAnswer({
         id: 'answer-003',
         scriptId: 'script-003',
+        classId: 'Math 101-2024-2024',
         studentId: studentCPF,
         taskAnswers: [
           new TaskAnswer(
@@ -134,9 +164,24 @@ export function loadMockScriptsAndAnswers(
             'Shows understanding but optimization potential missed'
           )
         ]
-      });
+      },classes, studentSet, scripts);
+      const answer4 = scriptAnswerSet.addScriptAnswer({
+        id: 'answer-004',
+        scriptId: 'script-004',
+        classId: 'Math 101-2024-2024',
+        studentId: studentCPF,
+        taskAnswers: [
+          new TaskAnswer(
+            'ta-009',
+            'task-002',
+            'My implementation uses a basic loop structure.',
+            'MPA',
+            'Works correctly but could be optimized'
+          )
+        ]
+      },classes, studentSet, scripts);
 
-      console.log('Mock script answers created:', [answer1.getId(), answer2.getId(), answer3.getId()]);
+      console.log('Mock script answers created:', [answer1.getId(), answer2.getId(), answer3.getId(), answer4.getId()]);
     }
   } catch (error) {
     console.error('Error loading mock scripts and answers:', error);
