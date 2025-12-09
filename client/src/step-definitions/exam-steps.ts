@@ -33,7 +33,7 @@ After({ tags: '@gui' }, async function () {
 -------------------------------------------------------------*/
 
 // Professor acessa diretamente a aba de criação de provas
-Given('professor {string} accesses the screen {string}', async function (professorName: string, screen: string) {
+Given('professor {string} accesses the screen Exam', async function (professorName: string) {
     await page.goto(baseUrl);
 
     await page.waitForSelector('h1');
@@ -63,11 +63,16 @@ Given('professor {string} accesses the screen {string}', async function (profess
 
     expect(await page.$eval('h1', el => el.textContent) || '').toContain('Teaching Assistant React');
 
+
+});
+
+Given("open the popup {string}", async function (popupName: string) {
     await page.waitForSelector('[data-testid="open-create-exam"]');
 
     await page.click('[data-testid="open-create-exam"]');
 
     await page.waitForSelector('[data-testid="exam-popup"]');
+
 });
 
 Given("professor {string} registers the exam {string} with questions {string} and {string} and {string} and {string} and {string}", async function (professorName: string, examTitle: string, q1: string, q2: string, q3: string, q4: string, q5: string) {
@@ -120,10 +125,20 @@ Given('registers the exam {string} with questions {string} and {string} and {str
 });
 
 
+Given('class {string} has exams {string} and {string} registered', async function (className: string, exam1: string, exam2: string) {
+    await page.waitForSelector('[data-testid="dropdown-button"]');
+    await page.click('[data-testid="dropdown-button"]');
+    await page.waitForSelector('[data-testid="dropdown-button"]');
+})
+
 
 /* ------------------------------------------------------------
-   WHEN
+WHEN
 -------------------------------------------------------------*/
+
+When('professor {string} selects the list of exams of the class {string}', async function (professorName: string, className: string) {
+
+})
 
 When('the professor provides the title {string}', async function (title: string) {
     examTitleGlobal = title;
@@ -170,9 +185,30 @@ When('professor {string} deletes the exam {string}', async function (professorNa
     await page.click('[data-testid="delete-exam-button"]');
 });
 
+When('the professor clicks on {string}', async function (buttonName: string) {
+    await page.waitForSelector(`[data-testid="${buttonName}"]`);
+    await page.click(`[data-testid="${buttonName}"]`);
+});
+
 /* ------------------------------------------------------------
    THEN
 -------------------------------------------------------------*/
+
+Then('the system shows the list of exams {string} and {string}', async function (exam1: string, exam2: string) {
+    await page.waitForSelector(`[data-testid="dropdown-item-${exam1}"]`);
+    await page.waitForSelector(`[data-testid="dropdown-item-${exam2}"]`);
+
+    const examExists = await page.$(`[data-testid="dropdown-item-${exam1}"]`);
+    const examExists2 = await page.$(`[data-testid="dropdown-item-${exam2}"]`);
+    expect(examExists).toBeTruthy();
+    expect(examExists2).toBeTruthy();
+})
+
+Then('popup {string} should be visible', async function (popupName: string) {
+    await page.waitForSelector(`[data-testid="${popupName}"]`);
+})
+
+
 Then('the system shows the message {string}', async function (msg: string) {
     // Wait for the alert message to appear
     // Make it more flexible to match partial messages
