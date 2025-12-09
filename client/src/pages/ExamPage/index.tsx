@@ -474,7 +474,7 @@ export default function ExamPage() {
       }));
 
       // Usa o CorrectionService para corrigir questões fechadas
-      await CorrectionService.correctAllExams(students, examForCorrection);
+      await CorrectionService.correctAllStudentsInExam(examForCorrection.id);
 
       setAlertConfig({
         open: true,

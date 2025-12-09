@@ -1,9 +1,0 @@
-.no-hover:hover {
-    transform: none !important;
-    background: inherit !important;
-    box-shadow: none !important;
-    cursor: default !important;
-    pointer-events: none !important;
-    cursor: default !important;
-    opacity: 0.8;
-}
