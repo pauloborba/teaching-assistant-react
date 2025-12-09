@@ -1,9 +1,11 @@
 import React from 'react';
 import { Student } from '../types/Student';
+import { StudentStatus } from '../types/StudentStatusColor';
 import { studentService } from '../services/StudentService';
 
 interface StudentListProps {
   students: Student[];
+  studentsStatus?: StudentStatus[];
   onStudentDeleted: () => void;
   onEditStudent: (student: Student) => void;
   onError: (errorMessage: string) => void;
@@ -11,7 +13,8 @@ interface StudentListProps {
 }
 
 const StudentList: React.FC<StudentListProps> = ({ 
-  students, 
+  students,
+  studentsStatus,
   onStudentDeleted, 
   onEditStudent, 
   onError, 
@@ -32,22 +35,35 @@ const StudentList: React.FC<StudentListProps> = ({
     onEditStudent(student);
   };
 
+  const getBorderColor = (cpf: string): string => {
+    if (!studentsStatus || studentsStatus.length === 0) {
+      return 'transparent';
+    }
+
+    // Normalizar CPF removendo pontos, traços e espaços
+    const normalizedCpf = cpf.replace(/[.\-\s]/g, '');
+    
+    const status = studentsStatus.find(s => {
+      const statusCpf = String(s.student?.cpf || '').replace(/[.\-\s]/g, '');
+      return statusCpf === normalizedCpf;
+    });
+    
+    if (!status) {
+      return 'transparent';
+    }
+
+    if (status.statusColor === 'green') return '#22c55e';
+    if (status.statusColor === 'yellow') return '#eab308';
+    if (status.statusColor === 'red') return '#ef4444';
+
+    return 'transparent';
+  };
+
   if (loading) {
     return (
       <div className="students-list">
         <h2>Students ({students.length})</h2>
         <div className="loading">Loading students...</div>
-      </div>
-    );
-  }
-
-  if (students.length === 0) {
-    return (
-      <div className="students-list">
-        <h2>Students (0)</h2>
-        <div className="no-students">
-          No students registered yet. Add your first student using the form above.
-        </div>
       </div>
     );
   }
@@ -59,6 +75,7 @@ const StudentList: React.FC<StudentListProps> = ({
         <table>
           <thead>
             <tr>
+              <th></th>
               <th>Name</th>
               <th>CPF</th>
               <th>Email</th>
@@ -67,27 +84,17 @@ const StudentList: React.FC<StudentListProps> = ({
           </thead>
           <tbody>
             {students.map((student) => (
-              <tr key={student.cpf} data-testid={`student-row-${student.cpf}`}>
-                <td data-testid="student-name">{student.name}</td>
-                <td data-testid="student-cpf">{student.cpf}</td>
-                <td data-testid="student-email">{student.email}</td>
+              <tr 
+                key={student.cpf}
+                style={{ borderLeft: `6px solid ${getBorderColor(student.cpf)}` }}
+              >
+                <td></td>
+                <td>{student.name}</td>
+                <td>{student.cpf}</td>
+                <td>{student.email}</td>
                 <td>
-                  <button
-                    className="edit-btn"
-                    data-testid={`edit-student-${student.cpf}`}
-                    onClick={() => handleEdit(student)}
-                    title="Edit student"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="delete-btn"
-                    data-testid={`delete-student-${student.cpf}`}
-                    onClick={() => handleDelete(student)}
-                    title="Delete student"
-                  >
-                    Delete
-                  </button>
+                  <button className="edit-btn" onClick={() => handleEdit(student)}>Edit</button>
+                  <button className="delete-btn" onClick={() => handleDelete(student)}>Delete</button>
                 </td>
               </tr>
             ))}
@@ -98,4 +105,4 @@ const StudentList: React.FC<StudentListProps> = ({
   );
 };
 
-export default StudentList;
+export default React.memo(StudentList);

@@ -1224,3 +1224,8 @@ tbody tr:last-child td {
   background-color: #fecaca;
   color: #991b1b;
 }
+
+.students-list tr {
+  border-left-width: 6px;
+  border-left-style: solid;
+}

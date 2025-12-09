@@ -44,7 +44,7 @@
           "evaluations": [
             {
               "goal": "Requirements",
-              "grade": "MPA"
+              "grade": "MA"
             },
             {
               "goal": "Configuration Management",
@@ -52,7 +52,7 @@
             },
             {
               "goal": "Project Management",
-              "grade": "MANA"
+              "grade": "MA"
             },
             {
               "goal": "Roteiro 1",
@@ -77,11 +77,20 @@
             {
               "goal": "Roteiro 6",
               "grade": "MPA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
             }
-          ],
-          "mediaPreFinal": null,
-          "mediaPosFinal": null,
-          "reprovadoPorFalta": false
+          ]
         },
         {
           "studentCPF": "55555555555",
@@ -121,18 +130,27 @@
             {
               "goal": "Roteiro 6",
               "grade": "MANA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MANA"
             }
-          ],
-          "mediaPreFinal": null,
-          "mediaPosFinal": null,
-          "reprovadoPorFalta": false
+          ]
         },
         {
           "studentCPF": "22222222222",
           "evaluations": [
             {
               "goal": "Requirements",
-              "grade": "MA"
+              "grade": "MPA"
             },
             {
               "goal": "Roteiro 1",
@@ -165,11 +183,20 @@
             {
               "goal": "Project Management",
               "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
             }
-          ],
-          "mediaPreFinal": null,
-          "mediaPosFinal": null,
-          "reprovadoPorFalta": false
+          ]
         }
       ]
     },
@@ -221,10 +248,7 @@
               "goal": "Requirements",
               "grade": "MA"
             }
-          ],
-          "mediaPreFinal": 2.3333333333333335,
-          "mediaPosFinal": null,
-          "reprovadoPorFalta": false
+          ]
         },
         {
           "studentCPF": "33333333333",
@@ -257,10 +281,7 @@
               "goal": "Final",
               "grade": "MA"
             }
-          ],
-          "mediaPreFinal": 5.666666666666667,
-          "mediaPosFinal": null,
-          "reprovadoPorFalta": false
+          ]
         }
       ]
     }
