@@ -1,17 +1,19 @@
 import { enviarEmail } from "./EmailSender";
 import { Student } from "../models/Student";
 
-export async function notificarResultadoDisciplina(student: Student,nota: number,disciplina: string,professorNome: string): Promise<void> {
-
-  let resultado = "";
-
+function determineResultText(nota: number): string {
   if (nota >= 7) {
-    resultado = "Aprovado por média";
+    return "Aprovado por média";
   } else if (nota >= 3) {
-    resultado = "Final";
+    return "Final";
   } else {
-    resultado = "Reprovado";
+    return "Reprovado";
   }
+}
+
+export async function notificarResultadoDisciplina(student: Student, nota: number, disciplina: string, professorNome: string): Promise<void> {
+  
+  const resultado = determineResultText(nota); // Lógica de domínio separada
 
   const assunto = `Resultado da Disciplina ${disciplina}`;
   const mensagem = `
@@ -27,7 +29,7 @@ ${professorNome}
   
 }
 
-export async function notificarAlunosEmLote(students: Student[],disciplina: string,professorNome: string,getNota: (student: Student) => number): Promise<number> {
+export async function notificarAlunosEmLote(students: Student[], disciplina: string, professorNome: string, getNota: (student: Student) => number): Promise<number> {
   
   const promises = students.map(async student => {
 
