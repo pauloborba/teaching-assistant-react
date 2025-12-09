@@ -14,6 +14,15 @@ Feature: Exam registration and management via user interface
     And displays the message "Provas geradas com sucesso!"
 
   @gui @create-exam
+  Scenario: Register exam with no questions
+    Given professor "Paulo" accesses the screen Exam
+    And open the popup "exam-popup"
+    When the professor provides the title "Requisitos"
+    And selects no questions
+    And confirms the exam registration
+    Then the system still shows the popup "exam-popup"
+
+  @gui @create-exam
   Scenario: Delete an exam
     Given professor "Paulo" accesses the screen Exam
     And open the popup "exam-popup"

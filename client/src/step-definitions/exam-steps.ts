@@ -131,6 +131,8 @@ Given('class {string} has exams {string} and {string} registered', async functio
     await page.waitForSelector('[data-testid="exam-dropdown"]');
 })
 
+Given
+
 
 /* ------------------------------------------------------------
 WHEN
@@ -164,7 +166,6 @@ When('selects the questions {string} and {string} and {string} and {string} and 
 When('confirms the exam registration', async function () {
     await page.waitForSelector('[data-testid="confirm-create-exam"]');
     await page.click('[data-testid="confirm-create-exam"]');
-    await page.waitForSelector('[data-testid="exam-table"]', { timeout: 5000 });
 });
 
 When('professor {string} deletes the exam {string}', async function (professorName: string, examTitle: string) {
@@ -190,6 +191,10 @@ When('the professor uses {string}', async function (buttonName: string) {
     await page.click(`[data-testid="${buttonName}"]`);
 });
 
+When('selects no questions', async function () {
+
+})
+
 /* ------------------------------------------------------------
    THEN
 -------------------------------------------------------------*/
@@ -208,6 +213,9 @@ Then('popup {string} should be visible', async function (popupName: string) {
     await page.waitForSelector(`[data-testid="${popupName}"]`);
 })
 
+Then('the system still shows the popup {string}', async function (popupName: string) {
+    await page.waitForSelector(`[data-testid="${popupName}"]`);
+})
 
 Then('the system shows the message {string}', async function (msg: string) {
     // Wait for the alert message to appear
@@ -242,8 +250,7 @@ Then('the exam {string} is no longer in the list of registered exams', async fun
 });
 
 Then('the system registers the exam {string} successfully', async function (title: string) {
-    // Esse passo intermediário não faz verificação —
-    // os próximos steps validam o comportamento real.
+    await page.waitForSelector('[data-testid="exam-table"]', { timeout: 5000 });
 });
 
 Then('displays the message {string}', async function (msg: string) {
