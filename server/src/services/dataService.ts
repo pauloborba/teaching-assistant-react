@@ -78,6 +78,11 @@ const ensureDataDirectory = (filePath: string): void => {
 };
 
 export const saveDataToFile = (): void => {
+  // Não salva arquivos durante testes
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
   try {
     const data = {
       students: studentSet.getAllStudents().map(student => ({
@@ -104,6 +109,11 @@ export const saveDataToFile = (): void => {
 };
 
 export const saveExamsToFile = (): void => {
+  // Não salva arquivos durante testes
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
   try {
     const data = examsManager.toJSON();
     ensureDataDirectory(examsFile);
@@ -114,6 +124,11 @@ export const saveExamsToFile = (): void => {
 };
 
 export const saveQuestionsToFile = (): void => {
+  // Não salva arquivos durante testes
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
   try {
     const data = questionsManager.toJSON();
     ensureDataDirectory(questionsFile);
@@ -128,6 +143,11 @@ export const saveQuestionsToFile = (): void => {
 };
 
 export const saveStudentsExamsToFile = (): void => {
+  // Não salva arquivos durante testes
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
   try {
     const data = {
       studentsExams: examsManager.getAllStudentExams()
@@ -141,6 +161,11 @@ export const saveStudentsExamsToFile = (): void => {
 };
 
 export const saveResponsesToFile = (): void => {
+  // Não salva arquivos durante testes
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
   try {
     const data = {
       responses: responses
@@ -293,6 +318,11 @@ export const loadResponsesFromFile = (): void => {
 };
 
 export const saveGenerationsToFile = (): void => {
+  // Não salva arquivos durante testes
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
   try {
     const data = { generations: examGenerations };
     const dataDir = path.dirname(generationsFile);
