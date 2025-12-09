@@ -76,30 +76,30 @@ export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, stud
 
   // POST /api/scriptanswers/:id/tasks → Add a new task answer to a script answer
   app.post(scriptAnswerurl+':id/tasks', (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { taskAnswerId, taskId, answer, grade, comments } = req.body;
+    const answerId = req.params["id"];
+    const { id, task, answer, grade, comments } = req.body;
 
     // Validate required fields
-    if (!taskAnswerId || !taskId) {
-      return res.status(400).json({ error: 'Missing required fields: taskAnswerId and taskId' });
+    if (!id || !task) {
+      return res.status(400).json({ error: 'Missing required fields: id and task' });
     }
 
     try {
-      const scriptAnswer = scriptAnswerSet.findById(id);
+      const scriptAnswer = scriptAnswerSet.findById(answerId);
       if (!scriptAnswer) {
         return res.status(404).json({ error: 'ScriptAnswer not found' });
       }
 
       // Check if task answer already exists
-      const existingTask = scriptAnswer.findAnswerByTaskId(taskId);
+      const existingTask = scriptAnswer.findAnswerByTaskId(id);
       if (existingTask) {
         return res.status(409).json({ error: 'Task answer already exists for this task' });
       }
 
       // Create new TaskAnswer
       const newTaskAnswer = new TaskAnswer(
-        taskAnswerId,
-        taskId,
+        id,
+        task,
         answer || '',
         grade,
         comments
@@ -109,8 +109,8 @@ export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, stud
       scriptAnswer.addAnswer(newTaskAnswer);
 
       return res.status(201).json({
-        id: taskAnswerId,
-        taskId,
+        id: id,
+        task: task,
         answer: answer || '',
         grade: grade || undefined,
         comments: comments || undefined
