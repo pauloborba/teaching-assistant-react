@@ -1,4 +1,4 @@
-import { Given, When, Then, After, setDefaultTimeout } from '@cucumber/cucumber';
+import { Given, When, Then, After, setDefaultTimeout, DataTable } from '@cucumber/cucumber';
 import expect from 'expect';
 
 // Set default timeout for all steps
@@ -11,6 +11,7 @@ let lastResponse: Response;
 let createdScriptAnswerIds: string[] = [];
 let createdStudentCPF: string | null = null;
 let lastCreatedScriptAnswerId: string | null = null;
+let mostRecentTaskId : string | null = null;
 
 After({ tags: '@server' }, async function () {
   // Clean up created script answers if needed
@@ -49,10 +50,10 @@ After({ tags: '@server' }, async function () {
 // Retrieval of all script answers
 // ============================================================
 
-Given('there are script answers registered with IDs {string}, {string}, {string}', async function (string1, string2, string3) {
+Given(/^there (?:is a|are) script answer(?:s)?(?: registered)? with ID(?:s)? ((?:"[^"]+"\s*,\s*)*"[^"]+")$/, async function (idstring : string) {
   // Parse the comma-separated IDs from the string
-  const ids = [string1, string2, string3].map(id => id.replace(/"/g, ''));
-  
+const ids = idstring.match(/"([^"]+)"/g)!.map(id => id.replace(/"/g, ''));
+
   // Create script answers with the given IDs
   for (const id of ids) {
     try {
@@ -187,40 +188,14 @@ Given('there is no student with CPF {string}', async function (cpf: string) {
 // Retrieval of grade for specific task
 // ============================================================
 
-Given('there is a script answer with ID {string}', async function (answerId: string) {
-  const cleanId = answerId.replace(/"/g, '');
 
-  try {
-    const response = await fetch(`${serverUrl}/api/scriptanswers/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: cleanId,
-        scriptId: `script-${cleanId}`,
-        studentId: '11111111111',
-        answers: []
-      })
-    });
-
-    if (response.status === 201) {
-      createdScriptAnswerIds.push(cleanId);
-      lastCreatedScriptAnswerId = cleanId;
-      console.log(`Server setup: Created script answer with ID: ${cleanId}`);
-    } else {
-      console.error(`Failed to create script answer ${cleanId}: Status ${response.status}`);
-    }
-  } catch (error) {
-    console.error(`Failed to create script answer ${cleanId}:`, error);
-  }
-});
-
-Given('this answer contains a task with ID {string} and grade {string}', async function (taskId: string, grade: string) {
+Given( /^this answer contains a task with ID "([^"]+)"(?: and grade "([^"]+)")?$/, async function (taskId: string, grade: string) {
   if (!lastCreatedScriptAnswerId) {
     throw new Error('No script answer has been created yet. Use "Given there is a script answer with ID" first.');
   }
 
   const cleanTaskId = taskId.replace(/"/g, '');
-  const cleanGrade = grade.replace(/"/g, '');
+  const cleanGrade = grade ? grade.replace(/"/g, '') : null;
 
   try {
     // Fetch the existing script answer
@@ -238,9 +213,11 @@ Given('this answer contains a task with ID {string} and grade {string}', async f
       id: `ta-${cleanTaskId}`,
       task: cleanTaskId,
       answer: 'Test answer',
-      grade: cleanGrade,
+      grade: cleanGrade ?? null,
       comments: ''
     };
+
+    mostRecentTaskId = cleanTaskId;
 
     console.log(`Adding task answer to script answer ${lastCreatedScriptAnswerId}:`, taskAnswerReq);
 
@@ -252,7 +229,10 @@ Given('this answer contains a task with ID {string} and grade {string}', async f
     });
 
     if (postResponse.status === 201) {
-      console.log(`Server setup: Added task ${cleanTaskId} with grade ${cleanGrade} to answer ${lastCreatedScriptAnswerId}`);
+      console.log(`Server setup: Added task ${cleanTaskId}`);
+      if(grade){
+        console.log(`with grade ${cleanGrade} to answer ${lastCreatedScriptAnswerId}`)
+      }
     } else {
       console.error(`Failed to update script answer: Status ${postResponse.status}`);
     }
@@ -311,6 +291,30 @@ When('I send a GET request to {string}', async function (endpoint: string) {
   }
 });
 
+When('I send a PUT request to {string} with:', async function (endpoint: string, dataTable: DataTable) {
+  const data = dataTable.rowsHash();
+  
+  const requestBody: Record<string, any> = {};
+  
+  // Build request body from datatable
+  for (const [field, value] of Object.entries(data)) {
+    requestBody[field] = value;
+  }
+
+  console.log(`Server test: Sending PUT request to ${endpoint} with data:`, requestBody);
+
+  try {
+    lastResponse = await fetch(`${serverUrl}${endpoint}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    });
+    console.log(`Server test: PUT request to ${endpoint} returned status ${lastResponse.status}`);
+  } catch (error) {
+    throw new Error(`Failed to send PUT request to ${endpoint}: ${error}`);
+  }
+});
+
 // ============================================================
 // Assertions
 // ============================================================
@@ -364,12 +368,15 @@ Then('the server should return grade {string}', async function (grade: string) {
   console.log(`Server test: Confirmed grade is: ${cleanGrade}`);
 });
 
-Then('the server should return an error message stating the task was not found', async function () {
-  const responseBody = await lastResponse.json();
-  expect(responseBody.error).toBeDefined();
-  expect(responseBody.error.toLowerCase()).toContain('task');
-  expect(responseBody.error.toLowerCase()).toContain('not found');
+
+
+Then('the server should update the task grade to {string}', async function (expectedGrade: string) {
+  const cleanGrade = expectedGrade.replace(/"/g, '');
+  const responseBody = await fetch(`${serverUrl}/api/scriptanswers/${lastCreatedScriptAnswerId}/tasks/${mostRecentTaskId}`).then(res => res.json());
   
-  console.log(`Server test: Confirmed error message: ${responseBody.error}`);
+  expect(responseBody.grade).toBeDefined();
+  expect(responseBody.grade).toBe(cleanGrade);
+  
+  console.log(`Server test: Confirmed task grade was updated to: ${cleanGrade}`);
 });
 
