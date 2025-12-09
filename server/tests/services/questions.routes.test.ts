@@ -4,10 +4,15 @@ import app from '../../src/server';
 import * as dataService from '../../src/services/dataService';
 
 describe('Service Tests: Question Routes', () => {
-  const mockedCreateQuestion = dataService.createQuestion as jest.MockedFunction<typeof dataService.createQuestion>;
+  let createQuestionSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    createQuestionSpy = jest.spyOn(dataService, 'createQuestion');
+  });
+
+  afterEach(() => {
+    createQuestionSpy.mockRestore();
   });
 
   it('should create an open question when payload is valid', async () => {
@@ -19,7 +24,7 @@ describe('Service Tests: Question Routes', () => {
       answer: 'Test-Driven Development'
     };
 
-    mockedCreateQuestion.mockReturnValue(createdQuestion);
+    createQuestionSpy.mockReturnValue(createdQuestion);
 
     const response = await request(app)
       .post('/api/questions')
@@ -32,7 +37,7 @@ describe('Service Tests: Question Routes', () => {
 
     expect(response.status).toBe(201);
     expect(response.body).toEqual(createdQuestion);
-    expect(mockedCreateQuestion).toHaveBeenCalledWith({
+    expect(createQuestionSpy).toHaveBeenCalledWith({
       question: 'O que é TDD?',
       topic: 'Engenharia de Software',
       type: 'open',
@@ -51,7 +56,7 @@ describe('Service Tests: Question Routes', () => {
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({ error: 'Topic is required' });
-    expect(mockedCreateQuestion).not.toHaveBeenCalled();
+    expect(createQuestionSpy).not.toHaveBeenCalled();
   });
 
   it('should normalize closed question options and forward to the data service', async () => {
@@ -65,7 +70,7 @@ describe('Service Tests: Question Routes', () => {
       ]
     };
 
-    mockedCreateQuestion.mockReturnValue({ id: 202, ...closedPayload });
+    createQuestionSpy.mockReturnValue({ id: 202, ...closedPayload });
 
     const response = await request(app)
       .post('/api/questions')
@@ -81,6 +86,6 @@ describe('Service Tests: Question Routes', () => {
 
     expect(response.status).toBe(201);
     expect(response.body).toEqual({ id: 202, ...closedPayload });
-    expect(mockedCreateQuestion).toHaveBeenCalledWith(closedPayload);
+    expect(createQuestionSpy).toHaveBeenCalledWith(closedPayload);
   });
 });
