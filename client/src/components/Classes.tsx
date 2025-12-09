@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Class, CreateClassRequest, getClassId } from '../types/Class';
 import { Student } from '../types/Student';
+import { ReportData } from '../types/Report';
 import ClassService from '../services/ClassService';
 import { studentService } from '../services/StudentService';
 import EnrollmentService from '../services/EnrollmentService';
@@ -39,6 +40,8 @@ const Classes: React.FC<ClassesProps> = ({
 
   // Report state - only track which class to show report for
   const [reportPanelClass, setReportPanelClass] = useState<Class | null>(null);
+  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [isLoadingReport, setIsLoadingReport] = useState(false);
 
   // Load all students for enrollment dropdown
   const loadAllStudents = useCallback(async () => {
@@ -221,7 +224,7 @@ const Classes: React.FC<ClassesProps> = ({
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 
-  return (
+return (
     <div className="classes-container">
       <h2>Class Management</h2>
       
@@ -461,7 +464,7 @@ const Classes: React.FC<ClassesProps> = ({
         </div>
       )}
 
-      {/* Report Panel */}
+      {/* Report Panel - Agora simplificado usando o componente extraído */}
       {reportPanelClass && (
         <ClassReport
           classObj={reportPanelClass}

@@ -25,7 +25,7 @@ export interface StatusCounts {
 }
 
 export interface ReportFilter {
-  type: 'ALL' | 'APPROVED' | 'APPROVED_FINAL' | 'FAILED' | 'FAILED_BY_ABSENCE' | 'PENDING' | 'BELOW_AVERAGE' | 'BELOW_THRESHOLD';
+  type: 'ALL' | 'APPROVED' | 'BELOW_AVERAGE' | 'BELOW_THRESHOLD';
   threshold?: number; 
 }
 

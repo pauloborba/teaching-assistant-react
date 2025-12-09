@@ -186,7 +186,7 @@ export class Report implements IReportGenerator {
     return { approved, approvedFinal, notApproved, failedByAbsence, pending };
   }
 
-  private calculateEvaluationPerformance(): EvaluationPerformance[] {
+  private calculateEvaluationPerformance(): EvaluationPerformance[] { 
     const enrollments = this.classObj.getEnrollments();
     const goalMap = new Map<string, {
       grades: Grade[];

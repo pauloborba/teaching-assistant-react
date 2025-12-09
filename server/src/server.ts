@@ -491,23 +491,6 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
   }
 });
 
-// GET /api/classes/:classId/report - Generate statistics report for a class
-app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
-  try {
-    const { classId } = req.params;
-    
-    const classObj = classes.findClassById(classId);
-    if (!classObj) {
-      return res.status(404).json({ error: 'Class not found' });
-    }
-
-    const report = new Report(classObj);
-    res.json(report.toJSON());
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
-  }
-});
-
 // POST api/classes/gradeImport/:classId, usado na feature de importacao de grades
 // Vai ser usado em 2 fluxos(poderia ter divido em 2 endpoints mas preferi deixar em apenas 1)
 // [Front] Upload → [Back] lê só o cabeçalho e retorna colunas da planilha e os goals da 'classId'
@@ -532,7 +515,6 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
     res.status(400).json({ error: (error as Error).message });
   }
 });
-
 
 // Export the app for testing
 export { app, studentSet, classes };
