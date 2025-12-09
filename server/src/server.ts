@@ -508,6 +508,57 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
   }
 });
 
+// POST /api/compare-classes - Compare multiple classes and return their reports
+app.post('/api/compare-classes', (req: Request, res: Response) => {
+  try {
+    const { classes: classNames } = req.body;
+
+    if (!Array.isArray(classNames)) {
+      return res.status(400).json({ error: 'Classes array is required' });
+    }
+
+    if (classNames.length < 2) {
+      return res.status(400).json({ error: 'At least two classes are required for comparison' });
+    }
+
+    if (classNames.length > 6) {
+      return res.status(400).json({ error: 'The maximum number of classes allowed for comparison is 6' });
+    }
+
+    // Find classes by topic (case-insensitive contains)
+    const foundClasses = classNames.map((name: string) => {
+      const matches = classes.findClassesByTopic(name);
+      return matches && matches.length > 0 ? matches[0] : undefined;
+    });
+
+    // Check for classes with no enrolled students
+    const classesWithNoStudents: string[] = [];
+    foundClasses.forEach((cls: any, idx: number) => {
+      if (!cls) {
+        // treat missing class as having no students
+        classesWithNoStudents.push(classNames[idx]);
+      } else if (!cls.getEnrollments || cls.getEnrollments().length === 0) {
+        classesWithNoStudents.push(classNames[idx]);
+      }
+    });
+
+    if (classesWithNoStudents.length > 0) {
+      return res.status(422).json({ error: `${classesWithNoStudents.join(', ')} has no enrolled students` });
+    }
+
+    // Build comparison data using Report for each class
+    const comparisonData: any = {};
+    foundClasses.forEach((cls: any, idx: number) => {
+      const report = new Report(cls);
+      comparisonData[classNames[idx]] = report.toJSON();
+    });
+
+    return res.status(200).json({ comparisonData });
+  } catch (error) {
+    return res.status(500).json({ error: (error as Error).message });
+  }
+});
+
 // POST api/classes/gradeImport/:classId, usado na feature de importacao de grades
 // Vai ser usado em 2 fluxos(poderia ter divido em 2 endpoints mas preferi deixar em apenas 1)
 // [Front] Upload → [Back] lê só o cabeçalho e retorna colunas da planilha e os goals da 'classId'

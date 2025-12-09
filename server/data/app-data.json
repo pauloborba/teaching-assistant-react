@@ -39,6 +39,26 @@
       "name": "Diego Oliveira",
       "cpf": "88888888888",
       "email": "diego.oliveira@cin.ufpe.br"
+    },
+    {
+      "name": "ESS Student 1",
+      "cpf": "22972996579",
+      "email": "essstudent1@example.com"
+    },
+    {
+      "name": "ESS Student 2",
+      "cpf": "13359262002",
+      "email": "essstudent2@example.com"
+    },
+    {
+      "name": "MD Student 1",
+      "cpf": "43717893392",
+      "email": "mdstudent1@example.com"
+    },
+    {
+      "name": "MD Student 2",
+      "cpf": "40350857981",
+      "email": "mdstudent2@example.com"
     }
   ],
   "classes": [
@@ -223,6 +243,21 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 2,
       "year": 2024,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
       "enrollments": [
         {
           "studentCPF": "11111111111",
@@ -334,6 +369,21 @@
       "topic": "Análise e Design de Sistemas",
       "semester": 1,
       "year": 2025,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
       "enrollments": [
         {
           "studentCPF": "11111111111",
@@ -446,6 +496,21 @@
       "topic": "Padrões de Projeto",
       "semester": 2,
       "year": 2024,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
       "enrollments": [
         {
           "studentCPF": "11111111111",
@@ -534,6 +599,21 @@
       "topic": "Testes de Software",
       "semester": 1,
       "year": 2024,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
       "enrollments": [
         {
           "studentCPF": "22222222222",
@@ -637,6 +717,87 @@
           ]
         }
       ]
+    },
+    {
+      "topic": "ESS",
+      "semester": 1,
+      "year": 2025,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
+      "enrollments": [
+        {
+          "studentCPF": "22972996579",
+          "evaluations": []
+        },
+        {
+          "studentCPF": "13359262002",
+          "evaluations": []
+        }
+      ]
+    },
+    {
+      "topic": "MD",
+      "semester": 1,
+      "year": 2025,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
+      "enrollments": [
+        {
+          "studentCPF": "43717893392",
+          "evaluations": []
+        },
+        {
+          "studentCPF": "40350857981",
+          "evaluations": []
+        }
+      ]
+    },
+    {
+      "topic": "MD2",
+      "semester": 1,
+      "year": 2025,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
+      "enrollments": []
     }
   ]
 }

@@ -16,7 +16,10 @@
     "lint": "npm run lint --prefix client"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@badeball/cypress-cucumber-preprocessor": "^24.0.0",
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.8",
+    "concurrently": "^8.2.2",
+    "cypress": "^15.7.1"
   },
   "keywords": [
     "react",
