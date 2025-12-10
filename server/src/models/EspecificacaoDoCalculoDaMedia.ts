@@ -86,9 +86,12 @@ const DEFAULT_PESOS_DOS_CONCEITOS = new Map<Grade, number>([
 ]);
 
 const DEFAULT_PESOS_DAS_METAS = new Map<Meta, number>([
-  ['Gerência de Configuração', 1],
-  ['Gerência de Projeto', 1],
-  ['Qualidade de Software', 1],
+  ['Requirements', 1],
+  ['Configuration Management', 1],
+  ['Project Management', 1],
+  ['Design', 1],
+  ['Tests', 1],
+  ['Refactoring', 1]
 ]);
 
 export const DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA = new EspecificacaoDoCalculoDaMedia(

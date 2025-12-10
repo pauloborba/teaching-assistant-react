@@ -2,6 +2,11 @@ import { Student } from './Student';
 import { Evaluation } from './Evaluation';
 import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA, Grade } from './EspecificacaoDoCalculoDaMedia';
 
+// Função para arredondar para uma casa decimal, arredondando para cima na segunda casa
+function roundToOneDecimal(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
 export class Enrollment {
   private student: Student;
   private evaluations: Evaluation[];
@@ -28,7 +33,7 @@ export class Enrollment {
   }
 
   // Calcula a média do estudante antes da prova final
-  calculateMediaPreFinal(): number {
+  calculateMediaPreFinal(): number | null {
     const specificacao_calculo_media = DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA;
 
     // Obter as metas e seus pesos
@@ -54,13 +59,23 @@ export class Enrollment {
         }
       }
 
-      // usa 'MANA' como default (peso 0)
-      const conceito = evaluation ? (evaluation.getGrade()) : 'MANA';
+      // Se algum goal não tem avaliação (representado por '-' no frontend), retorna null
+      if (!evaluation) {
+        this.setMediaPreFinal(null);
+        return null;
+      }
+
+      const conceito = evaluation.getGrade();
       notasDasMetas.set(meta, conceito);
     }
 
-    this.setMediaPreFinal(specificacao_calculo_media.calc(notasDasMetas));
-    return specificacao_calculo_media.calc(notasDasMetas);
+    const resultado = roundToOneDecimal(specificacao_calculo_media.calc(notasDasMetas));
+    this.setMediaPreFinal(resultado);
+    // aluno já está aprovado e não precisa fazer prova final
+    if (resultado >= 7) {
+      this.setMediaPosFinal(null);
+    }
+    return resultado;
   }
 
   // Calcula a média do estudante depois da prova final
@@ -74,7 +89,7 @@ export class Enrollment {
   }
 
   // Set media do estudante antes da prova final
-  setMediaPreFinal(mediaPreFinal: number){
+  setMediaPreFinal(mediaPreFinal: number | null){
     this.mediaPreFinal = mediaPreFinal;
   }
 
@@ -84,7 +99,7 @@ export class Enrollment {
   }
 
   // Set média do estudante depois da final
-  setMediaPosFinal(mediaPosFinal: number){
+  setMediaPosFinal(mediaPosFinal: number | null){
     this.mediaPosFinal = mediaPosFinal;
   }
 
