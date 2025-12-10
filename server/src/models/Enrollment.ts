@@ -1,12 +1,16 @@
 import { Student } from './Student';
 import { Evaluation } from './Evaluation';
+import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA, Grade } from './EspecificacaoDoCalculoDaMedia';
+
+// Função para arredondar para uma casa decimal, arredondando para cima na segunda casa
+function roundToOneDecimal(value: number): number {
+  return Math.round(value * 10) / 10;
+}
 
 export class Enrollment {
   private student: Student;
   private evaluations: Evaluation[];
-  // Média do estudante antes da prova final
   private mediaPreFinal: number | null;
-  // Média do estudante depois da final
   private mediaPosFinal: number | null;
   private reprovadoPorFalta: Boolean;
 
@@ -29,8 +33,49 @@ export class Enrollment {
   }
 
   // Calcula a média do estudante antes da prova final
-  calculateMediaPreFinal(): number {
-    throw new Error('calculateMedia() not implemented yet');
+  calculateMediaPreFinal(): number | null {
+    const specificacao_calculo_media = DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA;
+
+    // Obter as metas e seus pesos
+    const specificacaoJson = specificacao_calculo_media.toJSON();
+    const metasDaSpec = Object.keys(specificacaoJson.pesosDasMetas || {});
+
+    const goalToMeta: Record<string, string> = {
+      'Configuration Management': 'Gerência de Configuração',
+      'Project Management': 'Gerência de Projeto',
+      'Design': 'Qualidade de Software',
+    };
+
+    const notasDasMetas = new Map<string, Grade>();
+
+    for (const meta of metasDaSpec) {
+      let evaluation = this.evaluations.find(e => e.getGoal() === meta);
+      
+      if (!evaluation) {
+        const goalKey = Object.keys(goalToMeta).find(k => goalToMeta[k] === meta);
+
+        if (goalKey) {
+          evaluation = this.evaluations.find(e => e.getGoal() === goalKey);
+        }
+      }
+
+      // Se algum goal não tem avaliação (representado por '-' no frontend), retorna null
+      if (!evaluation) {
+        this.setMediaPreFinal(null);
+        return null;
+      }
+
+      const conceito = evaluation.getGrade();
+      notasDasMetas.set(meta, conceito);
+    }
+
+    const resultado = roundToOneDecimal(specificacao_calculo_media.calc(notasDasMetas));
+    this.setMediaPreFinal(resultado);
+    // aluno já está aprovado e não precisa fazer prova final
+    if (resultado >= 7) {
+      this.setMediaPosFinal(null);
+    }
+    return resultado;
   }
 
   // Calcula a média do estudante depois da prova final
@@ -44,7 +89,7 @@ export class Enrollment {
   }
 
   // Set media do estudante antes da prova final
-  setMediaPreFinal(mediaPreFinal: number){
+  setMediaPreFinal(mediaPreFinal: number | null){
     this.mediaPreFinal = mediaPreFinal;
   }
 
@@ -54,7 +99,7 @@ export class Enrollment {
   }
 
   // Set média do estudante depois da final
-  setMediaPosFinal(mediaPosFinal: number){
+  setMediaPosFinal(mediaPosFinal: number | null){
     this.mediaPosFinal = mediaPosFinal;
   }
 

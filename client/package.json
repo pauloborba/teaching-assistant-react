@@ -26,8 +26,9 @@
     "start": "PORT=3004 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "test:cucumber": "npx cucumber-js --config cucumber.js",
-    "test:cucumber:watch": "npx cucumber-js --config cucumber.js --watch",
+    "_comment_cucumber": "Usa tsconfig.test.json (CommonJS) ao invés de tsconfig.json (ESNext) para compatibilidade com ts-node, sem isso nao podemos importar módulos locais dentro dos testes e da erro",
+    "test:cucumber": "TS_NODE_PROJECT=./tsconfig.test.json NODE_NO_WARNINGS=1 npx cucumber-js --config cucumber.js",
+    "test:cucumber:watch": "TS_NODE_PROJECT=./tsconfig.test.json NODE_NO_WARNINGS=1 npx cucumber-js --config cucumber.js --watch",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

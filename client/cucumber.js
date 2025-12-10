@@ -1,7 +1,6 @@
 module.exports = {
   default: {
     require: [
-      'ts-node/register',
       'src/step-definitions/**/*.ts'
     ],
     format: [

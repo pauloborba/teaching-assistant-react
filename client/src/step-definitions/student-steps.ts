@@ -25,7 +25,7 @@ let testStudentCPF: string;
 Before({ tags: '@gui' }, async function () {
   browser = await launch({ 
     headless: false, // Set to true for CI/CD
-    slowMo: 50 // Slow down actions for visibility
+    slowMo: 10 // Slow down actions for visibility
   });
   page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 720 });

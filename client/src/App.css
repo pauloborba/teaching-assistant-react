@@ -16,6 +16,18 @@ body {
   line-height: 1.6;
 }
 
+.evaluation-table thead th,
+.student-name-header,
+.goal-header,
+.average-header,
+.final-average-header,
+.final-header {
+  color: #ffffff !important;
+  font-size: 0.725rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
 /* App Container */
 .App {
   max-width: 1200px;
@@ -802,7 +814,8 @@ tbody tr:last-child td {
 /* Goal columns - uniform width */
 .evaluations-table th:not(:first-child),
 .evaluations-table td:not(:first-child) {
-  width: calc((100% - 200px) / 6); /* Distribute remaining width equally among 6 goal columns */
+  /* Distribute remaining width equally among 6 goal columns + average + final + final-average = 9 columns */
+  width: calc((100% - 200px) / 9);
   min-width: 120px; /* Minimum width to ensure readability */
 }
 
@@ -1032,7 +1045,11 @@ tbody tr:last-child td {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
-.goal-header {
+.goal-header,
+.average-header,
+.final-header,
+.final-average-header,
+.final {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: white;
   padding: 16px 8px;
@@ -1040,7 +1057,7 @@ tbody tr:last-child td {
   font-weight: 700;
   font-size: 0.9rem;
   border: 1px solid #047857;
-  width: calc((100% - 200px) / 6); /* Equal width for all 6 goal columns */
+  width: calc((100% - 200px) / 9); /* Equal width for all goal + average + final columns */
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
   vertical-align: middle;
@@ -1085,15 +1102,29 @@ tbody tr:last-child td {
   color: #0c4a6e;
 }
 
-.evaluation-cell {
+.average-cell {
+  text-align: center;
+  padding: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.final-average-cell {
+  text-align: center;
+  padding: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.evaluation-cell, .average-header, .final-average-header, .final-header, .final {
   padding: 12px 8px;
   text-align: center;
   border: 1px solid #cbd5e1;
-  width: calc((100% - 200px) / 6); /* Equal width for all goal columns */
+  width: calc((100% - 200px) / 9); /* Use same division for goal + average + final columns */
   vertical-align: middle;
 }
 
-.student-row:nth-child(even) .evaluation-cell {
+.student-row:nth-child(even) .evaluation-cell, .average-cell, .final-average-cell, .final-cell {
   background-color: #f0f9ff;
 }
 
@@ -1192,4 +1223,9 @@ tbody tr:last-child td {
 .evaluation-select option[value="MANA"] {
   background-color: #fecaca;
   color: #991b1b;
+}
+
+.students-list tr {
+  border-left-width: 6px;
+  border-left-style: solid;
 }

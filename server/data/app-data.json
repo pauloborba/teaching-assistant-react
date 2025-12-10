@@ -6,19 +6,19 @@
       "email": "phmb@cin.ufpe.br"
     },
     {
-      "name": "Maria Modularidade",
-      "cpf": "22222222222",
-      "email": "mm@cin.ufpe.br"
-    },
-    {
-      "name": "João Elegância",
-      "cpf": "33333333333",
-      "email": "je@cin.ufpe.br"
-    },
-    {
       "name": "Joana Refatoração",
       "cpf": "55555555555",
       "email": "jr@gmail.com"
+    },
+    {
+      "name": "Test Student",
+      "cpf": "12345678901",
+      "email": "test.student@email.com"
+    },
+    {
+      "name": "rogerio",
+      "cpf": "12312312312",
+      "email": "rogerio@gmail.com"
     }
   ],
   "classes": [
@@ -43,8 +43,32 @@
           "studentCPF": "11111111111",
           "evaluations": [
             {
-              "goal": "Requirements",
+              "goal": "Roteiro 1",
+              "grade": "MA"
+            },
+            {
+              "goal": "Roteiro 2",
               "grade": "MPA"
+            },
+            {
+              "goal": "Roteiro 3",
+              "grade": "MA"
+            },
+            {
+              "goal": "Roteiro 4",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Roteiro 5",
+              "grade": "MA"
+            },
+            {
+              "goal": "Roteiro 6",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Requirements",
+              "grade": "MANA"
             },
             {
               "goal": "Configuration Management",
@@ -52,129 +76,62 @@
             },
             {
               "goal": "Project Management",
-              "grade": "MANA"
+              "grade": "MA"
             },
             {
               "goal": "Design",
-              "grade": "MA"
+              "grade": "MANA"
             },
             {
               "goal": "Tests",
-              "grade": "MPA"
+              "grade": "MANA"
             },
             {
               "goal": "Refactoring",
-              "grade": "MA"
+              "grade": "MANA"
             }
-          ]
+          ],
+          "mediaPreFinal": 6.666666666666667,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         },
         {
           "studentCPF": "55555555555",
           "evaluations": [
             {
               "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Roteiro 1",
               "grade": "MANA"
             },
             {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "22222222222",
-          "evaluations": [
-            {
-              "goal": "Configuration Management",
+              "goal": "Roteiro 2",
               "grade": "MANA"
             },
             {
-              "goal": "Requirements",
-              "grade": "MA"
+              "goal": "Roteiro 3",
+              "grade": "MANA"
             },
             {
-              "goal": "Project Management",
-              "grade": "MPA"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "topic": "Engenharia de Software e Sistemas",
-      "semester": 2,
-      "year": 2025,
-      "especificacaoDoCalculoDaMedia": {
-        "pesosDosConceitos": {
-          "MA": 10,
-          "MPA": 7,
-          "MANA": 0
-        },
-        "pesosDasMetas": {
-          "Gerência de Configuração": 1,
-          "Gerência de Projeto": 1,
-          "Qualidade de Software": 1
-        }
-      },
-      "enrollments": [
-        {
-          "studentCPF": "22222222222",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MPA"
+              "goal": "Roteiro 4",
+              "grade": "MANA"
             },
             {
-              "goal": "Configuration Management",
-              "grade": "MA"
+              "goal": "Roteiro 5",
+              "grade": "MANA"
             },
             {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "33333333333",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
+              "goal": "Roteiro 6",
               "grade": "MANA"
             },
             {
@@ -183,13 +140,16 @@
             },
             {
               "goal": "Tests",
-              "grade": "MANA"
+              "grade": "MA"
             },
             {
               "goal": "Refactoring",
               "grade": "MA"
             }
-          ]
+          ],
+          "mediaPreFinal": 10,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         }
       ]
     }

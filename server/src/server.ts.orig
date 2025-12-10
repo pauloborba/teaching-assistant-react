@@ -41,6 +41,7 @@ const ensureDataDirectory = (): void => {
 };
 
 const saveDataToFile = (): void => {
+<<<<<<< HEAD
   try {
     const data = {
       students: studentSet.getAllStudents().map(student => ({
@@ -69,6 +70,63 @@ const saveDataToFile = (): void => {
   } catch (error) {
     console.error('Error saving students to file:', error);
   }
+||||||| a2a337c
+  try {
+    const data = {
+      students: studentSet.getAllStudents().map(student => ({
+        name: student.name,
+        cpf: student.getCPF(),
+        email: student.email
+      })),
+      classes: classes.getAllClasses().map(classObj => ({
+        topic: classObj.getTopic(),
+        semester: classObj.getSemester(),
+        year: classObj.getYear(),
+        especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
+        enrollments: classObj.getEnrollments().map(enrollment => ({
+          studentCPF: enrollment.getStudent().getCPF(),
+          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+          mediaPreFinal: enrollment.getMediaPreFinal(),
+          mediaPosFinal: enrollment.getMediaPosFinal(),
+          reprovadoPorFalta: enrollment.getReprovadoPorFalta()
+        }))
+      }))
+    };
+    
+    ensureDataDirectory();
+    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error saving students to file:', error);
+  }
+=======
+        try {
+                const data = {
+                        students: studentSet.getAllStudents().map(student => ({
+                                name: student.name,
+                                cpf: student.getCPF(),
+                                email: student.email
+                        })),
+                        classes: classes.getAllClasses().map(classObj => ({
+                                topic: classObj.getTopic(),
+                                semester: classObj.getSemester(),
+                                year: classObj.getYear(),
+                                especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
+                                enrollments: classObj.getEnrollments().map(enrollment => ({
+                                        studentCPF: enrollment.getStudent().getCPF(),
+                                        evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+                                        mediaPreFinal: enrollment.getMediaPreFinal(),
+                                        mediaPosFinal: enrollment.getMediaPosFinal(),
+                                        reprovadoPorFalta: enrollment.getReprovadoPorFalta()
+                                }))
+                        }))
+                };
+
+                ensureDataDirectory();
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
+        } catch (error) {
+                console.error('Error saving students to file:', error);
+        }
+>>>>>>> origin/main
 };
 
 // Load data from file
@@ -88,6 +146,69 @@ export const loadDataFromFile = (): void => {
                                                 studentData.email
                                         );
 
+<<<<<<< HEAD
+            // Load enrollments for this class
+            if (classData.enrollments && Array.isArray(classData.enrollments)) {
+              classData.enrollments.forEach((enrollmentData: any) => {
+                const student = studentSet.findStudentByCPF(enrollmentData.studentCPF);
+                if (student) {
+                  const enrollment = classObj.addEnrollment(student);
+                  
+                  // Load evaluations for this enrollment
+                  if (enrollmentData.evaluations && Array.isArray(enrollmentData.evaluations)) {
+                    enrollmentData.evaluations.forEach((evalData: any) => {
+                      const evaluation = Evaluation.fromJSON(evalData);
+                      enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
+                    });
+                  }
+                    // Load notaFinal if provided (keeps evaluations in sync)
+                    if (typeof enrollmentData.notaFinal !== 'undefined') {
+                      // setNotaFinal will add/update/remove the 'Final' evaluation as appropriate
+                      if (typeof (enrollment as any).setNotaFinal === 'function') {
+                        (enrollment as any).setNotaFinal(enrollmentData.notaFinal);
+                      }
+                    }
+                    // Load medias and attendance status if provided in the data file
+                    if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
+                      enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
+                    }
+                    if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
+                      enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
+                    }
+                    if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
+                      enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
+                    }
+                } else {
+                  console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
+||||||| a2a337c
+            // Load enrollments for this class
+            if (classData.enrollments && Array.isArray(classData.enrollments)) {
+              classData.enrollments.forEach((enrollmentData: any) => {
+                const student = studentSet.findStudentByCPF(enrollmentData.studentCPF);
+                if (student) {
+                  const enrollment = classObj.addEnrollment(student);
+                  
+                  // Load evaluations for this enrollment
+                  if (enrollmentData.evaluations && Array.isArray(enrollmentData.evaluations)) {
+                    enrollmentData.evaluations.forEach((evalData: any) => {
+                      const evaluation = Evaluation.fromJSON(evalData);
+                      enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
+                    });
+                  }
+                    
+                    // Load medias and attendance status if provided in the data file
+                    if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
+                      enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
+                    }
+                    if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
+                      enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
+                    }
+                    if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
+                      enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
+                    }
+                } else {
+                  console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
+=======
                                         try {
                                                 studentSet.addStudent(student);
                                         } catch (error) {
@@ -138,6 +259,7 @@ export const loadDataFromFile = (): void => {
                                         }
                                 });
                         }
+>>>>>>> origin/main
                 }
         } catch (error) {
                 console.error('Error loading data from file:', error);
@@ -475,11 +597,50 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
                         return res.status(404).json({ error: 'Class not found' });
                 }
 
+<<<<<<< HEAD
+    if (grade === '' || grade === null || grade === undefined) {
+      // Remove evaluation
+      enrollment.removeEvaluation(goal);
+    } else {
+      // Add or update evaluation
+      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
+        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
+      }
+      enrollment.addOrUpdateEvaluation(goal, grade);
+    }
+    // Recalculate media values after evaluation change so they are sent to the client
+    try {
+      enrollment.calculateMediaPreFinal();
+      // Recalculate post-final average as well (will use Final evaluation if present)
+      enrollment.calculateMediaPosFinal();
+    } catch (err) {
+      // ignore errors during recalculation
+    }
+||||||| a2a337c
+    if (grade === '' || grade === null || grade === undefined) {
+      // Remove evaluation
+      enrollment.removeEvaluation(goal);
+    } else {
+      // Add or update evaluation
+      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
+        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
+      }
+      enrollment.addOrUpdateEvaluation(goal, grade);
+    }
+    // Recalculate media values after evaluation change so they are sent to the client
+    try {
+      enrollment.calculateMediaPreFinal();
+      // enrollment.calculateMediaPosFinal();
+    } catch (err) {
+      // ignore errors during recalculation
+    }
+=======
                 const cleanedCPF = cleanCPF(studentCPF);
                 const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
                 if (!enrollment) {
                         return res.status(404).json({ error: 'Student not enrolled in this class' });
                 }
+>>>>>>> origin/main
 
                 if (grade === '' || grade === null || grade === undefined) {
                         // Remove evaluation
@@ -654,9 +815,7 @@ app.get('/api/classes/:classId/students-status', (req: Request, res: Response) =
       };
     });
 
-    const mediasValidas = studentData
-      .map(d => d.mediaAluno)
-      .filter((m): m is number => m !== null);
+    const mediasValidas = studentData.map(d => d.mediaAluno);
     const mediaTurma =
       mediasValidas.length > 0
         ? mediasValidas.reduce((acc, curr) => acc + curr, 0) / mediasValidas.length
@@ -666,19 +825,14 @@ app.get('/api/classes/:classId/students-status', (req: Request, res: Response) =
       const student = enrollment.getStudent();
       const cpf = cleanCPF(student.getCPF());
 
-      const reprovadoAnteriormente = pastClasses.some(pastClass => {
-        const pastEnrollment = pastClass.findEnrollmentByStudentCPF(cpf);
-        if (!pastEnrollment) return false;
-        
-        // Verifica se foi reprovado (média pré-final < 5.0)
-        const mediaPastClass = pastEnrollment.calculateMediaPreFinal();
-        return mediaPastClass !== null && mediaPastClass < 5.0;
-      });
+      const reprovadoAnteriormente = pastClasses.some(pastClass => 
+        pastClass.findEnrollmentByStudentCPF(cpf) !== undefined
+      );
 
       const temReprovacao = reprovadoAnteriormente;
 
       const color = getStudentStatusColor(
-        mediaAluno ?? 0,
+        mediaAluno,
         mediaTurma,
         temReprovacao
       );

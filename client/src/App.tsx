@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Student } from './types/Student';
 import { Class } from './types/Class';
 import { studentService } from './services/StudentService';
@@ -8,6 +8,8 @@ import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
 import './App.css';
+import StudentStatusService from './services/StudentStatusColorService';
+import { StudentStatus } from './types/StudentStatusColor';
 
 type TabType = 'students' | 'evaluations' | 'classes';
 
@@ -19,6 +21,16 @@ const App: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('students');
+  const [studentsStatus, setStudentsStatus] = useState<StudentStatus[]>([]);
+
+  // Create a dependency key that changes when enrollments change
+  const enrollmentsKey = useMemo(() => {
+    if (!selectedClass) return '';
+    return JSON.stringify(selectedClass.enrollments.map(e => ({
+      cpf: e.student.cpf,
+      evaluations: e.evaluations
+    })));
+  }, [selectedClass]);
 
   const loadStudents = useCallback(async () => {
     try {
@@ -27,8 +39,7 @@ const App: React.FC = () => {
       const studentsData = await studentService.getAllStudents();
       setStudents(studentsData);
     } catch (err) {
-      setError('Failed to load students. Please try again.');
-      console.error('Error loading students:', err);
+      setError('Failed to load students.');
     } finally {
       setLoading(false);
     }
@@ -36,65 +47,62 @@ const App: React.FC = () => {
 
   const loadClasses = useCallback(async () => {
     try {
-      setError('');
       const classesData = await ClassService.getAllClasses();
       setClasses(classesData);
       return classesData;
     } catch (err) {
-      setError('Failed to load classes. Please try again.');
-      console.error('Error loading classes:', err);
+      setError('Failed to load classes.');
       return [];
     }
   }, []);
 
-  const updateSelectedClass = useCallback((classesData: Class[]) => {
-    // Update selectedClass if it exists to reflect new enrollments
-    if (selectedClass) {
-      const updatedSelectedClass = classesData.find(c => 
-        c.topic === selectedClass.topic && 
-        c.year === selectedClass.year && 
-        c.semester === selectedClass.semester
-      );
-      if (updatedSelectedClass) {
-        setSelectedClass(updatedSelectedClass);
-      }
+  const loadStudentStatus = useCallback(async (classId: string) => {
+    try {
+      const statusData = await StudentStatusService.getStudentsStatusByClass(classId);
+      setStudentsStatus(statusData);
+    } catch (err) {
+      console.error('Failed to load student status');
     }
-  }, [selectedClass]);
+  }, []);
 
-  // Load students and classes on component mount
   useEffect(() => {
     loadStudents();
     loadClasses();
   }, [loadStudents, loadClasses]);
 
+  // Update selectedClass when classes change
+  useEffect(() => {
+    if (selectedClass?.id && classes.length > 0) {
+      const updatedClass = classes.find(c => c.id === selectedClass.id);
+      if (updatedClass) {
+        setSelectedClass(updatedClass);
+      }
+    }
+  }, [classes]);
+
+  useEffect(() => {
+    if (selectedClass?.id) {
+      loadStudentStatus(selectedClass.id);
+    } else {
+      setStudentsStatus([]);
+    }
+  }, [enrollmentsKey, selectedClass?.id, loadStudentStatus]);
+
+
   const handleStudentAdded = async () => {
-    loadStudents(); // Reload the list when a new student is added
-    const updatedClasses = await loadClasses(); // Also reload classes to update enrollment info
-    updateSelectedClass(updatedClasses); // Update selected class with new data
+    await loadStudents();
+    const updatedClasses = await loadClasses();
+    if (selectedClass) {
+      const updated = updatedClasses.find(c => c.id === selectedClass.id);
+      setSelectedClass(updated || null);
+    }
   };
 
-  const handleStudentDeleted = async () => {
-    loadStudents(); // Reload the list when a student is deleted
-    const updatedClasses = await loadClasses(); // Also reload classes to update enrollment info
-    updateSelectedClass(updatedClasses); // Update selected class with new data
-  };
+  const handleStudentDeleted = handleStudentAdded;
 
   const handleStudentUpdated = () => {
     setEditingStudent(null);
-    loadStudents(); // Reload the list when a student is updated
-  };
-
-  const handleClassAdded = () => {
-    loadClasses(); // Reload classes when a new class is added
-  };
-
-  const handleClassUpdated = () => {
-    loadClasses(); // Reload classes when a class is updated
-  };
-
-  const handleClassDeleted = () => {
-    loadClasses(); // Reload classes when a class is deleted
-    setSelectedClass(null); // Clear selection if deleted class was selected
+    loadStudents();
   };
 
   const handleEditClick = (student: Student) => {
@@ -117,64 +125,38 @@ const App: React.FC = () => {
       </header>
 
       <main className="App-main">
-        {error && (
-          <div className="error-message">
-            <strong>Error:</strong> {error}
-          </div>
-        )}
+        {error && <div className="error-message"><strong>Error:</strong> {error}</div>}
 
-        {/* Tab Navigation */}
         <div className="tab-navigation">
-          <button
-            className={`tab-button ${activeTab === 'students' ? 'active' : ''}`}
-            onClick={() => setActiveTab('students')}
-            data-testid="students-tab"
-          >
+          <button data-testid="students-tab" className={`tab-button ${activeTab === 'students' ? 'active' : ''}`} onClick={() => setActiveTab('students')}>
             Students
           </button>
-          <button
-            className={`tab-button ${activeTab === 'evaluations' ? 'active' : ''}`}
-            onClick={() => setActiveTab('evaluations')}
-            data-testid="evaluations-tab"
-          >
+          <button className={`tab-button ${activeTab === 'evaluations' ? 'active' : ''}`} onClick={() => setActiveTab('evaluations')}>
             Evaluations
           </button>
-          <button
-            className={`tab-button ${activeTab === 'classes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('classes')}
-            data-testid="classes-tab"
-          >
+          <button className={`tab-button ${activeTab === 'classes' ? 'active' : ''}`} onClick={() => setActiveTab('classes')}>
             Classes
           </button>
         </div>
 
-        {/* Tab Content */}
         <div className="tab-content">
           {activeTab === 'students' && (
             <>
-              {/* Class Selection */}
               <div className="class-selection">
                 <label htmlFor="class-select">Filter by Class:</label>
                 <select
                   id="class-select"
-                  value={selectedClass ? `${selectedClass.topic}-${selectedClass.year}-${selectedClass.semester}` : ''}
+                  value={selectedClass ? selectedClass.id : ''}
                   onChange={(e) => {
                     const classId = e.target.value;
-                    if (classId) {
-                      const classObj = classes.find(c => `${c.topic}-${c.year}-${c.semester}` === classId);
-                      setSelectedClass(classObj || null);
-                    } else {
-                      setSelectedClass(null);
-                    }
+                    const classObj = classes.find(c => c.id === classId);
+                    setSelectedClass(classObj || null);
                   }}
                   className="class-selector"
                 >
                   <option value="">All Students</option>
                   {classes.map((classObj) => (
-                    <option 
-                      key={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
-                      value={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
-                    >
+                    <option key={classObj.id} value={classObj.id}>
                       {classObj.topic} ({classObj.year}/{classObj.semester})
                     </option>
                   ))}
@@ -192,6 +174,7 @@ const App: React.FC = () => {
 
               <StudentList
                 students={selectedClass ? selectedClass.enrollments.map(e => e.student) : students}
+                studentsStatus={studentsStatus}
                 onStudentDeleted={handleStudentDeleted}
                 onEditStudent={handleEditClick}
                 onError={handleError}
@@ -200,18 +183,14 @@ const App: React.FC = () => {
             </>
           )}
 
-          {activeTab === 'evaluations' && (
-            <Evaluations 
-              onError={handleError}
-            />
-          )}
+          {activeTab === 'evaluations' && <Evaluations onError={handleError} />}
 
           {activeTab === 'classes' && (
             <Classes
               classes={classes}
-              onClassAdded={handleClassAdded}
-              onClassUpdated={handleClassUpdated}
-              onClassDeleted={handleClassDeleted}
+              onClassAdded={loadClasses}
+              onClassUpdated={loadClasses}
+              onClassDeleted={loadClasses}
               onError={handleError}
             />
           )}
