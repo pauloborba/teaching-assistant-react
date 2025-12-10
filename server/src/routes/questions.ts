@@ -14,12 +14,25 @@ import {
 
 const router = Router();
 
+const sendBadRequest = (res: Response, message: string) => res.status(400).json({ error: message });
+
+const getNumericIdFromParams = (rawId: string | undefined): number | null => {
+  if (typeof rawId !== 'string') {
+    return null;
+  }
+
+  const parsed = Number(rawId);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
 const parseClosedOptions = (options: unknown): Array<{ option: string; isCorrect: boolean }> => {
   if (!Array.isArray(options)) {
     throw new Error('Options must be an array');
   }
 
-  return options.map((opt, index) => {
+  let hasCorrect = false;
+
+  const parsed = options.map((opt, index) => {
     if (typeof opt !== 'object' || opt === null) {
       throw new Error(`Option at index ${index} must be an object`);
     }
@@ -31,11 +44,21 @@ const parseClosedOptions = (options: unknown): Array<{ option: string; isCorrect
       throw new Error(`Option text at index ${index} must be a string`);
     }
 
+    if (Boolean(optionIsCorrect)) {
+      hasCorrect = true;
+    }
+
     return {
       option: optionText,
       isCorrect: Boolean(optionIsCorrect),
     };
   });
+
+  if (!hasCorrect) {
+    throw new Error('At least one option must be marked as correct');
+  }
+
+  return parsed;
 };
 
 router.get('/', (req: Request, res: Response) => {
@@ -60,9 +83,9 @@ router.get('/', (req: Request, res: Response) => {
 
 router.get('/:id', (req: Request, res: Response) => {
   try {
-    const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
-      return res.status(400).json({ error: 'Question id must be a number' });
+    const id = getNumericIdFromParams(req.params.id);
+    if (id === null) {
+      return sendBadRequest(res, 'Question id must be a number');
     }
 
     const question = getQuestionById(id);
@@ -85,22 +108,22 @@ router.post('/', (req: Request, res: Response) => {
     const { question, topic, type, answer, options } = req.body;
 
     if (!question || typeof question !== 'string') {
-      return res.status(400).json({ error: 'Question text is required' });
+      return sendBadRequest(res, 'Question text is required');
     }
 
     if (!topic || typeof topic !== 'string') {
-      return res.status(400).json({ error: 'Topic is required' });
+      return sendBadRequest(res, 'Topic is required');
     }
 
     if (type !== 'open' && type !== 'closed') {
-      return res.status(400).json({ error: "Type must be either 'open' or 'closed'" });
+      return sendBadRequest(res, "Type must be either 'open' or 'closed'");
     }
 
     let payload: CreateQuestionInput;
 
     if (type === 'open') {
       if (!answer || typeof answer !== 'string') {
-        return res.status(400).json({ error: 'Open questions require an answer' });
+        return sendBadRequest(res, 'Open questions require an answer');
       }
 
       payload = {
@@ -119,9 +142,10 @@ router.post('/', (req: Request, res: Response) => {
           options: parsedOptions,
         };
       } catch (optionError) {
-        return res.status(400).json({
-          error: optionError instanceof Error ? optionError.message : 'Invalid options payload',
-        });
+        return sendBadRequest(
+          res,
+          optionError instanceof Error ? optionError.message : 'Invalid options payload',
+        );
       }
     }
 
@@ -137,9 +161,9 @@ router.post('/', (req: Request, res: Response) => {
 
 router.put('/:id', (req: Request, res: Response) => {
   try {
-    const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
-      return res.status(400).json({ error: 'Question id must be a number' });
+    const id = getNumericIdFromParams(req.params.id);
+    if (id === null) {
+      return sendBadRequest(res, 'Question id must be a number');
     }
 
     const { question, topic, type, answer, options } = req.body;
@@ -148,28 +172,28 @@ router.put('/:id', (req: Request, res: Response) => {
 
     if (question !== undefined) {
       if (typeof question !== 'string') {
-        return res.status(400).json({ error: 'Question text must be a string' });
+        return sendBadRequest(res, 'Question text must be a string');
       }
       payload.question = question;
     }
 
     if (topic !== undefined) {
       if (typeof topic !== 'string') {
-        return res.status(400).json({ error: 'Topic must be a string' });
+        return sendBadRequest(res, 'Topic must be a string');
       }
       payload.topic = topic;
     }
 
     if (type !== undefined) {
       if (type !== 'open' && type !== 'closed') {
-        return res.status(400).json({ error: "Type must be either 'open' or 'closed'" });
+        return sendBadRequest(res, "Type must be either 'open' or 'closed'");
       }
       payload.type = type;
     }
 
     if (answer !== undefined) {
       if (typeof answer !== 'string') {
-        return res.status(400).json({ error: 'Answer must be a string' });
+        return sendBadRequest(res, 'Answer must be a string');
       }
       payload.answer = answer;
     }
@@ -178,9 +202,10 @@ router.put('/:id', (req: Request, res: Response) => {
       try {
         payload.options = parseClosedOptions(options);
       } catch (optionError) {
-        return res.status(400).json({
-          error: optionError instanceof Error ? optionError.message : 'Invalid options payload',
-        });
+        return sendBadRequest(
+          res,
+          optionError instanceof Error ? optionError.message : 'Invalid options payload',
+        );
       }
     }
 
@@ -201,9 +226,9 @@ router.put('/:id', (req: Request, res: Response) => {
 
 router.delete('/:id', (req: Request, res: Response) => {
   try {
-    const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
-      return res.status(400).json({ error: 'Question id must be a number' });
+    const id = getNumericIdFromParams(req.params.id);
+    if (id === null) {
+      return sendBadRequest(res, 'Question id must be a number');
     }
 
     const removed = deleteQuestion(id);

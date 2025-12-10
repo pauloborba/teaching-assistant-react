@@ -391,3 +391,52 @@ Then('I should see {string} in the question bank list', async function (question
 
   expect(found).toBeTruthy();
 });
+
+When('I delete the question {string}', async function (questionText: string) {
+  await page.waitForSelector('[data-testid="questions-table"] tbody', { timeout: 10000 });
+  const rows = await page.$$('[data-testid^="question-row-"]');
+
+  for (const row of rows) {
+    const questionCell = await row.$('[data-testid="question-text"]');
+    if (!questionCell) {
+      continue;
+    }
+
+    const text = await page.evaluate(el => el.textContent?.trim() || '', questionCell);
+    if (text !== questionText) {
+      continue;
+    }
+
+    page.once('dialog', async (dialog) => {
+      await dialog.accept();
+    });
+
+    const deleteButton = await row.$('button[data-testid^="delete-question-"]');
+    if (!deleteButton) {
+      throw new Error('Delete button not found for the target question');
+    }
+
+    await deleteButton.click();
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    return;
+  }
+
+  throw new Error(`Question with text "${questionText}" not found for deletion`);
+});
+
+Then('I should not see {string} in the question bank list', async function (questionText: string) {
+  await page.waitForSelector('[data-testid="questions-table"] tbody', { timeout: 10000 });
+  const rows = await page.$$('[data-testid^="question-row-"]');
+
+  for (const row of rows) {
+    const questionCell = await row.$('[data-testid="question-text"]');
+    if (!questionCell) {
+      continue;
+    }
+
+    const text = await page.evaluate(el => el.textContent?.trim() || '', questionCell);
+    if (text === questionText) {
+      throw new Error(`Question "${questionText}" is still visible in the list`);
+    }
+  }
+});

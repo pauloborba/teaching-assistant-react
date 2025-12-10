@@ -228,10 +228,18 @@ export class Questions {
     return trimmed;
   }
 
+  private cloneOptions(options?: QuestionOptionRecord[]): QuestionOptionRecord[] | undefined {
+    if (!options) {
+      return undefined;
+    }
+
+    return options.map(option => ({ ...option }));
+  }
+
   private cloneQuestion(question: QuestionRecord): QuestionRecord {
     return {
       ...question,
-      options: question.options ? question.options.map(option => ({ ...option })) : undefined,
+      options: this.cloneOptions(question.options),
     };
   }
 }
