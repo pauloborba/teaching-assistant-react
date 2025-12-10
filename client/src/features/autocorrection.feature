@@ -1,39 +1,58 @@
-@server
 Feature: Exams autocorrection
   As a teacher
-  I want to automatically correct all exams from a test
-  So that all students can receive their grades
+  I want to asks the system to correct the closed questions
+  So that all students can receive their grades for the closed questions
 
-  Scenario: Update grades
-    Given student "Vinícius" answered "a" and "b" for questions "1" and "2" respectively in exam "Requisitos" of class "ESS"
-    And the correct answers for those questions are "a" and "b"
-    And the teacher is in the exam "Requisitos"
-    When the teacher asks the system to correct the exam "Requisitos"
-    Then student "Vinícius" is registered with grade "100" for exam "Requisitos" of class "ESS"
-    And "Vinícius" appears on the screen with grade "100"
+  @autocorrection-gui
+  Scenario: Cannot correct exam without selecting one
+    Given no exam is selected for correction
+    When the teacher loads the page
+    Then no option to correct the exam is shown
 
-  Scenario: Update all students grades in an exam
-    Given class "ESS" has students "Vinícius" and "Pedro"
-    And "Vinícius" answered "1" and "Pedro" answered "2" for question "1" in exam "Gerência"
-    And the correct answer for question "1" is "2"
-    When the teacher asks the system to correct all tests in exam "Gerência"
-    Then "Vinícius" is registered with grade "0" for exam "Ger" of class "ESS"
-    And "Pedro" is registered with grade "100" for exam "Gerência" of class "ESS"
+  @autocorrection-gui
+  Scenario: Correcting closed questions in an exam
+    Given exam "1" is selected for correction
+    When the teacher select the "Corrigir Fechadas" option
+    Then the system shows a success message indicating the exam was corrected
 
-  Scenario: Student did not answer all questions
-    Given exam "Requisitos" of class "ESS" has questions "1", "2" and "3"
-    And correct answers are "a", "b" and "c"
-    And student "Vinícius" answered only "a" and "b"
-    When the teacher asks the system to correct the exam
-    Then "Vinícius" is registered with grade "66.7" for exam "Requisitos" of class "ESS"
-    
-  Scenario: Student did not answer the exam
-    Given the student "Vinicius" did not answered the exam "Requisitos" in class "ESS"
-    When the teacher loads the class "ESS" dashboard
-    Then "Vinicius" appears with grade "Não respondido"
+  @autocorrection-gui
+  Scenario: Cannot view corrections without selecting an exam
+    Given no exam is selected for viewing corrections
+    When the teacher loads the page
+    Then no option to view corrections is shown
 
-  Scenario: Teacher can only correct one exam
-    Given the teacher in the class "ESS" page
-    And the teacher did not select any exam
-    When the teacher asks the system to correct the grades
-    Then the system does nothing, and do not allow to correct grades
+  @autocorrection-gui
+  Scenario: Viewing corrections after correcting an exam
+    Given student "Vinicius" with cpf "123" has grade "90" for "Q1" and grade "80" for "Q2" in exam "1"
+    And student "Maria" with cpf "456" has grade "80" for "Q1" and grade "70" for "Q2" in exam "1"
+    And exam "1" has been corrected
+    When the teacher opens the corrections view modal
+    Then the modal shows student "Vinicius" with cpf "123" with grade "90" for "Q1" and grade "80" for "Q2" and media "85"
+    And the modal shows student "Maria" with cpf "456" with grade "80" for "Q1" and grade "70" for "Q2" and media "75"
+  
+  @autocorrection-gui
+  Scenario: Viewing corrections when no students answered the exam
+    Given exam "2" has no students who answered it
+    When the teacher opens the corrections view modal
+    Then the modal shows a message indicating that no students answered the exam
+  
+  @autocorrection-gui
+  Scenario: Viewing corrections when exam has not been corrected yet
+    Given "Rafael" with cpf "789" has answered "Q1" and "Q2" for exam "1"
+    And exam "1" has not been corrected yet
+    When the teacher opens the corrections view modal
+    Then the modal shows "Rafael" with cpf "789" with Q1 "Não corrigido" e Q2 "Não corrigido" and media empty
+
+  @autocorrection-gui
+  Scenario: Attempting to correct an exam that was already corrected
+    Given exam "1" was already corrected
+    When the teacher tries to correct exam "1" again
+    Then the system shows an error message indicating the exam was already corrected
+
+  @autocorrection-gui
+  Scenario: Media when one question has no grade
+    Given student "Ana" with cpf "321" has grade "90" for "Q1" and no grade for "Q2" in exam "1"
+    When the teacher opens the corrections view modal
+    Then the modal shows student "Ana" with cpf "321" with grade "90" for "Q1" and "Não corrigido" for "Q2" and media empty
+
+  
