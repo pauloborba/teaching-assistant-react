@@ -72,6 +72,10 @@ Then('the script request should be accepted successfully', async function () {
   expect([200, 201]).toContain(lastResponse.status);
 });
 
+Then('the script request should be rejected with error', async function () {
+  expect([400, 409]).toContain(lastResponse.status);
+});
+
 Then('the server should have stored the script with:', async function (dataTable: DataTable) {
   const expected = dataTable.rowsHash();
   const response = await fetch(`${serverUrl}/api/scripts/${testScriptId}`);
