@@ -1,7 +1,7 @@
 import { Request, Response, Express } from 'express';
 import { TaskAnswer } from '../models/TaskAnswer';
 
-export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, studentSet: any, scriptSet: any) {
+export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, studentSet: any, TaskSet: any, classes: any, scripts: any, saveCallback?: () => void) {
   const scriptAnswerurl = '/api/scriptanswers/';
 
   // GET /api/scriptanswers → get ALL answers
@@ -27,11 +27,49 @@ export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, stud
     return res.status(200).json(answers.map((a: any) => a.toJSON()));
   });
 
+  // GET /api/scriptanswers/class/:classId → Answers for a class
+  app.get(scriptAnswerurl+'class/:classId', (req: Request, res: Response) => {
+    const { classId } = req.params;
+
+    const classe = classes.findClassById(classId);
+    if (!classe) {
+      return res.status(404).json({ error: 'class not found' });
+    }
+    const answers = scriptAnswerSet.findByClassId(classId);
+    return res.status(200).json(answers.map((a: any) => a.toJSON()));
+  });
+
   // GET /api/scriptanswers/script/:scriptId → Answers for a script
   app.get(scriptAnswerurl+'script/:scriptId', (req: Request, res: Response) => {
     const { scriptId } = req.params;
 
     const answers = scriptAnswerSet.findbyScriptId(scriptId);
+    return res.status(200).json(answers.map((a: any) => a.toJSON()));
+  });
+
+  // GET /api/scriptanswers/enrollment?classId=X&studentId=Y  → Answers for a enrollment (student in class)
+  app.get('/api/scriptanswers/enrollment', (req: Request, res: Response) => {
+    const { classId, studentId } = req.query;
+    
+    if (!classId || !studentId) {
+      return res.status(400).json({ error: 'classId and studentId are required' });
+    }
+    
+    const classIdStr = classId as string;
+    const studentIdStr = studentId as string;
+    
+    const classe = classes.findClassById(classIdStr);
+    if (!classe) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+    
+    const cleanedStudentId = studentIdStr.replace(/[.-]/g, '');
+    const student = studentSet.findStudentByCPF(cleanedStudentId);
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    const answers = scriptAnswerSet.findByClassAndStudent(classIdStr, cleanedStudentId);
     return res.status(200).json(answers.map((a: any) => a.toJSON()));
   });
 
@@ -64,26 +102,140 @@ export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, stud
     return res.status(200).json({ taskId, grade: task.getGrade() });
   });
 
-// POST /api/scriptanswers → Create a script answer
-app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
+  // POST /api/scriptanswers → create a script answer
+  app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
   try {
-    const { scriptId } = req.body;
-
-    // Validate that scriptId is provided
-    if (!scriptId) {
-      return res.status(400).json({ error: 'Missing required field: scriptId' });
+    const { id, scriptId, classId, studentId } = req.body;
+    if (!scriptId || !classId || !studentId) {
+      return res.status(400).json({ error: 'scriptId, classId and studentId are required' });
     }
-
-    // Check if the script exists (assuming you have a scriptSet or similar)
-    const scriptExists = scriptSet.findById(scriptId); // or however you check for script existence
-    if (!scriptExists) {
-      return res.status(404).json({ error: 'Script not found' });
+    const script = scripts.findById(scriptId);
+    if (!script) {
+      return res.status(401).json({ error: 'Script not found' });
     }
-
-    const newAnswer = scriptAnswerSet.addScriptAnswer(req.body);
+    const classe = classes.findClassById(classId);
+    if (!classe) {
+      return res.status(401).json({ error: 'Class not found' });
+    }
+    // Clean CPF before searching
+    const cleanedStudentId = studentId.replace(/[.-]/g, '');
+    const student = studentSet.findStudentByCPF(cleanedStudentId);
+    if (!student) {
+      return res.status(401).json({ error: 'Student not found' });
+    }
+    const enrollment = classe.findEnrollmentByStudentCPF(cleanedStudentId);
+    if (!enrollment) {
+      return res.status(403).json({ error: 'Student is not enrolled in this class' });
+    }
+    const existing = scriptAnswerSet.findByClassAndStudent(classId, cleanedStudentId).find((sa: any) => sa.getScriptId() === scriptId);
+    if (existing) {
+      return res.status(409).json({ 
+        error: 'ScriptAnswer already exists',
+        scriptAnswerId: existing.getId()
+      });
+    }
+    const newAnswer = scriptAnswerSet.addScriptAnswer({
+      id,
+      scriptId,
+      classId,
+      studentId: cleanedStudentId,
+      classes, studentSet, scripts
+    });
+    saveCallback?.();
     res.status(201).json(newAnswer.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+  // POST /api/scriptanswers/:id/tasks/:taskId/start → start an answer on the scriptAnswer
+
+  app.post(scriptAnswerurl+':id/tasks/:taskId/start', (req: Request, res: Response) => {
+    try {
+      const { id, taskId } = req.params;
+      const { answer, grade, comments } = req.body;
+      const scriptAnswer = scriptAnswerSet.findById(id);
+      if (!scriptAnswer) {
+        return res.status(404).json({ error: 'ScriptAnswer not found' });
+      }
+      if (scriptAnswer.status === 'finished') {
+        return res.status(403).json({ error: 'ScriptAnswer is closed for new answers' });
+      }
+      const task = TaskSet.findById(taskId);
+      if (!task) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      const ta = scriptAnswerSet.startTaskAnswer(id, taskId, {
+        answer,
+        grade,
+        comments,
+      });
+      if (!ta) {
+        return res.status(409).json({ error: 'Task answer already exists for this task' });
+      }
+      saveCallback?.();
+      res.status(201).json(ta.toJSON());
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  // POST /api/scriptanswers/:id/tasks/:taskId/submit → submit an answer on the scriptAnswer
+
+  app.post(scriptAnswerurl+':id/tasks/:taskId/submit', (req: Request, res: Response) => {
+    try {
+      const { id, taskId } = req.params;
+      const { answer, grade, comments } = req.body;
+
+      const scriptAnswer = scriptAnswerSet.findById(id);
+      if (!scriptAnswer) {
+        return res.status(404).json({ error: 'ScriptAnswer not found' });
+      }
+      if (scriptAnswer.status === 'finished') {
+        return res.status(409).json({ error: 'ScriptAnswer already finished' });
+      }
+
+      const existingTask = scriptAnswer.findAnswerByTaskId(taskId);
+      if (!existingTask) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+
+      if (existingTask.status === 'submitted') {
+        return res.status(409).json({ error: 'Task answer already submitted and cannot be changed' });
+      }
+
+      const ta = scriptAnswerSet.submitLastTaskAnswer(id, taskId, scripts, {
+        answer,
+        grade,
+        comments,
+      });
+      if (!ta) {
+        return res.status(404).json({ error: 'ScriptAnswer or Task not found' });
+      }
+      saveCallback?.();
+      res.status(200).json(ta.toJSON());
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+// POST /api/scriptanswers/:id/timeout → Marca roteiro como expirado por timeout
+app.post(scriptAnswerurl+':id/timeout', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { timeoutSeconds } = req.body; //padrão 3600
+    const sa = scriptAnswerSet.findById(id);
+    if (!sa) {
+      return res.status(404).json({ error: 'ScriptAnswer not found' });
+    }
+    sa.checkAndMarkIfTimedOut(timeoutSeconds);
+    saveCallback?.();
+    res.status(200).json({
+      message: 'Timeout check completed',
+      scriptAnswer: sa.toJSON(),
+    });
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -151,8 +303,8 @@ app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
     if (!['MANA', 'MPA', 'MA'].includes(grade)) {
       return res.status(400).json({ error: 'Invalid grade' });
     }
-
     task.updateGrade(grade);
+    saveCallback?.();
     return res.status(200).json({ taskId, grade });
   });
 
@@ -172,7 +324,7 @@ app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
     }
 
     task.comments = comment;
-
+    saveCallback?.();
     return res.status(200).json({ taskId, comment });
   });
 

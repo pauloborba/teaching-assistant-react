@@ -17,6 +17,7 @@ describe('ScriptAnswerSet', () => {
       const data = {
         id: 'A1',
         scriptId: 'S1',
+        classId: 'C1',
         studentId: 'ST1',
         taskAnswers: [],
         grade: 'MA'
@@ -34,6 +35,7 @@ describe('ScriptAnswerSet', () => {
     test('should generate an ID if not provided', () => {
       const data = {
         scriptId: 'S1',
+        classId: 'C1',
         studentId: 'ST1'
       };
 
@@ -50,7 +52,7 @@ describe('ScriptAnswerSet', () => {
   // -----------------------------------------
   describe('removeScriptAnswer', () => {
     test('should remove existing script answer and return true', () => {
-      const a = set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
+      const a = set.addScriptAnswer({ id: 'A1', scriptId: 'S1', classId: 'C1', studentId: 'ST1' });
       expect(set.getAll().length).toBe(1);
     
       const removed = set.removeScriptAnswer(a.getId());
@@ -60,10 +62,8 @@ describe('ScriptAnswerSet', () => {
     });
 
     test('should return false when answer does not exist', () => {
-      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
-
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', classId: 'C1', studentId: 'ST1' });
       const removed = set.removeScriptAnswer('INVALID');
-
       expect(removed).toBe(false);
       expect(set.getAll().length).toBe(1);
     });
@@ -124,8 +124,8 @@ describe('ScriptAnswerSet', () => {
   // -----------------------------------------
   describe('getAll', () => {
     test('should return all stored script answers', () => {
-      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
-      set.addScriptAnswer({ id: 'A2', scriptId: 'S2', studentId: 'ST2' });
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', classId: 'C1', studentId: 'ST1' });
+      set.addScriptAnswer({ id: 'A2', scriptId: 'S2', classId: 'C2', studentId: 'ST2' });
 
       const all = set.getAll();
 
@@ -139,9 +139,9 @@ describe('ScriptAnswerSet', () => {
   // -----------------------------------------
   describe('findByStudentId', () => {
     test('should return all answers for a specific student', () => {
-      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
-      set.addScriptAnswer({ id: 'A2', scriptId: 'S2', studentId: 'ST1' });
-      set.addScriptAnswer({ id: 'A3', scriptId: 'S3', studentId: 'ST2' });
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', classId: 'C1', studentId: 'ST1' });
+      set.addScriptAnswer({ id: 'A2', scriptId: 'S2', classId: 'C1', studentId: 'ST1' });
+      set.addScriptAnswer({ id: 'A3', scriptId: 'S3', classId: 'C2', studentId: 'ST2' });
 
       const results = set.findByStudentId('ST1');
 
@@ -150,7 +150,7 @@ describe('ScriptAnswerSet', () => {
     });
 
     test('should return an empty array if student has no answers', () => {
-      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', classId: 'C1', studentId: 'ST1' });
 
       const results = set.findByStudentId('NOPE');
 
@@ -163,7 +163,7 @@ describe('ScriptAnswerSet', () => {
   // -----------------------------------------
   describe('findById', () => {
     test('should return the correct answer by ID', () => {
-      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', classId: 'C1', studentId: 'ST1' });
 
       const result = set.findById('A1');
 
@@ -183,7 +183,7 @@ describe('ScriptAnswerSet', () => {
   // -----------------------------------------
   describe('updateGrade', () => {
     test('should update grade of an existing script answer', () => {
-      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1', grade: undefined });
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', classId: 'C1', studentId: 'ST1', grade: undefined });
 
       const updated = set.updateGrade('A1', 'MA');
 
@@ -206,6 +206,7 @@ describe('ScriptAnswerSet', () => {
       const scriptAnswer = set.addScriptAnswer({
         id: 'A1',
         scriptId: 'S1',
+        classId: 'C1',
         studentId: 'ST1',
         taskAnswers: [
           { id: 'TA1', task: 'T1', grade: 'MA', comments: 'old comment' }
@@ -226,6 +227,7 @@ describe('ScriptAnswerSet', () => {
       set.addScriptAnswer({
         id: 'A1',
         scriptId: 'S1',
+        classId: 'C1',
         studentId: 'ST1',
         taskAnswers: []
       });
@@ -241,9 +243,9 @@ describe('ScriptAnswerSet', () => {
   // -----------------------------------------
   describe('findByScriptId', () => {
     test('should return all answers for a specific script', () => {
-      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
-      set.addScriptAnswer({ id: 'A2', scriptId: 'S1', studentId: 'ST2' });
-      set.addScriptAnswer({ id: 'A3', scriptId: 'S2', studentId: 'ST3' });
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', classId: 'C1', studentId: 'ST1' });
+      set.addScriptAnswer({ id: 'A2', scriptId: 'S1', classId: 'C1', studentId: 'ST2' });
+      set.addScriptAnswer({ id: 'A3', scriptId: 'S2', classId: 'C2', studentId: 'ST3' });
 
       const results = set.findbyScriptId('S1');
 
@@ -252,7 +254,7 @@ describe('ScriptAnswerSet', () => {
     });
 
     test('should return an empty array if script has no answers', () => {
-      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', classId: 'C1', studentId: 'ST1' });
 
       const results = set.findbyScriptId('NOPE');
 

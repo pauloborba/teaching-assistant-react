@@ -39,14 +39,76 @@ export const ScriptAnswerService = {
   },
 
   /** Create a new ScriptAnswer */
-  async createScriptAnswer(scriptAnswer: Omit<ScriptAnswer, 'id'>): Promise<ScriptAnswer> {
+  async createScriptAnswer(data: { scriptId: string; classId: string; studentId: string }): Promise<ScriptAnswer> {
     const res = await fetch(`${API_URL}/scriptanswers/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(scriptAnswer)
+      body: JSON.stringify(data)
     });
 
-    if (!res.ok) throw new Error("Failed to create ScriptAnswer");
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Failed to create ScriptAnswer (status ${res.status})`);
+    }
+    return res.json();
+  },
+
+  /** Start answering a specific task (creates TaskAnswer with timer) */
+  async startTask(scriptAnswerId: string, taskId: string): Promise<{ taskId: string; started_at: number }> {
+    const res = await fetch(`${API_URL}/scriptanswers/${scriptAnswerId}/tasks/${taskId}/start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || "Failed to start task");
+    }
+    return res.json();
+  },
+
+  /** Submit answer for a specific task */
+  async submitTask(
+    scriptAnswerId: string,
+    taskId: string,
+    answer: string
+  ): Promise<{ taskId: string; submitted_at: number; time_taken_seconds: number }> {
+    const res = await fetch(`${API_URL}/scriptanswers/${scriptAnswerId}/tasks/${taskId}/submit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answer })
+    });
+
+    if (!res.ok) throw new Error("Failed to submit task");
+    return res.json();
+  },
+
+  /** Check and apply timeout to script answer */
+  async checkTimeout(scriptAnswerId: string, timeoutSeconds: number = 3600): Promise<ScriptAnswer> {
+    const res = await fetch(`${API_URL}/scriptanswers/${scriptAnswerId}/timeout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ timeoutSeconds })
+    });
+
+    if (!res.ok) throw new Error("Failed to check timeout");
+    return res.json();
+  },
+
+  /** Get ScriptAnswers by class and student (enrollment) */
+  async getScriptAnswersByEnrollment(classId: string, studentId: string): Promise<ScriptAnswer[]> {
+    const res = await fetch(`${API_URL}/scriptanswers/enrollment?classId=${classId}&studentId=${studentId}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Failed to fetch scriptAnswers by enrollment (status ${res.status})`);
+    }
+    return res.json();
+  },
+
+  /** Get ScriptAnswers by class */
+  async getScriptAnswersByClassId(classId: string): Promise<ScriptAnswer[]> {
+    const res = await fetch(`${API_URL}/scriptanswers/class/${classId}`);
+    if (!res.ok) throw new Error("Failed to fetch scriptAnswers by class");
     return res.json();
   },
 

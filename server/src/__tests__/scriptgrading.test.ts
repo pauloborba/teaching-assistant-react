@@ -1,7 +1,11 @@
 import request from 'supertest';
-import { app, scriptAnswerSet, scripts, studentSet } from '../server';
+import { app, scriptAnswerSet, studentSet, classes, scripts } from '../server';
 import { Student } from '../models/Student';
 import { TaskAnswer } from '../models/TaskAnswer';
+import { Class } from '../models/Class';
+import { Script } from '../models/Script';
+import { Task } from '../models/Task';
+import { EspecificacaoDoCalculoDaMedia } from '../models/EspecificacaoDoCalculoDaMedia';
 
 describe('Server API – Script Answers Endpoints', () => {
 
@@ -15,6 +19,27 @@ describe('Server API – Script Answers Endpoints', () => {
     const allAnswers = scriptAnswerSet.getAll();
     allAnswers.forEach(a => scriptAnswerSet.removeScriptAnswer(a.getId()));
     expect(scriptAnswerSet.getAll().length).toBe(0);
+
+    // Clear classes
+    const allClasses = classes.getAllClasses();
+    allClasses.forEach(c => classes.removeClass(c.getClassId()));
+
+    // Create test student with valid 11-digit CPF
+    const testStudent = new Student('Test Student', '12345678901', 'test@test.com');
+    studentSet.addStudent(testStudent);
+
+    // Create test class
+    const gradeWeights = new Map<'MA'|'MPA'|'MANA', number>([['MA', 3], ['MPA', 2], ['MANA', 1]]);
+    const metaWeights = new Map<string, number>([['Test Meta', 1]]);
+    const testClass = new Class('Test Class', 1, 2024, new EspecificacaoDoCalculoDaMedia(gradeWeights, metaWeights));
+    classes.addClass(testClass);
+
+    // Enroll student in class
+    testClass.addEnrollment(testStudent);
+
+    // Create test script
+    const testScript = new Script('1', 'Test Script');
+    scripts.addScript({ id: '1', title: 'Test Script' });
   });
 
   // ----------------------------------------------------------
@@ -22,9 +47,10 @@ describe('Server API – Script Answers Endpoints', () => {
   // ----------------------------------------------------------
 
   test('GET /api/scriptanswers → returns all registered answers', async () => {
-    scriptAnswerSet.addScriptAnswer({ id: '123', scriptId: '1', studentId: 'S1' });
-    scriptAnswerSet.addScriptAnswer({ id: '321', scriptId: '2', studentId: 'S2' });
-    scriptAnswerSet.addScriptAnswer({ id: '890', scriptId: '3', studentId: 'S3' });
+    const classId = 'Test Class-2024-1';
+    scriptAnswerSet.addScriptAnswer({ id: '123', scriptId: '1', classId, studentId: '12345678901' });
+    scriptAnswerSet.addScriptAnswer({ id: '321', scriptId: '2', classId, studentId: '12345678901' });
+    scriptAnswerSet.addScriptAnswer({ id: '890', scriptId: '3', classId, studentId: '12345678901' });
 
     const res = await request(app).get('/api/scriptanswers/');
 
@@ -52,9 +78,9 @@ describe('Server API – Script Answers Endpoints', () => {
 
   test('GET /api/scriptanswers/student/:studentId → returns answers of a specific student', async () => {
     studentSet.addStudent(new Student('Alice', '15029035478', 'alice@gmail.com'));
-    scriptAnswerSet.addScriptAnswer({ id: '40', scriptId: '1', studentId: '15029035478' });
-    scriptAnswerSet.addScriptAnswer({ id: '41', scriptId: '2', studentId: '15029035478' });
-    scriptAnswerSet.addScriptAnswer({ id: '999', scriptId: 'X', studentId: 'other' });
+    scriptAnswerSet.addScriptAnswer({ id: '40', scriptId: '1', classId: 'Test Class-2024-1', studentId: '15029035478' });
+    scriptAnswerSet.addScriptAnswer({ id: '41', scriptId: '2', classId: 'Test Class-2024-1', studentId: '15029035478' });
+    scriptAnswerSet.addScriptAnswer({ id: '999', scriptId: 'X', classId: 'Test Class-2024-1', studentId: '99999999999' });
 
     const res = await request(app).get('/api/scriptanswers/student/15029035478');
 
@@ -79,9 +105,9 @@ describe('Server API – Script Answers Endpoints', () => {
   // ----------------------------------------------------------
 
   test('GET /api/scriptanswers/script/:scriptId → returns answers for a specific script', async () => {
-    scriptAnswerSet.addScriptAnswer({ id: '50', scriptId: '1', studentId: 'S1' });
-    scriptAnswerSet.addScriptAnswer({ id: '51', scriptId: '1', studentId: 'S2' });
-    scriptAnswerSet.addScriptAnswer({ id: '52', scriptId: '2', studentId: 'S3' });
+    scriptAnswerSet.addScriptAnswer({ id: '50', scriptId: '1', classId: 'Test Class-2024-1', studentId: '12345678901' });
+    scriptAnswerSet.addScriptAnswer({ id: '51', scriptId: '1', classId: 'Test Class-2024-1', studentId: '22222222222' });
+    scriptAnswerSet.addScriptAnswer({ id: '52', scriptId: '2', classId: 'Test Class-2024-1', studentId: '33333333333' });
 
     const res = await request(app).get('/api/scriptanswers/script/1');
 
@@ -95,7 +121,7 @@ describe('Server API – Script Answers Endpoints', () => {
   // ----------------------------------------------------------
 
   test('GET /api/scriptanswers/:id → returns a specific script answer', async () => {
-    scriptAnswerSet.addScriptAnswer({ id: '60', scriptId: '1', studentId: 'S1', grade: 'MA' });
+    scriptAnswerSet.addScriptAnswer({ id: '60', scriptId: '1', classId: 'Test Class-2024-1', studentId: '12345678901', grade: 'MA' });
 
     const res = await request(app).get('/api/scriptanswers/60');
 
@@ -124,7 +150,8 @@ describe('Server API – Script Answers Endpoints', () => {
     const answer = scriptAnswerSet.addScriptAnswer({
       id: '70',
       scriptId: '1',
-      studentId: 'stu'
+      classId: 'Test Class-2024-1',
+      studentId: '12345678901'
     });
     answer.addAnswer(new TaskAnswer('TA1', 't1', 'my answer', 'MA'));
 
@@ -143,7 +170,8 @@ describe('Server API – Script Answers Endpoints', () => {
     scriptAnswerSet.addScriptAnswer({
       id: '80',
       scriptId: '1',
-      studentId: 'stu'
+      classId: 'Test Class-2024-1',
+      studentId: '12345678901'
     });
 
     const res = await request(app).get('/api/scriptanswers/80/tasks/missing');
@@ -163,13 +191,14 @@ describe('Server API – Script Answers Endpoints', () => {
       .send({
         id: '90',
         scriptId: '1',
-        studentId: 'S1'
+        classId: 'Test Class-2024-1',
+        studentId: '12345678901'
       });
 
     expect(res.status).toBe(201);
     expect(res.body.id).toBe('90');
     expect(res.body.scriptId).toBe('1');
-    expect(res.body.student).toBe('S1');
+    expect(res.body.student).toBe('12345678901');
   });
 
   // ----------------------------------------------------------
@@ -180,7 +209,8 @@ describe('Server API – Script Answers Endpoints', () => {
     const answer = scriptAnswerSet.addScriptAnswer({
       id: '100',
       scriptId: '1',
-      studentId: 'S1'
+      classId: 'Test Class-2024-1',
+      studentId: '12345678901'
     });
     answer.addAnswer(new TaskAnswer('TA2', 't2', 'answer', 'MPA'));
 
@@ -201,7 +231,8 @@ describe('Server API – Script Answers Endpoints', () => {
     const answer = scriptAnswerSet.addScriptAnswer({
       id: '110',
       scriptId: '1',
-      studentId: 'S1'
+      classId: 'Test Class-2024-1',
+      studentId: '12345678901'
     });
     answer.addAnswer(new TaskAnswer('TA3', 't3', 'answer'));
 
@@ -221,7 +252,8 @@ describe('Server API – Script Answers Endpoints', () => {
     const answer = scriptAnswerSet.addScriptAnswer({
       id: '120',
       scriptId: '1',
-      studentId: 'S1'
+      classId: 'Test Class-2024-1',
+      studentId: '12345678901'
     });
     answer.addAnswer(new TaskAnswer('TA4', 't4', 'answer'));
 

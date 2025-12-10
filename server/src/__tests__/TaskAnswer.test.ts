@@ -36,26 +36,32 @@ describe("TaskAnswer", () => {
   // ---------------------------------------------------------------
   test("toJSON() returns correct structure", () => {
     const ta = new TaskAnswer("a1", taskId, "answer", "MPA");
+    const json = ta.toJSON();
 
-    expect(ta.toJSON()).toEqual({
-      id: "a1",
-      task: taskId,
-      answer: "answer",
-      grade: "MPA",
-      comments: undefined,
-    });
+    expect(json.id).toBe("a1");
+    expect(json.task).toBe(taskId);
+    expect(json.answer).toBe("answer");
+    expect(json.grade).toBe("MPA");
+    expect(json.comments).toBeUndefined();
+    expect(json.started_at).toBeDefined();
+    expect(json.status).toBe("started");
+    expect(json.submitted_at).toBeUndefined();
+    expect(json.time_taken_seconds).toBeUndefined();
   });
 
   test("toJSON() omits grade when undefined", () => {
     const ta = new TaskAnswer("a1", taskId, "ans", undefined);
+    const json = ta.toJSON();
 
-    expect(ta.toJSON()).toEqual({
-      id: "a1",
-      task: taskId,
-      answer: "ans",
-      grade: undefined,
-      comments: undefined,
-    });
+    expect(json.id).toBe("a1");
+    expect(json.task).toBe(taskId);
+    expect(json.answer).toBe("ans");
+    expect(json.grade).toBeUndefined();
+    expect(json.comments).toBeUndefined();
+    expect(json.started_at).toBeDefined();
+    expect(json.status).toBe("started");
+    expect(json.submitted_at).toBeUndefined();
+    expect(json.time_taken_seconds).toBeUndefined();
   });
 
   // ---------------------------------------------------------------

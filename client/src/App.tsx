@@ -6,17 +6,19 @@ import ScriptsPage from './components/scripts/ScriptsPage';
 import GradingPage from './components/ScriptGrading/GradingPage'
 import StudentForm from './components/StudentForm';
 import StudentList from './components/StudentList';
+import StudentScriptAnswerPage from './components/StudentScriptAnswer/StudentScriptAnswerPage';
 import ClassService from './services/ClassService';
 import { studentService } from './services/StudentService';
 import { Class } from './types/Class';
 import { Student } from './types/Student';
 
-type TabType = 'students' | 'evaluations' | 'classes' | 'scripts' | 'Script Grading';
+type TabType = 'students' | 'evaluations' | 'classes' | 'scripts' | 'Script Grading' | 'answer-scripts';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -161,6 +163,12 @@ const App: React.FC = () => {
           >
             Script Grading
           </button>
+          <button
+            className={`tab-button ${activeTab === 'answer-scripts' ? 'active' : ''}`}
+            onClick={() => setActiveTab('answer-scripts')}
+          >
+            Answer Scripts
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -237,6 +245,103 @@ const App: React.FC = () => {
 
           {activeTab == 'Script Grading' && (
             <GradingPage onError={handleError} />
+          )}
+
+          {activeTab === 'answer-scripts' && (
+            <>
+              {/* Student and Class Selection */}
+              <div style={{ 
+                display: 'flex', 
+                gap: '20px', 
+                marginBottom: '20px',
+                padding: '20px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '10px',
+                color: 'white'
+              }}>
+                <div style={{ flex: 1 }}>
+                  <label htmlFor="student-select" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                    Select Student:
+                  </label>
+                  <select
+                    id="student-select"
+                    value={selectedStudent?.cpf || ''}
+                    onChange={(e) => {
+                      const student = students.find(s => s.cpf === e.target.value);
+                      setSelectedStudent(student || null);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      borderRadius: '5px',
+                      border: 'none',
+                      fontSize: '16px'
+                    }}
+                  >
+                    <option value="">-- Choose a student --</option>
+                    {students.map((student) => (
+                      <option key={student.cpf} value={student.cpf}>
+                        {student.name} ({student.cpf})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <label htmlFor="class-select-answer" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                    Select Class:
+                  </label>
+                  <select
+                    id="class-select-answer"
+                    value={selectedClass ? `${selectedClass.topic}-${selectedClass.year}-${selectedClass.semester}` : ''}
+                    onChange={(e) => {
+                      const classId = e.target.value;
+                      if (classId) {
+                        const classObj = classes.find(c => `${c.topic}-${c.year}-${c.semester}` === classId);
+                        setSelectedClass(classObj || null);
+                      } else {
+                        setSelectedClass(null);
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      borderRadius: '5px',
+                      border: 'none',
+                      fontSize: '16px'
+                    }}
+                  >
+                    <option value="">-- Choose a class --</option>
+                    {classes.map((classObj) => (
+                      <option 
+                        key={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
+                        value={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
+                      >
+                        {classObj.topic} ({classObj.year}/{classObj.semester})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Answer Scripts Interface */}
+              {selectedStudent && selectedClass ? (
+                <StudentScriptAnswerPage
+                  studentCPF={selectedStudent.cpf}
+                  classId={`${selectedClass.topic}-${selectedClass.year}-${selectedClass.semester}`}
+                  onError={handleError}
+                />
+              ) : (
+                <div style={{
+                  padding: '40px',
+                  textAlign: 'center',
+                  fontSize: '18px',
+                  color: '#666'
+                }}>
+                  Please select both a student and a class to begin answering scripts.
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>

@@ -6,7 +6,7 @@ describe("ScriptAnswer", () => {
   let script: ScriptAnswer;
 
   beforeEach(() => {
-    script = new ScriptAnswer("sa1", "script1", "student123");
+    script = new ScriptAnswer("sa1", "script1", "class1", "student123");
   });
 
   // ---------------------------------------------------------------
@@ -24,21 +24,21 @@ describe("ScriptAnswer", () => {
 
     const json = script.toJSON();
 
-    expect(json).toEqual({
-      id: "sa1",
-      scriptId: "script1",
-      student: "student123",
-      answers: [
-        {
-          id: "a1",
-          task: "t1",
-          answer: "my answer",
-          grade: "MA",
-          comments: undefined,
-        },
-      ],
-      grade: undefined,
-    });
+    expect(json.id).toBe("sa1");
+    expect(json.scriptId).toBe("script1");
+    expect(json.classId).toBe("class1");
+    expect(json.student).toBe("student123");
+    expect(json.status).toBe("in_progress");
+    expect(json.started_at).toBeDefined();
+    expect(json.finished_at).toBeUndefined();
+    expect(json.grade).toBeUndefined();
+    expect(json.answers.length).toBe(1);
+    const firstAnswer = json.answers[0];
+    expect(firstAnswer).toBeDefined();
+    expect(firstAnswer!.id).toBe("a1");
+    expect(firstAnswer!.task).toBe("t1");
+    expect(firstAnswer!.answer).toBe("my answer");
+    expect(firstAnswer!.grade).toBe("MA");
   });
 
   // ---------------------------------------------------------------
@@ -115,7 +115,7 @@ describe("ScriptAnswer", () => {
   describe("grade validation", () => {
     test("constructor throws when initialized with invalid grade", () => {
       expect(() => {
-        new ScriptAnswer("bad", "script1", "student123", [], "INVALID" as Grade);
+        new ScriptAnswer("bad", "script1", "class1", "student123", [], "INVALID" as Grade);
       }).toThrow("Invalid grade value");
     });
 
