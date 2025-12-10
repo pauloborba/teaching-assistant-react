@@ -631,6 +631,17 @@ app.get('/api/classes/:classId/students-status', (req: Request, res: Response) =
       return res.status(404).json({ error: 'Class not found' });
     }
 
+    const currentTopic = classObj.getTopic();
+    const currentYear = classObj.getYear();
+    const currentSemester = classObj.getSemester();
+
+    const pastClasses = classes.getAllClasses().filter(c => {
+      if (c.getTopic() !== currentTopic) return false;
+
+      const isPrior = c.getYear() < currentYear || (c.getYear() === currentYear && c.getSemester() < currentSemester);
+      return isPrior;
+    });
+
     const enrollments = classObj.getEnrollments();
 
     const studentData = enrollments.map(enrollment => {
@@ -650,7 +661,13 @@ app.get('/api/classes/:classId/students-status', (req: Request, res: Response) =
 
     const result = studentData.map(({ enrollment, mediaAluno }) => {
       const student = enrollment.getStudent();
-      const temReprovacao = Boolean(enrollment.getReprovadoPorFalta());
+      const cpf = cleanCPF(student.getCPF());
+
+      const reprovadoAnteriormente = pastClasses.some(pastClass => 
+        pastClass.findEnrollmentByStudentCPF(cpf) !== undefined
+      );
+
+      const temReprovacao = reprovadoAnteriormente;
 
       const color = getStudentStatusColor(
         mediaAluno,
@@ -676,7 +693,6 @@ app.get('/api/classes/:classId/students-status', (req: Request, res: Response) =
     res.status(500).json({ error: 'Failed to calculate students status' });
   }
 });
-
 
 // Export the app for testing
 export { app, studentSet, classes };

@@ -40,7 +40,6 @@ const StudentList: React.FC<StudentListProps> = ({
       return 'transparent';
     }
 
-    // Normalizar CPF removendo pontos, traços e espaços
     const normalizedCpf = cpf.replace(/[.\-\s]/g, '');
     
     const status = studentsStatus.find(s => {
@@ -84,17 +83,24 @@ const StudentList: React.FC<StudentListProps> = ({
           </thead>
           <tbody>
             {students.map((student) => (
-              <tr 
+              <tr
                 key={student.cpf}
+                data-testid={`student-row-${student.cpf}`}
                 style={{ borderLeft: `6px solid ${getBorderColor(student.cpf)}` }}
               >
                 <td></td>
-                <td>{student.name}</td>
-                <td>{student.cpf}</td>
-                <td>{student.email}</td>
+                <td data-testid="student-name">{student.name}</td>
+                <td data-testid="student-cpf">{student.cpf}</td>
+                <td data-testid="student-email">{student.email}</td>
                 <td>
                   <button className="edit-btn" onClick={() => handleEdit(student)}>Edit</button>
-                  <button className="delete-btn" onClick={() => handleDelete(student)}>Delete</button>
+                  <button
+                    className="delete-btn"
+                    data-testid={`delete-student-${student.cpf}`}
+                    onClick={() => handleDelete(student)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}

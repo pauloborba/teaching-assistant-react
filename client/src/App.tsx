@@ -128,7 +128,7 @@ const App: React.FC = () => {
         {error && <div className="error-message"><strong>Error:</strong> {error}</div>}
 
         <div className="tab-navigation">
-          <button className={`tab-button ${activeTab === 'students' ? 'active' : ''}`} onClick={() => setActiveTab('students')}>
+          <button data-testid="students-tab" className={`tab-button ${activeTab === 'students' ? 'active' : ''}`} onClick={() => setActiveTab('students')}>
             Students
           </button>
           <button className={`tab-button ${activeTab === 'evaluations' ? 'active' : ''}`} onClick={() => setActiveTab('evaluations')}>
