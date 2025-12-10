@@ -25,7 +25,7 @@ describe('Service Tests: Question Routes Validation', () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toContain('Answer is required');
+    expect(response.body.error).toContain('Open questions require an answer');
     expect(createQuestionSpy).not.toHaveBeenCalled();
   });
 

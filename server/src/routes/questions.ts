@@ -19,7 +19,9 @@ const parseClosedOptions = (options: unknown): Array<{ option: string; isCorrect
     throw new Error('Options must be an array');
   }
 
-  return options.map((opt, index) => {
+  let hasCorrect = false;
+
+  const parsed = options.map((opt, index) => {
     if (typeof opt !== 'object' || opt === null) {
       throw new Error(`Option at index ${index} must be an object`);
     }
@@ -31,11 +33,21 @@ const parseClosedOptions = (options: unknown): Array<{ option: string; isCorrect
       throw new Error(`Option text at index ${index} must be a string`);
     }
 
+    if (Boolean(optionIsCorrect)) {
+      hasCorrect = true;
+    }
+
     return {
       option: optionText,
       isCorrect: Boolean(optionIsCorrect),
     };
   });
+
+  if (!hasCorrect) {
+    throw new Error('At least one option must be marked as correct');
+  }
+
+  return parsed;
 };
 
 router.get('/', (req: Request, res: Response) => {
