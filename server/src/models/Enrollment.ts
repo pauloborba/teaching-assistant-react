@@ -25,6 +25,16 @@ export class Enrollment {
     return this.student;
   }
 
+  // Calcula a média do estudante antes da prova final
+  calculateMediaPreFinal(): number {
+    throw new Error('calculateMedia() not implemented yet');
+  }
+
+  // Calcula a média do estudante depois da prova final
+  calculateMediaPosFinal(): number {
+    throw new Error('calculateMedia() not implemented yet');
+  }
+
   // Get media do estudante antes da prova final
   getMediaPreFinal(): number{
     return this.mediaPreFinal;

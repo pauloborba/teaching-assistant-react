@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Class } from '../types/Class';
 import ClassService from '../services/ClassService';
 import EnrollmentService from '../services/EnrollmentService';
-
+import InfoButton from './InfoButton';
 import { ImportGradeComponent } from './ImportGrade';
 
 interface EvaluationsProps {
@@ -24,7 +24,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   // Predefined evaluation goals
   const evaluationGoals = [
     'Requirements',
-    'Configuration Management', 
+    'Configuration Management',
     'Project Management',
     'Design',
     'Tests',
@@ -89,6 +89,45 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     return 'discrepancy';
   };
 
+  const compareGoal = (teacherEval: string | null | undefined, selfEval: string | null | undefined): boolean => {
+    // Hierarquia das notas
+    const hierarchy: Record<string, number> = { MA: 3, MPA: 2, MANA: 1 };
+
+    const t = teacherEval && hierarchy[teacherEval] ? hierarchy[teacherEval] : null;
+    const s = selfEval && hierarchy[selfEval] ? hierarchy[selfEval] : null;
+
+    // Sem discrepância se qualquer nota estiver vazia ou inválida
+    if (t === null || s === null) return false;
+
+    return t < s;
+  };
+
+  const getStudentDiscrepancyInfo = (
+    evaluationGoals: string[],
+    studentEvaluations: Record<string, string>,
+    studentSelfEvaluations: Record<string, string>
+  ) => {
+    let total = 0;
+    let discrepant = 0;
+
+    for (const goal of evaluationGoals) {
+      const teacherEval = studentEvaluations[goal] || "";
+      const selfEval = studentSelfEvaluations[goal] || "";
+
+      if (teacherEval || selfEval) {
+        total++;
+        if (compareGoal(teacherEval, selfEval)) discrepant++;
+      }
+    }
+
+    const percentage = total === 0 ? 0 : Math.round((discrepant / total) * 100);
+
+    return {
+      percentage,
+      highlight: percentage > 25
+    };
+  };
+
   if (isLoading) {
     return (
       <div className="evaluation-section">
@@ -103,7 +142,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   return (
     <div className="evaluation-section">
       <h3>Evaluations</h3>
-      
+
       {/* Class Selection */}
       <div className="class-selection-container">
         <label htmlFor="classSelect">Select Class:</label>
@@ -123,10 +162,10 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
       </div>
 
       {!selectedClass && (
-        <div style={{ 
-          padding: '20px', 
-          border: '2px dashed #ccc', 
-          borderRadius: '8px', 
+        <div style={{
+          padding: '20px',
+          border: '2px dashed #ccc',
+          borderRadius: '8px',
           textAlign: 'center',
           color: '#666',
           marginTop: '20px'
@@ -137,10 +176,10 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
       )}
 
       {selectedClass && selectedClass.enrollments.length === 0 && (
-        <div style={{ 
-          padding: '20px', 
-          border: '2px dashed #ccc', 
-          borderRadius: '8px', 
+        <div style={{
+          padding: '20px',
+          border: '2px dashed #ccc',
+          borderRadius: '8px',
           textAlign: 'center',
           color: '#666',
           marginTop: '20px'
@@ -231,19 +270,19 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                 <tbody>
                   {selectedClass.enrollments.map(enrollment => {
                     const student = enrollment.student;
-                    
+
                     // Create a map of evaluations for quick lookup
                     const studentEvaluations = enrollment.evaluations.reduce((acc, evaluation) => {
                       acc[evaluation.goal] = evaluation.grade;
                       return acc;
-                    }, {} as {[goal: string]: string});
+                    }, {} as { [goal: string]: string });
 
                     return (
                       <tr key={student.cpf} className="student-row">
                         <td className="student-name-cell">{student.name}</td>
                         {evaluationGoals.map(goal => {
                           const currentGrade = studentEvaluations[goal] || '';
-                          
+
                           return (
                             <td key={goal} className="evaluation-cell">
                               <select
@@ -282,21 +321,27 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                 <tbody>
                   {selectedClass.enrollments.map(enrollment => {
                     const student = enrollment.student;
-                    
+
                     // Create a map of self-evaluations for quick lookup
+                    const studentEvaluations = enrollment.evaluations.reduce((acc, evaluation) => {
+                      acc[evaluation.goal] = evaluation.grade;
+                      return acc;
+                    }, {} as { [goal: string]: string });
+
                     const studentSelfEvaluations = enrollment.selfEvaluations.reduce((acc, evaluation) => {
                       acc[evaluation.goal] = evaluation.grade;
                       return acc;
-                    }, {} as {[goal: string]: string});
+                    }, {} as { [goal: string]: string });
 
                     return (
                       <tr key={student.cpf} className="student-row">
                         <td className="student-name-cell">{student.name}</td>
                         {evaluationGoals.map(goal => {
                           const currentGrade = studentSelfEvaluations[goal] || '';
-
+                          const evaluationGrade = studentEvaluations[goal] || '';
+                          const hasDiscrepancy = compareGoal(evaluationGrade, currentGrade);
                           const getGradeStyle = (grade: string) => {
-                            switch(grade) {
+                            switch (grade) {
                               case 'MA':
                                 return {
                                   background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
@@ -325,9 +370,13 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                                 };
                             }
                           };
-                          
+
                           return (
                             <td key={goal} className="evaluation-cell">
+                              {hasDiscrepancy && (
+                                  <InfoButton text={"Avaliação do professor foi " + evaluationGrade} />
+                                )
+                              }
                               <span style={{
                                 display: 'inline-block',
                                 padding: '4px 8px',
@@ -378,29 +427,38 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                 <tbody>
                   {selectedClass.enrollments.map(enrollment => {
                     const student = enrollment.student;
-                    
+
                     const studentEvaluations = enrollment.evaluations.reduce((acc, evaluation) => {
                       acc[evaluation.goal] = evaluation.grade;
                       return acc;
-                    }, {} as {[goal: string]: string});
+                    }, {} as { [goal: string]: string });
 
                     const studentSelfEvaluations = enrollment.selfEvaluations.reduce((acc, evaluation) => {
                       acc[evaluation.goal] = evaluation.grade;
                       return acc;
-                    }, {} as {[goal: string]: string});
+                    }, {} as { [goal: string]: string });
+
+                    const { percentage, highlight } = getStudentDiscrepancyInfo(
+                      evaluationGoals,
+                      studentEvaluations,
+                      studentSelfEvaluations
+                    );
 
                     return (
                       <tr key={student.cpf} className="student-row">
                         <td className="student-name-cell" style={{ width: '180px' }}>
-                          {student.name}
+                          {student.name}                          
+                          {highlight && (
+                            <InfoButton text={"Discrepância de " + percentage + "%"} />
+                          )}
                         </td>
                         {evaluationGoals.map(goal => {
                           const evaluation = studentEvaluations[goal] || '';
                           const selfEvaluation = studentSelfEvaluations[goal] || '';
                           const discrepancyClass = getDiscrepancyClass(evaluation, selfEvaluation);
-
+                          const hasDiscrepancy = compareGoal(evaluation, selfEvaluation);
                           const getGradeStyle = (grade: string) => {
-                            switch(grade) {
+                            switch (grade) {
                               case 'MA':
                                 return {
                                   background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
@@ -457,6 +515,9 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                                 backgroundColor: discrepancyClass === 'discrepancy' ? '#fef3c7' : (student.cpf.charCodeAt(0) % 2 === 0 ? '#f0f9ff' : '#ffffff'),
                                 width: '80px'
                               }}>
+                                {hasDiscrepancy && (
+                                  <InfoButton text={"Nota Discrepante"} />
+                                )}
                                 <span style={{
                                   display: 'inline-block',
                                   padding: '4px 8px',
