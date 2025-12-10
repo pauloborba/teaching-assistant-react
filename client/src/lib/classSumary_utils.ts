@@ -14,6 +14,7 @@ interface CategoryStatistics {
   totalStudents: number;
 }
 
+//TALVEZ TENHA COMO TIRAR ESSA INTERFACE PARA SIMPLIFICAR AS DECLARAÇÕES
 interface AnalyticsData {
   discipline: string;
   periodLabel: string;
@@ -31,23 +32,19 @@ export interface ChartDataPoint {
   'REP. F': number;
 }
 
-type StudentCategory = keyof Omit<CategoryStatistics, 'totalStudents'>;
-
-// Extensão do tipo Enrollment para incluir as propriedades de média
-interface EnrollmentWithGrades extends Enrollment {
-  mediaPreFinal?: number;
-  mediaPosFinal?: number;
-  reprovadoPorFalta?: boolean;
+export interface ClassSumaryProps {
+  data: Class[] | null;
+  discipline?: string;
+  selectedPeriodsCount?: number;
+  totalPeriodsCount?: number;
 }
+
+type StudentCategory = keyof Omit<CategoryStatistics, 'totalStudents'>;
 
 // ===========================
 // FUNÇÕES DE CLASSIFICAÇÃO
 // ===========================
 
-/**
- * Classifica um aluno com base nas médias já calculadas
- * Retorna a categoria do aluno ou null se não houver dados válidos
- */
 function classifyStudent(enrollment: Enrollment): StudentCategory | null {
   // Acessar diretamente as propriedades do objeto (vem como JSON plain object)
   const enrollmentData = enrollment as any;
@@ -56,23 +53,13 @@ function classifyStudent(enrollment: Enrollment): StudentCategory | null {
   const mediaPosFinal = enrollmentData.mediaPosFinal ?? 0;
   const mediaPreFinal = enrollmentData.mediaPreFinal ?? 0;
 
-  console.log('🔍 Classificando aluno:', {
-    student: enrollmentData.student?.name || enrollmentData.student?.cpf,
-    mediaPreFinal,
-    mediaPosFinal,
-    reprovadoPorFalta,
-    enrollmentKeys: Object.keys(enrollmentData)
-  });
-
   // 1. Verificar reprovação por falta (prioridade máxima)
   if (reprovadoPorFalta) {
-    console.log('   → REP. F (Falta)');
     return 'failedByAttendance';
   }
 
   // 2. Aprovado pela média (não precisou da prova final)
   if (mediaPreFinal >= 7.0) {
-    console.log('   → APV. M (Média ≥ 7.0)');
     return 'approvedByAverage';
   }
 
@@ -80,32 +67,19 @@ function classifyStudent(enrollment: Enrollment): StudentCategory | null {
   if (mediaPreFinal >= 3.0 && mediaPreFinal < 7.0) {
     // Aprovado pela nota final
     if (mediaPosFinal >= 5.0) {
-      console.log('   → APV. N (Final ≥ 5.0)');
       return 'approvedByGrade';
     }
     // Reprovado pela nota final
-    console.log('   → REP. N (Final < 5.0)');
     return 'failedByGrade';
   }
 
   // 4. Reprovado pela média baixa (média pré-final < 3.0)
-  console.log('   → REP. M (Média < 3.0)');
   return 'failedByAverage';
 }
 
-/**
- * Calcula as estatísticas de desempenho para uma turma
- */
 function calculateClassStatistics(classObj: Class): CategoryStatistics {
   const enrollments = classObj.enrollments || [];
   
-  console.log('📊 Calculando estatísticas para turma:', {
-    topic: classObj.topic,
-    year: classObj.year,
-    semester: classObj.semester,
-    totalEnrollments: enrollments.length
-  });
-
   const stats: CategoryStatistics = {
     approvedByAverage: 0,
     failedByAverage: 0,
@@ -123,7 +97,6 @@ function calculateClassStatistics(classObj: Class): CategoryStatistics {
     }
   });
 
-  console.log('📈 Estatísticas finais:', stats);
   return stats;
 }
 
@@ -131,9 +104,6 @@ function calculateClassStatistics(classObj: Class): CategoryStatistics {
 // FUNÇÕES DE PROCESSAMENTO
 // ===========================
 
-/**
- * Filtra turmas por disciplina
- */
 function filterClassesByDiscipline(
   classes: Class[],
   discipline: string
@@ -143,9 +113,6 @@ function filterClassesByDiscipline(
   );
 }
 
-/**
- * Ordena turmas por ano e semestre
- */
 function sortClassesByPeriod(classes: Class[]): Class[] {
   return [...classes].sort((a, b) => {
     if (a.year !== b.year) {
@@ -155,16 +122,9 @@ function sortClassesByPeriod(classes: Class[]): Class[] {
   });
 }
 
-/**
- * Gera dados de analytics para uma disciplina específica
- */
-export function generateAnalyticsForDiscipline(
-  discipline: string,
-  allClasses: Class[]
+function generateAnalyticsForDiscipline(
+  sortedClasses: Class[]
 ): AnalyticsData[] {
-  const filteredClasses = filterClassesByDiscipline(allClasses, discipline);
-  const sortedClasses = sortClassesByPeriod(filteredClasses);
-
   return sortedClasses.map((classObj) => ({
     discipline: classObj.topic,
     periodLabel: `${classObj.year}.${classObj.semester}`,
@@ -174,12 +134,14 @@ export function generateAnalyticsForDiscipline(
   }));
 }
 
-/**
- * Transforma os dados de analytics para o formato do gráfico
- */
-export function transformToChartData(
-  analyticsData: AnalyticsData[]
+function transformToChartData(
+  discipline: string,
+  allClasses: Class[],
 ): ChartDataPoint[] {
+  const filteredClasses = filterClassesByDiscipline(allClasses, discipline);
+  const sortedClasses = sortClassesByPeriod(filteredClasses);
+  const analyticsData = generateAnalyticsForDiscipline(sortedClasses);
+
   return analyticsData.map((item) => ({
     period: item.periodLabel,
     'APV. M': item.statistics.approvedByAverage,
@@ -189,3 +151,44 @@ export function transformToChartData(
     'REP. F': item.statistics.failedByAttendance,
   }));
 }
+
+// ===============================
+// FUNÇÃO DE PROCESSAMENTO PRINCIPAL
+// ===============================
+
+/**
+ * Processa os dados de analytics para uma disciplina específica
+ * @param discipline - Nome da disciplina
+ * @param data - Array de classes
+ * @returns Dados formatados para o gráfico ou null se não houver dados
+ */
+function processClassAnalytics(
+  discipline: string | undefined,
+  data: Class[] | null | undefined
+): ChartDataPoint[] | null {
+  // Validações iniciais
+  if (!discipline) {
+    //console.warn('⚠️ Disciplina não fornecida');
+    return null;
+  }
+
+  if (!data || data.length === 0) {
+    //console.warn('⚠️ Dados não fornecidos ou vazios');
+    return null;
+  }
+
+  try {
+    // Gerar analytics para a disciplina específica
+    // Transformar para formato do gráfico
+    const transformedData = transformToChartData(discipline, data);
+
+    return transformedData;
+  } catch (err) {
+    //console.error('❌ Erro ao processar analytics:', err);
+    throw new Error('Falha ao processar os dados de analytics');
+  }
+}
+
+export {
+  processClassAnalytics
+};

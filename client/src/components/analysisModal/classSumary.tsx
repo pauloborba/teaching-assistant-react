@@ -10,20 +10,12 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import ClassService from '../services/ClassService';
-import { Class } from '@/src/types/Class';
 import {
-  generateAnalyticsForDiscipline,
-  transformToChartData,
-  ChartDataPoint
-} from '../../lib/StudentsAnalyticsCalculator';
+  ChartDataPoint,
+  ClassSumaryProps,
+  processClassAnalytics
+} from '../../lib/classSumary_utils';
 
-interface ClassSumaryProps {
-  data: Class[] | null;
-  discipline?: string;
-  selectedPeriodsCount?: number;
-  totalPeriodsCount?: number;
-}
 
 /**
  * Componente que exibe o gráfico de analytics para uma disciplina específica.
@@ -36,46 +28,17 @@ const ClassSumary: React.FC<ClassSumaryProps> =
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🔍 ClassSumary - Props recebidas:', { discipline, data });
-    
-    if (!discipline) {
-      console.warn('⚠️ Disciplina não fornecida');
+    try {
+      setLoading(true);
+      setError(null);
+
+      const result = processClassAnalytics(discipline, data);
+      setChartData(result ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao carregar os dados de analytics');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    if (!data || data.length === 0) {
-      console.warn('⚠️ Dados não fornecidos ou vazios');
-      setLoading(false);
-      return;
-    }
-
-    const processData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        console.log('📊 Processando analytics para:', discipline);
-        console.log('📦 Dados recebidos:', data);
-
-        // Gerar analytics para a disciplina específica
-        const analyticsData = generateAnalyticsForDiscipline(discipline, data);
-        console.log('📊 Analytics gerados:', analyticsData);
-
-        // Transformar para formato do gráfico
-        const transformedData = transformToChartData(analyticsData);
-        console.log('📈 Dados transformados para o gráfico:', transformedData);
-
-        setChartData(transformedData);
-      } catch (err) {
-        console.error('❌ Erro ao processar analytics:', err);
-        setError('Falha ao carregar os dados de analytics');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    processData();
   }, [discipline, data]);
 
   // Estado de loading
