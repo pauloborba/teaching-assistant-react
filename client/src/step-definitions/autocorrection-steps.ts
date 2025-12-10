@@ -58,6 +58,14 @@ async function selectExamFromDropdown(examTitle: string) {
   const options = await page.$$('[data-testid^="dropdown-item-"]');
   console.log(`Found ${options.length} dropdown options`);
   
+  // Debug: list all exam names
+  const examNames = [];
+  for (const option of options) {
+    const name = await page.evaluate(el => el.textContent, option);
+    examNames.push(name);
+  }
+  console.log(`Available exams: ${examNames.slice(0, 10).join(', ')}...`);
+  
   const examOption = await page.waitForSelector(`[data-testid="dropdown-item-${examTitle}"]`, { timeout: 10000 });
   if (!examOption) throw new Error(`Exam option "${examTitle}" not found`);
   
@@ -160,6 +168,11 @@ Given('student {string} with cpf {string} has grade {string} for {string} and gr
       );
       selectedExamId = testExam.id.toString();
       testExamCreated = true;
+      
+      // Navigate to exam page so the exam appears in dropdown
+      await page.goto(`${baseUrl}/exam/${encodeURIComponent(classId)}`, { waitUntil: 'networkidle0' });
+      await page.waitForSelector('h1', { timeout: 10000 });
+      await wait(3000);
     }
     
     // Note: In a real test, you would submit student responses via API here
@@ -199,8 +212,15 @@ Given('exam {string} has been corrected', async function (examId: string) {
   await page.waitForSelector('h1', { timeout: 10000 });
   await wait(5000);
   
-  // Select the exam
-  await selectExamFromDropdown('Test Exam with Grades');
+  // Select the exam - use retry with longer wait
+  try {
+    await selectExamFromDropdown('Test Exam with Grades');
+  } catch (error) {
+    console.error('Failed to select exam, trying reload with longer wait...');
+    await page.reload({ waitUntil: 'networkidle0' });
+    await wait(8000); // Longer wait after reload
+    await selectExamFromDropdown('Test Exam with Grades');
+  }
 });
 
 Given('exam {string} has no students who answered it', async function (examId: string) {
@@ -287,8 +307,15 @@ Given('exam {string} was already corrected', async function (examId: string) {
   await page.waitForSelector('h1', { timeout: 10000 });
   await wait(5000);
   
-  // Select the exam
-  await selectExamFromDropdown('Already Corrected Exam');
+  // Select the exam with retry
+  try {
+    await selectExamFromDropdown('Already Corrected Exam');
+  } catch (error) {
+    console.error('Failed to select exam, reloading page...');
+    await page.reload({ waitUntil: 'networkidle0' });
+    await wait(8000);
+    await selectExamFromDropdown('Already Corrected Exam');
+  }
 });
 
 /* ============================================================
@@ -326,31 +353,36 @@ When('the teacher select the {string} option', async function (buttonText: strin
 When('the teacher opens the corrections view modal', async function () {
   await wait(2000); // Wait for page to stabilize
   
-  // Find and click the view corrections button by text
-  const buttons = await page.$$('button');
-  let viewButton = null;
-  
-  console.log('Looking for corrections view button...');
-  for (const button of buttons) {
-    const text = await page.evaluate(el => el.textContent, button);
-    if (text?.includes('Visualizar Correções') || text?.includes('Correções')) {
-      const isDisabled = await page.evaluate(el => el.disabled, button);
-      console.log(`Found button: "${text}", disabled: ${isDisabled}`);
-      if (!isDisabled) {
-        viewButton = button;
-        break;
+  // Helper function to find and click button
+  const findAndClickViewButton = async () => {
+    const buttons = await page.$$('button');
+    let viewButton = null;
+    
+    console.log('Looking for corrections view button...');
+    for (const button of buttons) {
+      const text = await page.evaluate(el => el.textContent, button);
+      if (text?.includes('Visualizar Correções') || text?.includes('Correções')) {
+        const isDisabled = await page.evaluate(el => el.disabled, button);
+        console.log(`Found button: "${text}", disabled: ${isDisabled}`);
+        if (!isDisabled) {
+          viewButton = button;
+          break;
+        }
       }
     }
-  }
+    
+    if (!viewButton) {
+      const bodyText = await page.evaluate(() => document.body.innerText);
+      console.log('Available buttons:', bodyText.substring(0, 500));
+      throw new Error('Could not find enabled corrections view button. Make sure an exam is selected.');
+    }
+    
+    console.log('Clicking view corrections button...');
+    await viewButton.click();
+  };
   
-  if (!viewButton) {
-    const bodyText = await page.evaluate(() => document.body.innerText);
-    console.log('Available buttons:', bodyText.substring(0, 500));
-    throw new Error('Could not find enabled corrections view button. Make sure an exam is selected.');
-  }
-  
-  console.log('Clicking view corrections button...');
-  await viewButton.click();
+  // Click button
+  await findAndClickViewButton();
   
   // Wait for modal to appear - use correct selector, with retry
   await wait(3000);
@@ -363,8 +395,10 @@ When('the teacher opens the corrections view modal', async function () {
     const bodyText = await page.evaluate(() => document.body.innerText.substring(0, 500));
     console.log('Body snapshot:', bodyText);
     await page.screenshot({ path: '/tmp/modal-retry.png' });
-    // Try clicking again and wait longer
-    await viewButton.click();
+    
+    // Wait longer and try clicking again
+    await wait(3000);
+    await findAndClickViewButton();
     await wait(4000);
     await page.waitForSelector('[data-testid="modal-overlay"], [data-testid="modal-container"]', { timeout: 8000 });
     console.log('✓ Corrections modal opened successfully after retry');
@@ -372,6 +406,8 @@ When('the teacher opens the corrections view modal', async function () {
 });
 
 When('the teacher tries to correct exam {string} again', async function (examId: string) {
+  await wait(2000); // Wait for page to stabilize
+  
   // Find and click the 'Corrigir Fechadas' button again
   const buttons = await page.$$('button');
   let correctionButton = null;
@@ -379,15 +415,19 @@ When('the teacher tries to correct exam {string} again', async function (examId:
   for (const button of buttons) {
     const text = await page.evaluate(el => el.textContent, button);
     if (text?.includes('Corrigir Fechadas')) {
+      const isDisabled = await page.evaluate(el => el.disabled, button);
+      console.log(`Found correction button, disabled: ${isDisabled}`);
       correctionButton = button;
       break;
     }
   }
   
-  if (correctionButton) {
-    await correctionButton.click();
-    await wait(2000);
+  if (!correctionButton) {
+    throw new Error('Correction button not found');
   }
+  
+  await correctionButton.click();
+  await wait(3000); // Wait longer for response
 });
 
 /* ============================================================
