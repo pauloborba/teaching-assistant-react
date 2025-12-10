@@ -47,21 +47,28 @@ export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, stud
   });
 
   // GET /api/scriptanswers/enrollment?classId=X&studentId=Y  → Answers for a enrollment (student in class)
-  app.get(scriptAnswerurl+'enrollment', (req: Request, res: Response) => {
-    const { classId, studentId } = req.query; //retorna tipo generico (especificar tipo depois)
+  app.get('/api/scriptanswers/enrollment', (req: Request, res: Response) => {
+    const { classId, studentId } = req.query;
+    
     if (!classId || !studentId) {
       return res.status(400).json({ error: 'classId and studentId are required' });
     }
-    const classe = classes.findClassById(classId as string);
+    
+    const classIdStr = classId as string;
+    const studentIdStr = studentId as string;
+    
+    const classe = classes.findClassById(classIdStr);
     if (!classe) {
       return res.status(404).json({ error: 'Class not found' });
     }
-    const student = studentSet.findStudentByCPF(studentId as string);
+    
+    const cleanedStudentId = studentIdStr.replace(/[.-]/g, '');
+    const student = studentSet.findStudentByCPF(cleanedStudentId);
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    const answers = scriptAnswerSet.findByClassAndStudent(classId as string, studentId as string);
+    const answers = scriptAnswerSet.findByClassAndStudent(classIdStr, cleanedStudentId);
     return res.status(200).json(answers.map((a: any) => a.toJSON()));
   });
 
@@ -94,20 +101,8 @@ export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, stud
     return res.status(200).json({ taskId, grade: task.getGrade() });
   });
 
-  // POST /api/scriptanswers → create a scriptanswer (obsoleto)
-
-  // app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
-  //   try {
-  //     const newAnswer = scriptAnswerSet.addScriptAnswer(req.body);
-  //     res.status(201).json(newAnswer.toJSON());
-  //   } catch (error) {
-  //     res.status(400).json({ error: (error as Error).message });
-  //   }
-  // });
-
   // POST /api/scriptanswers → create a script answer
-
-app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
+  app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
   try {
     const { id, scriptId, classId, studentId } = req.body;
     if (!scriptId || !classId || !studentId) {
@@ -115,21 +110,23 @@ app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
     }
     const script = scripts.findById(scriptId);
     if (!script) {
-      return res.status(404).json({ error: 'Script not found' });
+      return res.status(401).json({ error: 'Script not found' });
     }
     const classe = classes.findClassById(classId);
     if (!classe) {
-      return res.status(404).json({ error: 'Class not found' });
+      return res.status(401).json({ error: 'Class not found' });
     }
-    const student = studentSet.findStudentByCPF(studentId);
+    // Clean CPF before searching
+    const cleanedStudentId = studentId.replace(/[.-]/g, '');
+    const student = studentSet.findStudentByCPF(cleanedStudentId);
     if (!student) {
-      return res.status(404).json({ error: 'Student not found' });
+      return res.status(401).json({ error: 'Student not found' });
     }
-    const enrollment = classe.findEnrollmentByStudentCPF(studentId);
+    const enrollment = classe.findEnrollmentByStudentCPF(cleanedStudentId);
     if (!enrollment) {
       return res.status(403).json({ error: 'Student is not enrolled in this class' });
     }
-    const existing = scriptAnswerSet.findByClassAndStudent(classId, studentId).find((sa: any) => sa.getScriptId() === scriptId);
+    const existing = scriptAnswerSet.findByClassAndStudent(classId, cleanedStudentId).find((sa: any) => sa.getScriptId() === scriptId);
     if (existing) {
       return res.status(409).json({ 
         error: 'ScriptAnswer already exists',
@@ -140,7 +137,7 @@ app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
       id,
       scriptId,
       classId,
-      studentId,
+      studentId: cleanedStudentId,
       classes, studentSet, scripts
     });
     saveCallback?.();

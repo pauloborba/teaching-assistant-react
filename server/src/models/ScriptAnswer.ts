@@ -129,7 +129,7 @@ export class ScriptAnswer {
     this.status = 'finished';
   }
 
-  checkAndMarkIfTimedOut(timeoutSeconds: number = 3600) {
+  checkAndMarkIfTimedOut(timeoutSeconds: number) {
     if (this.status === 'finished') return; // já finalizou
     const elapsed = (Date.now() - (this.started_at || 0)) / 1000;
     if (elapsed > timeoutSeconds) {
