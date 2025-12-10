@@ -1,4 +1,4 @@
-import { Given, Then } from '@cucumber/cucumber';
+import { Given, Then, After } from '@cucumber/cucumber';
 import expect from 'expect';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,6 +6,19 @@ import { fileURLToPath } from 'url';
 // Para substituir __dirname em módulos ES
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Backend base URL and default class id to clean up
+const serverUrl = 'http://localhost:3005';
+const DEFAULT_CLASS_ID = 'Engenharia de Software e Sistemas-2025-1';
+
+// Minimal helper for DELETE requests
+async function apiDelete(pathname: string) {
+  const res = await fetch(`${serverUrl}${pathname}`, { method: 'DELETE' });
+  // Accept 204 No Content as success; ignore 404 during cleanup
+  if (!res.ok && res.status !== 204 && res.status !== 404) {
+    throw new Error(`DELETE ${pathname} -> ${res.status}`);
+  }
+}
 
 // Steps específicos para a feature de importação de roteiros
 // Os steps comuns são reutilizados do import-grade-steps.ts
@@ -129,4 +142,13 @@ Then('as notas dos roteiros devem ser importadas com sucesso', async function ()
   const isInValidScreen = hasUploadHeading || hasMappingH1 || hasMappingH2 || hasEvaluationsHeading;
   
   expect(isInValidScreen).toBe(true);
+});
+
+// Cleanup: remove the default class after roteiros scenarios to avoid leftover data
+After({ tags: '@import-grade-roteiro' }, async function () {
+  try {
+    await apiDelete(`/api/classes/${DEFAULT_CLASS_ID}`);
+  } catch (e) {
+    // console.warn('Falha ao remover turma padrão após teste de roteiros:', e);
+  }
 });

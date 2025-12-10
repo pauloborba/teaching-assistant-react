@@ -1,8 +1,14 @@
+// Cucumber core APIs for BDD steps and lifecycle hooks
 import { Given, When, Then, Before, After, DataTable, setDefaultTimeout } from '@cucumber/cucumber';
 import { Browser, Page, launch } from 'puppeteer';
 import expect from 'expect';
+// Node.js path and URL helpers (ESM-friendly __dirname)
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+// Node.js utilities to read CSVs from test fixtures
+import * as fs from 'fs';
+import * as fsp from 'fs/promises';
+import * as readline from 'readline';
 
 // Para substituir __dirname em módulos ES
 const __filename = fileURLToPath(import.meta.url);
@@ -13,13 +19,49 @@ setDefaultTimeout(60 * 1000); // 60 seconds for file operations
 
 let browser: Browser;
 let page: Page;
+// Frontend and backend base URLs
 const baseUrl = 'http://localhost:3004';
+const serverUrl = 'http://localhost:3005';
 
 // Test data
+// Default class under test; can be overridden by steps
 let testClassId: string = 'Engenharia de Software e Sistemas-2025-1';
+let seededCpfs: string[] = [];
+let createdClassId: string | null = null;
 
 // Antes de cada cenário - abre novo browser
+// Test setup: ensure system state using backend services, without UI interaction
 Before({ tags: '@import-grade or @import-grade-roteiro' }, async function () {
+  // Prepare system state via server services:
+  // - Ensure class exists
+  // - Seed students from CSV CPFs found in server test files
+  // - Enroll seeded students into class
+  try {
+    // Ensure class exists
+    createdClassId = await ensureClassExists(testClassId);
+
+    // Read CPFs from test CSVs
+    const cpfs = await collectCpfsFromTestCSVs();
+    // Seed students
+    for (const cpf of cpfs) {
+      const ok = await ensureStudentExists({
+        name: `Aluno ${cpf.slice(-4)}`,
+        cpf,
+        email: `aluno${cpf.slice(-4)}@example.com`
+      });
+      if (ok) seededCpfs.push(cpf);
+    }
+
+    // Enroll students into class
+    if (createdClassId) {
+      for (const cpf of cpfs) {
+        await ensureEnrollment(createdClassId, cpf);
+      }
+    }
+  } catch (e) {
+    // console.error('Seeding via services failed', e);
+  }
+
   browser = await launch({ 
     headless: false, // Set to true for CI/CD
     slowMo: 50 // Slow down actions for visibility
@@ -33,9 +75,31 @@ Before({ tags: '@import-grade or @import-grade-roteiro' }, async function () {
 });
 
 // Após cada cenário - fecha o browser
+// Test cleanup: remove enrollments and seeded students via backend services
 After({ tags: '@import-grade or @import-grade-roteiro' }, async function () {
   if (browser) {
     await browser.close();
+  }
+
+  // Cleanup stubbed state via services
+  try {
+    if (createdClassId) {
+      // Remove enrollments
+      for (const cpf of seededCpfs) {
+        await apiDelete(`/api/classes/${createdClassId}/enroll/${cpf}`);
+      }
+      // Optionally delete the class (only if it was created by us and matches default)
+      // Keep the class to avoid affecting other tests unless explicitly needed.
+    }
+    // Remove seeded students
+    for (const cpf of seededCpfs) {
+      await apiDelete(`/api/students/${cpf}`);
+    }
+  } catch (e) {
+    // console.error('Cleanup via services failed', e);
+  } finally {
+    seededCpfs = [];
+    createdClassId = null;
   }
 });
 
@@ -75,6 +139,29 @@ Given('selecionei a turma {string}', async function (className: string) {
   testClassId = className;
   
   // console.log(`Selecionando turma: ${className}...`);
+  // Ensure class exists and enroll students via backend services
+  try {
+    createdClassId = await ensureClassExists(testClassId);
+    // If we haven't seeded yet (e.g., this step runs before Before hook work completes), do minimal seeding
+    if (seededCpfs.length === 0) {
+      const cpfs = await collectCpfsFromTestCSVs();
+      for (const cpf of cpfs) {
+        const ok = await ensureStudentExists({
+          name: `Aluno ${cpf.slice(-4)}`,
+          cpf,
+          email: `aluno${cpf.slice(-4)}@example.com`
+        });
+        if (ok) seededCpfs.push(cpf);
+      }
+    }
+    if (createdClassId) {
+      for (const cpf of seededCpfs) {
+        await ensureEnrollment(createdClassId, cpf);
+      }
+    }
+  } catch (e) {
+    // console.error('Falha ao garantir turma/alunos/inscrições', e);
+  }
   
   // Esperar pelo dropdown de seleção de turma
   await page.waitForSelector('#classSelect', { timeout: 10000 });
@@ -433,3 +520,120 @@ Then('o mapeamento deve ser limpo', async function () {
   
   // console.log('Mapeamento foi limpo');
 });
+
+// ===== Helpers: server API calls and CSV collection =====
+// Thin wrappers over backend endpoints to avoid flaky UI paths.
+async function apiGet(pathname: string) {
+  const res = await fetch(`${serverUrl}${pathname}`);
+  return res.ok ? res.json() : Promise.reject(new Error(`GET ${pathname} -> ${res.status}`));
+}
+
+async function apiPost(pathname: string, body: any) {
+  const res = await fetch(`${serverUrl}${pathname}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`POST ${pathname} -> ${res.status}`);
+  return res.json();
+}
+
+async function apiDelete(pathname: string) {
+  const res = await fetch(`${serverUrl}${pathname}`, { method: 'DELETE' });
+  if (!res.ok && res.status !== 204) throw new Error(`DELETE ${pathname} -> ${res.status}`);
+}
+
+// Parse a CSV line with simple quote-handling and comma separation
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') { current += '"'; i++; }
+        else { inQuotes = false; }
+      } else { current += ch; }
+    } else {
+      if (ch === ',') { result.push(current); current = ''; }
+      else if (ch === '"') { inQuotes = true; }
+      else { current += ch; }
+    }
+  }
+  result.push(current);
+  return result.map(s => s.trim());
+}
+
+// Extract only digits and normalize to 11-digit CPF
+function sanitizeCpf(value: string): string | null {
+  const digits = (value || '').replace(/\D/g, '');
+  if (digits.length >= 11) return digits.slice(0, 11);
+  return null;
+}
+
+// Scan fixture CSVs to collect CPFs (column named 'cpf' or any 11+ digit field)
+async function collectCpfsFromTestCSVs(): Promise<string[]> {
+  const testsDir = path.resolve(__dirname, '../../../server/src/__tests__/tests_files');
+  const cpfs = new Set<string>();
+  if (!fs.existsSync(testsDir)) return [];
+  const files = await fsp.readdir(testsDir);
+  for (const file of files) {
+    if (!file.endsWith('.csv')) continue;
+    const filePath = path.join(testsDir, file);
+    const stream = fs.createReadStream(filePath);
+    const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
+    let headers: string[] | null = null;
+    for await (const line of rl) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      const cols = parseCsvLine(trimmed);
+      if (!headers) { headers = cols.map(c => c.toLowerCase()); continue; }
+      const idxCpf = headers.findIndex(h => h.includes('cpf'));
+      if (idxCpf >= 0 && cols[idxCpf]) {
+        const v = sanitizeCpf(cols[idxCpf]);
+        if (v) cpfs.add(v);
+      } else {
+        for (const c of cols) { const v = sanitizeCpf(c); if (v) { cpfs.add(v); break; } }
+      }
+    }
+    rl.close();
+    stream.close();
+  }
+  return Array.from(cpfs);
+}
+
+// Idempotently create a student if not present
+async function ensureStudentExists(student: { name: string; cpf: string; email: string }): Promise<boolean> {
+  try {
+    const cleaned = sanitizeCpf(student.cpf)!;
+    const existing = await fetch(`${serverUrl}/api/students/${cleaned}`);
+    if (existing.ok) return false; // already exists
+  } catch {}
+  try {
+    await apiPost('/api/students', student);
+    return true;
+  } catch { return false; }
+}
+
+// Idempotently create a class if not present
+async function ensureClassExists(classId: string): Promise<string> {
+  const [topic, yearStr, semesterStr] = classId.split('-');
+  const year = Number(yearStr);
+  const semester = Number(semesterStr);
+  const classesRes = await apiGet('/api/classes');
+  const exists = (classesRes as any[]).find(c => c.id === classId);
+  if (exists) return classId;
+  const created = await apiPost('/api/classes', { topic, year, semester });
+  return created.id;
+}
+
+// Idempotently enroll a student in the class
+async function ensureEnrollment(classId: string, cpf: string): Promise<void> {
+  try {
+    const enrollments = await apiGet(`/api/classes/${classId}/enrollments`);
+    const found = (enrollments as any[]).find(e => (e.student?.cpf || e.studentCPF)?.replace(/\D/g, '') === cpf.replace(/\D/g, ''));
+    if (found) return;
+  } catch {}
+  await apiPost(`/api/classes/${classId}/enroll`, { studentCPF: cpf });
+}
