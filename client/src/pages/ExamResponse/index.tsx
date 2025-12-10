@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ResponseService from '../../services/ResponseService';
 import Header from '../../components/Header';
 import CustomButton from '../../components/CustomButton';
+import './ExamResponse.css';
 
 export default function ExamResponse({ examId: propExamId = undefined as any } : { examId?: number | string }) {
   const [questions, setQuestions] = useState<any[]>([]);
@@ -82,51 +83,98 @@ export default function ExamResponse({ examId: propExamId = undefined as any } :
   };
 
   return (
-    <div style={{ padding: 16 }}>
+    <div className="exam-response-page">
       <Header />
-      <h2>Responder Prova {loadedExamId ? `(Exame ${String(loadedExamId)})` : ''}</h2>
-      <div style={{ marginBottom: 12 }}>
-        <label>ID da prova:</label>
-        <input value={examId ?? ''} onChange={e => setExamId(e.target.value)} placeholder="ID da prova" />
-        <button style={{ marginLeft: 8 }} onClick={handleLoadExam}>Carregar Prova</button>
-      </div>
 
-      {loading && <div>Carregando questões...</div>}
-
-      <div style={{ marginBottom: 12 }}>
-        <label>CPF do aluno:</label>
-        <input value={studentCpf} onChange={e => setStudentCpf(e.target.value)} placeholder="000.000.000-00" />
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {questions.map(q => (
-          <div key={q.id} style={{ padding: 8, border: '1px solid #ddd' }}>
-            <div style={{ fontWeight: 600 }}>{q.question}</div>
-            {q.type === 'closed' && Array.isArray(q.options) ? (
-              q.options.map((opt: any) => (
-                <label key={opt.id} style={{ display: 'block' }}>
-                  <input
-                    type="radio"
-                    name={`q-${q.id}`}
-                    value={opt.id}
-                    checked={String(answers[q.id]) === String(opt.id)}
-                    onChange={() => handleChange(q.id, String(opt.id))}
-                  />{' '}
-                  {opt.option}
-                </label>
-              ))
+      <div className="exam-response-container">
+        <div className="page-header">
+          <div className="page-title">
+            <h2>Responder Prova</h2>
+            {loadedExamId ? (
+              <span className="pill">Exame {String(loadedExamId)}</span>
             ) : (
-              <textarea value={answers[q.id] ?? ''} onChange={e => handleChange(q.id, e.target.value)} />
+              <span className="muted">Informe o ID da prova para carregar.</span>
             )}
           </div>
-        ))}
-      </div>
+          {loading && <div className="status-chip">Carregando questões...</div>}
+        </div>
 
-      <div style={{ marginTop: 12 }}>
-        <CustomButton label="Enviar respostas" onClick={handleSubmit} />
-      </div>
+        <div className="card">
+          <div className="field-row">
+            <div className="field">
+              <label>ID da prova</label>
+              <input
+                className="text-input"
+                value={examId ?? ''}
+                onChange={e => setExamId(e.target.value)}
+                placeholder="ID da prova"
+              />
+            </div>
+            <button className="ghost-button" type="button" onClick={handleLoadExam}>
+              Carregar Prova
+            </button>
+          </div>
 
-      {message && <div style={{ marginTop: 12 }}>{message}</div>}
+          <div className="field">
+            <label>CPF do aluno</label>
+            <input
+              className="text-input"
+              value={studentCpf}
+              onChange={e => setStudentCpf(e.target.value)}
+              placeholder="000.000.000-00"
+            />
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-header">
+            <h3>Questões</h3>
+            {loadedExamId && <span className="muted">Prova carregada: {String(loadedExamId)}</span>}
+          </div>
+
+          <div className="questions-list">
+            {questions.map(q => (
+              <div key={q.id} className="question-item">
+                <div className="question-title">{q.question}</div>
+                {q.type === 'closed' && Array.isArray(q.options) ? (
+                  <div className="radio-group">
+                    {q.options.map((opt: any) => (
+                      <label key={opt.id} className="radio-option">
+                        <input
+                          type="radio"
+                          name={`q-${q.id}`}
+                          value={opt.id}
+                          checked={String(answers[q.id]) === String(opt.id)}
+                          onChange={() => handleChange(q.id, String(opt.id))}
+                        />
+                        <span>{opt.option}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <textarea
+                    className="text-area"
+                    value={answers[q.id] ?? ''}
+                    onChange={e => handleChange(q.id, e.target.value)}
+                  />
+                )}
+              </div>
+            ))}
+
+            {!questions.length && (
+              <div className="empty-state">
+                Carregue uma prova para visualizar e responder as questões.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="actions-row">
+          <CustomButton label="Enviar respostas" onClick={handleSubmit} />
+        </div>
+
+        {message && <div className="feedback-message">{message}</div>}
+      </div>
     </div>
   );
 }
