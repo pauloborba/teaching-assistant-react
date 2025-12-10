@@ -16,7 +16,7 @@ A full-stack TypeScript application for managing students with a React frontend 
 ## Project Structure
 
 ```
-teaching-assistant-import-students/
+teaching-assistant-react/
 ├── client/                 # React TypeScript frontend
 │   ├── src/
 │   │   ├── components/     # React components
