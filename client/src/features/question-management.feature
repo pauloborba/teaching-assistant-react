@@ -29,7 +29,6 @@ Feature: Question Management
       | type       | closed                            |
       | option1    | TBD                               |
       | option2    | TDD                               |
-      | option3    | DDT                               |
       | correct    | 2                                 |
     And I submit the question form
     Then I should see "Qual é a sigla de Test-Driven Development?" in the question bank list
