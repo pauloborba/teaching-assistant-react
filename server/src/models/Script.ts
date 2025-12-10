@@ -13,6 +13,10 @@ export class Script {
     this.tasks = tasks || [];
   }
 
+  getTasks(): Task[] {
+    return this.tasks;
+  }
+
   getId(): string {
     return this.id;
   }

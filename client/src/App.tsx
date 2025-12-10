@@ -243,7 +243,7 @@ const App: React.FC = () => {
             <ScriptsPage onError={handleError} />
           )}
 
-          {activeTab == 'Script Grading' && (
+          {activeTab === 'Script Grading' && (
             <GradingPage onError={handleError} />
           )}
 
