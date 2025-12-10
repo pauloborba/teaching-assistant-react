@@ -12,7 +12,7 @@ Feature: Data Persistence & Consistency
   @write-read
   Scenario: New student enrollment updates the report total
     Given the class "Integration-101" has exactly "2" existing students
-    When I enroll a new student with CPF "999.999.999-01"
+    When I enroll a new student with CPF "999.999.999-99"
     And I request the report for "Integration-101"
     Then the "totalEnrolled" count should be 3
 
@@ -32,8 +32,12 @@ Feature: Data Persistence & Consistency
   Scenario: Updating a grade changes the calculated status
     Given the class "Integration-101" has a student "Grade Tester"
     And "Grade Tester" has the grades:
-      | Requirements | MA    |
-      | Design       | MANA  |    
+      | Requirements              | MA   |
+      | Configuration Management  | MA   |
+      | Project Management        | MA   |
+      | Design                    | MANA |
+      | Tests                     | MA   |
+      | Refactoring               | MA   |
     When I update "Grade Tester" grade for "Design" to "MA"
     And I request the report for "Integration-101"    
     Then "Grade Tester" should have status "APPROVED"

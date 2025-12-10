@@ -66,9 +66,18 @@ async function createStudent(name: string, cpf: string): Promise<void> {
   const normalizedCPF = normalizeCPF(cpf);
   const email = `${name.toLowerCase().replace(/\s+/g, '.')}@test.com`;
   
-  await request(app)
+  const res = await request(app)
     .post('/api/students')
     .send({ name, cpf: normalizedCPF, email });
+  
+  if (res.status !== 201) {
+    if (res.status === 400 && res.body.error && res.body.error.includes('already exists')) {
+      // Student already exists, that's okay
+    } else {
+      throw new Error(`Failed to create student: ${res.status} ${JSON.stringify(res.body)}`);
+    }
+  }
+  
   createdStudentCPFs.push(normalizedCPF);
   studentNameToCPF[name] = normalizedCPF;
 }
@@ -76,9 +85,13 @@ async function createStudent(name: string, cpf: string): Promise<void> {
 async function enrollStudent(cpf: string): Promise<void> {
   if (!currentClassId) throw new Error('No class ID');
   const normalizedCPF = normalizeCPF(cpf);
-  await request(app)
+  const res = await request(app)
     .post(`/api/classes/${currentClassId}/enroll`)
     .send({ studentCPF: normalizedCPF });
+  
+  if (res.status !== 201 && res.status !== 400) {
+    throw new Error(`Failed to enroll student ${normalizedCPF}: ${res.status} ${JSON.stringify(res.body)}`);
+  }
 }
 
 async function unenrollStudent(cpf: string): Promise<void> {
@@ -91,9 +104,13 @@ async function unenrollStudent(cpf: string): Promise<void> {
 async function addGrade(cpf: string, goal: string, grade: string): Promise<void> {
   if (!currentClassId) throw new Error('No class ID');
   const normalizedCPF = normalizeCPF(cpf);
-  await request(app)
+  const res = await request(app)
     .put(`/api/classes/${currentClassId}/enrollments/${normalizedCPF}/evaluation`)
     .send({ goal, grade });
+  
+  if (res.status !== 200) {
+    throw new Error(`Failed to add grade: ${res.status} ${JSON.stringify(res.body)}`);
+  }
 }
 
 async function addCompleteGrades(cpf: string): Promise<void> {
@@ -128,7 +145,7 @@ Given('the class {string} has exactly {string} existing students', async functio
   const studentCount = parseInt(count, 10);
   
   for (let i = 1; i <= studentCount; i++) {
-    const cpf = `9999999900${i.toString().padStart(2, '0')}`;
+    const cpf = `999999999${i.toString().padStart(2, '0')}`;
     await createStudent(`Existing Student ${i}`, cpf);
     await enrollStudent(cpf);
   }
@@ -144,7 +161,7 @@ Given('the class {string} has the following students:', async function (classNam
 });
 
 Given('the class {string} has a student {string}', async function (className: string, studentName: string) {
-  const cpf = `8888888800${createdStudentCPFs.length + 1}`;
+  const cpf = `88888888${(createdStudentCPFs.length + 1).toString().padStart(3, '0')}`;
   await createStudent(studentName, cpf);
   await enrollStudent(cpf);
 });
@@ -153,14 +170,15 @@ Given('{string} has the grades:', async function (studentName: string, dataTable
   const cpf = studentNameToCPF[studentName];
   if (!cpf) throw new Error(`Student ${studentName} not found`);
   
-  const rows = dataTable.hashes();
+  const rows = dataTable.raw();
+  
   for (const row of rows) {
-    // Handle row format like: | Requirements | MA |
-    const keys = Object.keys(row);
-    if (keys.length >= 2) {
-      const goal = keys[0];
-      const grade = row[goal];
-      await addGrade(cpf, goal, grade);
+    if (row.length >= 2) {
+      const goal = row[0].trim();
+      const grade = row[1].trim();
+      if (goal && grade) {
+        await addGrade(cpf, goal, grade);
+      }
     }
   }
 });

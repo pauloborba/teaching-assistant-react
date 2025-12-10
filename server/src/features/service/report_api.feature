@@ -24,10 +24,10 @@ Feature: Class Report API
   @logic @calculation
   Scenario: Aggregation logic correctly counts statuses
     Given the repository returns a class "Math-101" with:
-      | Name    | Grades           | Expected Status |
-      | Alice   | MA, MA, MA       | APPROVED        |
-      | Bob     | MANA, MANA, MANA | FAILED          |
-      | Charlie | MPA              | PENDING         |
+      | Name    | Grades                                | Expected Status |
+      | Alice   | MA, MA, MA, MA, MA, MA                | APPROVED        |
+      | Bob     | MANA, MANA, MANA, MANA, MANA, MANA    | FAILED          |
+      | Charlie | MPA, MPA, MPA                         | PENDING         |
     When I request the report for class "Math-101"
     Then the response status should be 200
     And the aggregated statistics should be:

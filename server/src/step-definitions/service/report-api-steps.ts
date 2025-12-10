@@ -1,13 +1,3 @@
-/**
- * Service Test Step Definitions for Report API
- * 
- * Layer: Service Tests (Middle of Testing Pyramid)
- * Context: Tests API Controller and HTTP responses
- * 
- * Uses supertest for fast HTTP testing without browser automation.
- * Data is created via API calls and cleaned up after each test.
- */
-
 import { Given, When, Then, Before, After, DataTable, setDefaultTimeout } from '@cucumber/cucumber';
 import request from 'supertest';
 import expect from 'expect';
@@ -15,17 +5,11 @@ import { app } from '../../server';
 
 setDefaultTimeout(30 * 1000);
 
-// =============================================================================
-// Test State
-// =============================================================================
-
 let response: request.Response;
 let currentClassId: string | null = null;
 let createdStudentCPFs: string[] = [];
 
-// =============================================================================
 // Hooks
-// =============================================================================
 
 Before({ tags: '@service' }, async function () {
   currentClassId = null;
@@ -33,53 +17,44 @@ Before({ tags: '@service' }, async function () {
 });
 
 After({ tags: '@service' }, async function () {
-  // Cleanup: Delete created students
   for (const cpf of createdStudentCPFs) {
-    try {
-      await request(app).delete(`/api/students/${cpf}`);
-    } catch (e) {
-      console.log(`Cleanup: Failed to delete student ${cpf}`);
-    }
+    await request(app).delete(`/api/students/${cpf}`).catch(() => {});
   }
-  
-  // Cleanup: Delete created class
   if (currentClassId) {
-    try {
-      await request(app).delete(`/api/classes/${currentClassId}`);
-    } catch (e) {
-      console.log(`Cleanup: Failed to delete class ${currentClassId}`);
-    }
+    await request(app).delete(`/api/classes/${currentClassId}`).catch(() => {});
   }
 });
 
-// =============================================================================
 // Helper Functions
-// =============================================================================
 
 async function createClass(topic: string): Promise<string> {
   const res = await request(app)
     .post('/api/classes')
-    .send({
-      topic,
-      semester: 1,
-      year: 2025
-    });
-  
+    .send({ topic, semester: 1, year: 2025 });
   currentClassId = res.body.id;
   return currentClassId!;
 }
 
 async function createStudent(name: string, cpf: string): Promise<void> {
-  await request(app)
+  const res = await request(app)
     .post('/api/students')
     .send({ name, cpf, email: `${name.toLowerCase().replace(/\s+/g, '.')}@test.com` });
+  
+  if (res.status !== 201 && res.status !== 400) {
+    throw new Error(`Failed to create student: ${res.status} ${JSON.stringify(res.body)}`);
+  }
+  
   createdStudentCPFs.push(cpf);
 }
 
 async function enrollStudent(classId: string, cpf: string): Promise<void> {
-  await request(app)
+  const res = await request(app)
     .post(`/api/classes/${classId}/enroll`)
     .send({ studentCPF: cpf });
+  
+  if (res.status !== 201 && res.status !== 400) {
+    throw new Error(`Failed to enroll student: ${res.status} ${JSON.stringify(res.body)}`);
+  }
 }
 
 async function addGrade(classId: string, cpf: string, goal: string, grade: string): Promise<void> {
@@ -97,9 +72,7 @@ async function addAllGradesForStudent(classId: string, cpf: string, grades: stri
   }
 }
 
-// =============================================================================
-// GIVEN Steps
-// =============================================================================
+// Given Steps
 
 Given('the API Controller is ready', async function () {
   const res = await request(app).get('/api/students');
@@ -108,7 +81,6 @@ Given('the API Controller is ready', async function () {
 
 Given('a class exists with ID {string} containing students', async function (topic: string) {
   const classId = await createClass(topic);
-  
   await createStudent('Test Student 1', '99999999901');
   await enrollStudent(classId, '99999999901');
   await addGrade(classId, '99999999901', 'Requirements', 'MA');
@@ -126,18 +98,18 @@ Given('the repository returns a class {string} with:', async function (topic: st
     await createStudent(row.Name, cpf);
     await enrollStudent(classId, cpf);
     
-    // Parse grades from the row
     const gradesStr = row.Grades || '';
     const grades = gradesStr.split(',').map((g: string) => g.trim()).filter((g: string) => g);
     
-    // Add all grades to get the expected status
-    await addAllGradesForStudent(classId, cpf, grades);
+    if (grades.length > 0) {
+      await addAllGradesForStudent(classId, cpf, grades);
+    }
     
     studentIndex++;
   }
 });
 
-Given('a class exists with {string} students having {string} evaluations', async function (studentCount: string, evalCount: string) {
+Given('a class exists with {string} students having {string} evaluations', async function (studentCount: string, _evalCount: string) {
   const classId = await createClass('Pending Students Class');
   const count = parseInt(studentCount, 10);
   
@@ -145,7 +117,6 @@ Given('a class exists with {string} students having {string} evaluations', async
     const cpf = `88888888${i.toString().padStart(3, '0')}`;
     await createStudent(`Student ${i}`, cpf);
     await enrollStudent(classId, cpf);
-    // No grades added - all students are pending
   }
 });
 
@@ -161,17 +132,13 @@ Given('a class exists with {string} students', async function (count: string) {
 });
 
 Given('the repository finds no class with ID {string}', function (classId: string) {
-  // Just store the ID for the When step - no action needed
   currentClassId = classId;
 });
 
-// =============================================================================
-// WHEN Steps
-// =============================================================================
+// When Steps
 
 When('I request the report for class {string}', async function (classId: string) {
-  // If classId looks like a topic name, use the stored currentClassId
-  if (currentClassId && !classId.includes('-')) {
+  if (currentClassId) {
     response = await request(app).get(`/api/classes/${currentClassId}/report`);
   } else {
     response = await request(app).get(`/api/classes/${classId}/report`);
@@ -183,16 +150,13 @@ When('I request the report for this class', async function () {
   response = await request(app).get(`/api/classes/${currentClassId}/report`);
 });
 
-// =============================================================================
-// THEN Steps
-// =============================================================================
+// Then Steps
 
 Then('the response status should be {int}', function (expectedStatus: number) {
   expect(response.status).toBe(expectedStatus);
 });
 
 Then('the response body should match the {string} JSON schema', function (schemaName: string) {
-  // Verify the response has the expected structure for a Report
   const body = response.body;
   expect(body).toHaveProperty('classId');
   expect(body).toHaveProperty('totalEnrolled');

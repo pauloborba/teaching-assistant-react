@@ -97,10 +97,10 @@ async function scrollToElement(selector: string): Promise<void> {
   await page.evaluate((sel) => {
     const element = document.querySelector(sel);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.scrollIntoView({ behavior: 'auto', block: 'center' });
     }
   }, selector);
-  await delay(300);
+  await delay(100);
 }
 
 async function openReportForCurrentClass(): Promise<void> {
