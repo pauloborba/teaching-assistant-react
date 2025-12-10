@@ -3,7 +3,7 @@ import expect from "expect";
 import path from "path";
 
 const feature = loadFeature(
-    path.join(process.cwd(), "client/src/features/server-discrepancy.feature")
+    path.join(process.cwd(), "../client/src/features/server-discrepancy.feature")
 );
 
 function compareGoal(teacher: string, self: string): boolean {

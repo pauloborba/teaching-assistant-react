@@ -268,7 +268,7 @@ Given('the student {string} is enrolled in class {string}', async function(stude
   }
 });
 
-Given('I am on the self-evaluation page', async function() {
+Given('I am on the self-evaluation tab', async function() {
   await page.goto(`${CLIENT_URL}`, { waitUntil: 'networkidle2' });
   
   // Click on the Self-Evaluation tab

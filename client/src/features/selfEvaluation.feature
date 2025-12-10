@@ -13,7 +13,7 @@ Feature: Self-Evaluation
   @authentication @parametrized
   Scenario Outline: Student searches with different credentials
     Given a student with CPF "987.654.321-00", name "Maria Santos" and email "maria.santos@gmail.com" exists
-    And I am on the self-evaluation page
+    And I am on the self-evaluation tab
     When I have searched with email "<email>" and CPF "<cpf>"
     Then <expected_result>
 
@@ -26,7 +26,7 @@ Feature: Self-Evaluation
 
   @viewing
   Scenario: Student views all evaluation goals
-    Given I am on the self-evaluation page
+    Given I am on the self-evaluation tab
     And I have searched with email "joao.silva@gmail.com" and CPF "123.456.789-00"
     When I select the class "Software Engineering (2025/1)"
     Then I should see the evaluation goals table
@@ -41,7 +41,7 @@ Feature: Self-Evaluation
 
   @grading @parametrized
   Scenario Outline: Student selects grade for a goal
-    Given I am on the self-evaluation page
+    Given I am on the self-evaluation tab
     And I have searched with email "joao.silva@gmail.com" and CPF "123.456.789-00"
     And I have selected the class "Software Engineering (2025/1)"
     When I select "<grade>" for goal "<goal>"
@@ -58,7 +58,7 @@ Feature: Self-Evaluation
 
   @grading @update
   Scenario: Student changes self-evaluation grade
-    Given I am on the self-evaluation page
+    Given I am on the self-evaluation tab
     And I have searched with email "joao.silva@gmail.com" and CPF "123.456.789-00"
     And I have selected the class "Software Engineering (2025/1)"
     And I have selected "MA" for goal "Design"
@@ -67,7 +67,7 @@ Feature: Self-Evaluation
 
   @grading @removal
   Scenario: Student removes self-evaluation by selecting empty option
-    Given I am on the self-evaluation page
+    Given I am on the self-evaluation tab
     And I have searched with email "joao.silva@gmail.com" and CPF "123.456.789-00"
     And I have selected the class "Software Engineering (2025/1)"
     And I have selected "MA" for goal "Tests"
@@ -76,7 +76,7 @@ Feature: Self-Evaluation
 
   @persistence
   Scenario: Self-evaluation persists after page reload
-    Given I am on the self-evaluation page
+    Given I am on the self-evaluation tab
     And I have searched with email "joao.silva@gmail.com" and CPF "123.456.789-00"
     And I have selected the class "Software Engineering (2025/1)"
     And I have selected "MA" for goal "Requirements"
@@ -87,7 +87,7 @@ Feature: Self-Evaluation
 
   @validation @button-state
   Scenario Outline: Search button disabled with incomplete fields
-    Given I am on the self-evaluation page
+    Given I am on the self-evaluation tab
     When I enter "<email>" in the email field
     And I enter "<cpf>" in the CPF field
     Then the "Search" button should be disabled
@@ -100,7 +100,7 @@ Feature: Self-Evaluation
 
   @edge-case @cpf-format
   Scenario: Student searches with CPF without formatting
-    Given I am on the self-evaluation page
+    Given I am on the self-evaluation tab
     When I have searched with email "joao.silva@gmail.com" and CPF "12345678900"
     Then I should see a class selection dropdown
     And the dropdown should contain the class "Software Engineering (2025/1)"
@@ -111,7 +111,7 @@ Feature: Self-Evaluation
     And a class "Data Structures" exists for semester "1" and year "2025"
     And the student "111.222.333-44" is enrolled in class "Software Engineering"
     And the student "111.222.333-44" is enrolled in class "Data Structures"
-    And I am on the self-evaluation page
+    And I am on the self-evaluation tab
     When I have searched with email "carlos.oliveira@gmail.com" and CPF "111.222.333-44"
     Then I should see a class selection dropdown
     And the dropdown should contain the class "Software Engineering (2025/1)"
@@ -123,7 +123,7 @@ Feature: Self-Evaluation
     And a class "Data Structures" exists for semester "1" and year "2025"
     And the student "111.222.333-44" is enrolled in class "Software Engineering"
     And the student "111.222.333-44" is enrolled in class "Data Structures"
-    And I am on the self-evaluation page
+    And I am on the self-evaluation tab
     And I have searched with email "carlos.oliveira@gmail.com" and CPF "111.222.333-44"
     When I select the class "Software Engineering (2025/1)"
     And I select "MA" for goal "Requirements"
@@ -134,7 +134,7 @@ Feature: Self-Evaluation
 
   @grading @complete
   Scenario: Student submits evaluation for all goals
-    Given I am on the self-evaluation page
+    Given I am on the self-evaluation tab
     And I have searched with email "joao.silva@gmail.com" and CPF "123.456.789-00"
     And I have selected the class "Software Engineering (2025/1)"
     When I submit the following self-evaluations:
@@ -156,7 +156,7 @@ Feature: Self-Evaluation
 
   @grading @clear-all
   Scenario: Student clears all self-evaluations
-    Given I am on the self-evaluation page
+    Given I am on the self-evaluation tab
     And I have searched with email "joao.silva@gmail.com" and CPF "123.456.789-00"
     And I have selected the class "Software Engineering (2025/1)"
     And I have selected "MA" for goal "Requirements"

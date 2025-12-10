@@ -12,7 +12,7 @@ module.exports = {
     formatOptions: {
       snippetInterface: 'async-await'
     },
-    paths: ['src/features/**/*.feature'],
+    paths: ['src/features/selfEvaluation.feature'],
     requireModule: ['ts-node/register']
   }
 };

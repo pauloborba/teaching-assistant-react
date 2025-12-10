@@ -1,14 +1,8 @@
 module.exports = {
     preset: "ts-jest",
     testEnvironment: "node",
-    transform: {
-        "^.+\\.tsx?$": ["ts-jest", { tsconfig: "tsconfig.json" }],
-    },
-    moduleFileExtensions: ["ts", "tsx", "js"],
-};
-module.exports = {
-    preset: "ts-jest",
-    testEnvironment: "node",
+    roots: ["<rootDir>/src"],
+    testMatch: ["**/__tests__/**/*.test.ts", "**/?(*.)+(spec|test).ts"],
     transform: {
         "^.+\\.tsx?$": [
             "ts-jest",
@@ -19,5 +13,14 @@ module.exports = {
         ]
     },
     transformIgnorePatterns: [],   // MUITO IMPORTANTE
-    moduleFileExtensions: ["ts", "js", "tsx"]
+    moduleFileExtensions: ["ts", "tsx", "js"],
+    collectCoverageFrom: [
+        "src/**/*.ts",
+        "!src/**/*.d.ts",
+        "!src/server.ts",
+        "!src/index.ts"
+    ],
+    coverageDirectory: "coverage",
+    coverageReporters: ["text", "lcov", "html"],
+    setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"]
 };
