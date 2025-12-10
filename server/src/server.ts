@@ -12,12 +12,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
 
-// usado para ler arquivos em POST
-const multer = require('multer');
-
-// pasta usada para salvar os upload's feitos
-const upload_dir = multer({dest: 'tmp_data/'})
-
 const app = express();
 const PORT = 3005;
 
@@ -617,7 +611,7 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 // Vai ser usado em 2 fluxos(poderia ter divido em 2 endpoints mas preferi deixar em apenas 1)
 // [Front] Upload → [Back] lê só o cabeçalho e retorna colunas da planilha e os goals da 'classId'
 // [Front] Mapeia colunas da planilha para os goals → [Back] faz parse completo (stream)
-app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (req: express.Request, res: express.Response) => {
+app.post('/api/classes/gradeImport/:classId', async (req: express.Request, res: express.Response) => {
   res.status(501).json({ error: "Endpoint ainda não implementado." });
 });
 
