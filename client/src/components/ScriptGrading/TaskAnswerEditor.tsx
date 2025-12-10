@@ -80,10 +80,10 @@ export default function TaskAnswerEditor({ taskAnswer, onChange, disabled = fals
         borderRadius: "6px",
         opacity: disabled ? 0.6 : 1,
         pointerEvents: disabled ? "none" : "auto"
-      }}
+      }} 
     >
       {/* Task statement */}
-      <strong>
+      <strong data-testid={`task-answer-${taskAnswer.id}`}>
         Task:{" "}
         {loading
           ? "Loading task..."
@@ -105,6 +105,7 @@ export default function TaskAnswerEditor({ taskAnswer, onChange, disabled = fals
             value={localGrade ?? ""}
             onChange={(e) => handleGradeChange(e.target.value as Grade | undefined)}
             disabled={saving}
+            data-testid={`task-grade-input-${taskAnswer.id}`}
           >
             <option value="">—</option>
             {gradeOptions.map((g) => (
@@ -126,6 +127,7 @@ export default function TaskAnswerEditor({ taskAnswer, onChange, disabled = fals
             rows={3}
             disabled={saving}
             style={{ width: "100%" }}
+            data-testid={`task-comment-input-${taskAnswer.id}`}
           />
         </label>
       </div>
@@ -144,6 +146,7 @@ export default function TaskAnswerEditor({ taskAnswer, onChange, disabled = fals
             cursor: hasChanges && !saving ? "pointer" : "not-allowed",
             opacity: hasChanges && !saving ? 1 : 0.6
           }}
+          data-testid={`task-save-button-${taskAnswer.id}`}
         >
           {saving ? "Saving..." : "Save Changes"}
         </button>

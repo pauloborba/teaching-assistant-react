@@ -48,7 +48,7 @@ export default function ScriptGrading({ scriptAnswer, onClose }: Props) {
   };
 
   return (
-    <div>
+    <div data-testid={`script-grading`}>
       <button onClick={onClose} disabled={loading}>
         ← Back
       </button>
