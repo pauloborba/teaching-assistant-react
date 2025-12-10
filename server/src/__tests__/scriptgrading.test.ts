@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { app, scriptAnswerSet, studentSet } from '../server';
+import { app, scriptAnswerSet, scripts, studentSet } from '../server';
 import { Student } from '../models/Student';
 import { TaskAnswer } from '../models/TaskAnswer';
 
@@ -157,6 +157,7 @@ describe('Server API – Script Answers Endpoints', () => {
   // ----------------------------------------------------------
 
   test('POST /api/scriptanswers → creates a new script answer', async () => {
+    scripts.addScript({ id: '1', title: 'Test Script' });
     const res = await request(app)
       .post('/api/scriptanswers/')
       .send({

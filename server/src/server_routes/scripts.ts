@@ -14,6 +14,23 @@ export function setupScriptRoutes(app: Express, scripts: any) {
   }
   });
 
+// DELETE /api/scripts/:id - Delete a script
+  app.delete(scripturl+':id', (req: Request, res: Response) => {
+    const { id } = req.params;
+    const scriptIndex = scripts.getAllScripts().findIndex((s: any) => s.getId() === id);
+    if (scriptIndex === -1) {
+      return res.status(404).json({ error: 'Script not found' });
+    }
+    scripts.getAllScripts().splice(scriptIndex, 1);
+    res.status(204).send();
+  });
+
+// DELETE /api/scripts - Delete all scripts
+  app.delete(scripturl, (req: Request, res: Response) => {
+    scripts.getAllScripts().length = 0;
+    res.status(204).send();
+  });
+
   // GET /api/scripts/:id - Get one script by ID
   app.get(scripturl+':id', (req: Request, res: Response) => {
     const { id } = req.params;

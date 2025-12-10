@@ -534,7 +534,7 @@ import { setupTaskRoutes } from './server_routes/tasks';
 import { setupScriptRoutes } from './server_routes/scripts';
 import { loadMockScriptsAndAnswers } from './mock_scripts';
 
-setupScriptAnswerRoutes(app, scriptAnswerSet, studentSet);
+setupScriptAnswerRoutes(app, scriptAnswerSet, studentSet, scripts);
 setupTaskRoutes(app, taskset);
 setupScriptRoutes(app, scripts);
 

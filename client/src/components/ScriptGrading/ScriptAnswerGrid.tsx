@@ -41,10 +41,11 @@ export default function ScriptAnswerGrid({ scriptAnswers, onSelect }: Props) {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fill, 200px)",
       gap: "10px"
-    }}>
+    }} data-testid="script-answer-grid">
       {scriptAnswers.map(sa => (
         <div
           key={sa.id}
+          data-testid={`script-answer-row-${sa.id}`}
           onClick={() => onSelect(sa)}
           style={{
             padding: "12px",

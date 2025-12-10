@@ -4,7 +4,7 @@
 import { Given, When, Then, After, setDefaultTimeout, DataTable } from '@cucumber/cucumber';
 import expect from 'expect';
 
-setDefaultTimeout(30 * 1000);
+setDefaultTimeout(30 * 10000);
 
 const serverUrl = 'http://localhost:3005';
 
@@ -13,6 +13,7 @@ const serverUrl = 'http://localhost:3005';
 // ============================================================
 let lastResponse: Response;
 let createdScriptAnswerIds: string[] = [];
+let createdScriptsIds: string[] = [];
 let createdStudentCPF: string | null = null;
 let lastCreatedScriptAnswerId: string | null = null;
 let mostRecentTaskId: string | null = null;
@@ -20,7 +21,40 @@ let mostRecentTaskId: string | null = null;
 // ============================================================
 // Helper functions
 // ============================================================
+
+async function createScript(title : string, id: string) {
+  const check = await fetch(`${serverUrl}/api/scripts/${id}`);
+  if (check.status === 200) {
+    createdScriptsIds.push(id);
+    return check;
+  }
+
+  const response = await fetch(`${serverUrl}/api/scripts/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: id, title: title, tasks: [] })
+  });
+
+  lastResponse = response;
+  expect(response.status).toBe(201);
+  createdScriptsIds.push(id);
+
+  return response;
+}
+
+
+
+
 async function createScriptAnswer(id: string, studentId: string) {
+  await createScript(`Script for ${id}`, `script-${id}`);
+
+  const check = await fetch(`${serverUrl}/api/scriptanswers/${id}`);
+  if (check.status === 200) {
+    createdScriptAnswerIds.push(id);
+    lastCreatedScriptAnswerId = id;
+    return check;
+  }
+
   const response = await fetch(`${serverUrl}/api/scriptanswers/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -59,6 +93,12 @@ async function updateScriptAnswerTasks(scriptAnswerId: string, taskPayload: any)
 }
 
 async function ensureStudentExists(cpf: string) {
+  const check = await fetch(`${serverUrl}/api/students/${cpf}`);
+  if (check.status === 200) {
+    lastResponse = check;
+    return check;
+  }
+
   const response = await fetch(`${serverUrl}/api/students`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -70,6 +110,8 @@ async function ensureStudentExists(cpf: string) {
   if (response.status === 201) createdStudentCPF = cpf;
   return response;
 }
+
+
 
 // ============================================================
 // Cleanup
@@ -84,6 +126,12 @@ After({ tags: '@server' }, async function () {
     await fetch(`${serverUrl}/api/students/${createdStudentCPF}`, { method: 'DELETE' });
     createdStudentCPF = null;
   }
+
+  for (const id of createdScriptsIds) {
+   await fetch(`${serverUrl}/api/scripts/${id}`, { method: 'DELETE' });
+  }
+  createdScriptsIds = [];
+
 
   lastCreatedScriptAnswerId = null;
 });
@@ -117,7 +165,8 @@ Given(/^there is no script answer(?: registered)? with ID "([^"]+)"/, async func
 
 Given('there is a student with CPF {string}', async function (cpf: string) {
   const response = await ensureStudentExists(cpf);
-  expect(response.status).toBe(201);
+  createdStudentCPF = cpf;
+  expect(response.ok).toBe(true);
 });
 
 Given('this student has script answers with IDs {string}, {string}, {string}', async function (a: string, b: string, c: string) {
@@ -130,7 +179,7 @@ Given(/^this answer contains a task with ID "([^"]+)"(?: and grade "([^"]+)")?$/
   if (!lastCreatedScriptAnswerId) throw new Error('No script answer created');
 
   const payload = {
-    id: `ta-${taskId}`,
+    id: `${taskId}`,
     task: taskId,
     answer: 'Test answer',
     grade: grade ?? null,

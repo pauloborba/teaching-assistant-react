@@ -1,7 +1,7 @@
 import { Request, Response, Express } from 'express';
 import { TaskAnswer } from '../models/TaskAnswer';
 
-export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, studentSet: any) {
+export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, studentSet: any, scriptSet: any) {
   const scriptAnswerurl = '/api/scriptanswers/';
 
   // GET /api/scriptanswers → get ALL answers
@@ -64,15 +64,28 @@ export function setupScriptAnswerRoutes(app: Express, scriptAnswerSet: any, stud
     return res.status(200).json({ taskId, grade: task.getGrade() });
   });
 
-  // POST /api/scriptanswers → Create a script answer
-  app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
-    try {
-      const newAnswer = scriptAnswerSet.addScriptAnswer(req.body);
-      res.status(201).json(newAnswer.toJSON());
-    } catch (error) {
-      res.status(400).json({ error: (error as Error).message });
+// POST /api/scriptanswers → Create a script answer
+app.post(scriptAnswerurl+'', (req: Request, res: Response) => {
+  try {
+    const { scriptId } = req.body;
+
+    // Validate that scriptId is provided
+    if (!scriptId) {
+      return res.status(400).json({ error: 'Missing required field: scriptId' });
     }
-  });
+
+    // Check if the script exists (assuming you have a scriptSet or similar)
+    const scriptExists = scriptSet.findById(scriptId); // or however you check for script existence
+    if (!scriptExists) {
+      return res.status(404).json({ error: 'Script not found' });
+    }
+
+    const newAnswer = scriptAnswerSet.addScriptAnswer(req.body);
+    res.status(201).json(newAnswer.toJSON());
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
 
   // POST /api/scriptanswers/:id/tasks → Add a new task answer to a script answer
   app.post(scriptAnswerurl+':id/tasks', (req: Request, res: Response) => {
