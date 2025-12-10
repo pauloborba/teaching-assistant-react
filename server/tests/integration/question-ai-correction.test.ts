@@ -13,7 +13,7 @@ describe('POST /api/question-ai-correction (integração)', () => {
   const app = createTestApp();
 
   beforeEach(() => {
-    // Configura timeout curto para testes (100ms em vez de 60s)
+    // Configura timeout curto para testes (100ms em vez de 120s = 2 minutos)
     process.env.NODE_ENV = 'test';
     process.env.AI_CORRECTION_TEST_TIMEOUT_MS = '100';
   });

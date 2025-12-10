@@ -13,10 +13,10 @@ export function validateAIModel(model: string): void {
 /**
  * Calcula e formata o tempo estimado de conclusão da correção
  * @param totalQuestions Número total de questões a serem corrigidas
- * @param secondsPerQuestion Segundos por questão (padrão: 62)
+ * @param secondsPerQuestion Segundos por questão (padrão: 122 = 2s processamento + 120s timeout)
  * @returns String formatada do tempo estimado (ex: "5 minutos", "1 minuto", "menos de 1 minuto")
  */
-export function calculateEstimatedTime(totalQuestions: number, secondsPerQuestion: number = 62): string {
+export function calculateEstimatedTime(totalQuestions: number, secondsPerQuestion: number = 122): string {
   const estimatedSeconds = totalQuestions * secondsPerQuestion;
   const estimatedMinutes = Math.ceil(estimatedSeconds / 60);
   
@@ -44,7 +44,20 @@ export function getRateLimitTimeout(): number {
   if (process.env.NODE_ENV === 'test') {
     return parseInt(process.env.AI_CORRECTION_TEST_TIMEOUT_MS || '100', 10);
   }
-  return 60000; // 60 segundos = 1 minuto em produção
+  return 120000; // 120 segundos = 2 minutos em produção
+}
+
+/**
+ * Verifica se o feedback indica problema de quota/rate limit
+ * @param feedback Texto do feedback da correção
+ * @returns true se o feedback indica problema de quota/rate limit
+ */
+export function isRateLimitError(feedback?: string): boolean {
+  if (!feedback) return false;
+  const lowerFeedback = feedback.toLowerCase();
+  return lowerFeedback.includes('quota') || 
+         lowerFeedback.includes('rate limit') ||
+         lowerFeedback.includes('excedida');
 }
 
 /**

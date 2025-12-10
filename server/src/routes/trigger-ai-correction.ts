@@ -70,7 +70,7 @@ router.post('/trigger-ai-correction', async (req: Request, res: Response) => {
     }
 
     // Calcular tempo estimado de conclusão
-    // Cada correção leva aproximadamente: 2 segundos de processamento + 60 segundos de timeout = 62 segundos
+    // Cada correção leva aproximadamente: 2 segundos de processamento + 120 segundos de timeout = 122 segundos
     const totalOpenQuestions = messagesToQueue.length;
     const estimatedTime = calculateEstimatedTime(totalOpenQuestions);
 
