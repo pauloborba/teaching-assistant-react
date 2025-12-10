@@ -69,6 +69,20 @@ export const studentsExamsFile = path.resolve('./data/students-exams.json');
 export const responsesFile = path.resolve('./data/responses.json');
 export const generationsFile = path.resolve('./data/exam-generations.json');
 
+const writeJsonSafe = (filePath: string, data: any, errorMessage: string) => {
+  if (process.env.NODE_ENV === 'test') return;
+
+  try {
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+      console.error(errorMessage, error);
+  }
+};
+
 // Persistence functions
 const ensureDataDirectory = (filePath: string): void => {
   const dataDir = path.dirname(filePath);
@@ -109,18 +123,7 @@ export const saveDataToFile = (): void => {
 };
 
 export const saveExamsToFile = (): void => {
-  // Não salva arquivos durante testes
-  if (process.env.NODE_ENV === 'test') {
-    return;
-  }
-
-  try {
-    const data = examsManager.toJSON();
-    ensureDataDirectory(examsFile);
-    fs.writeFileSync(examsFile, JSON.stringify(data, null, 2), 'utf8');
-  } catch (error) {
-    console.error('Error saving exams to file:', error);
-  }
+  writeJsonSafe(examsFile, examsManager.toJSON(), 'Error saving exams to file:');
 };
 
 export const saveQuestionsToFile = (): void => {
@@ -318,20 +321,7 @@ export const loadResponsesFromFile = (): void => {
 };
 
 export const saveGenerationsToFile = (): void => {
-  // Não salva arquivos durante testes
-  if (process.env.NODE_ENV === 'test') {
-    return;
-  }
-
-  try {
-    const data = { generations: examGenerations };
-    const dataDir = path.dirname(generationsFile);
-    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-
-    fs.writeFileSync(generationsFile, JSON.stringify(data, null, 2), 'utf8');
-  } catch (error) {
-    console.error('Error saving generations to file:', error);
-  }
+  writeJsonSafe(generationsFile, { generations: examGenerations }, 'Error saving generations to file:');
 };
 
 export const loadGenerationsFromFile = (): void => {

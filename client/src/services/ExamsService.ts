@@ -214,6 +214,34 @@ class ExamsService {
       throw error;
     }
   }
+  
+  private static extractFilenameFromHeaders(headers: Headers, fallbackId: string): string {
+    let filename = `Lote_Provas_${fallbackId}.zip`;
+    const disposition = headers.get('Content-Disposition');
+    
+    if (disposition && disposition.indexOf('attachment') !== -1) {
+        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+        const matches = filenameRegex.exec(disposition);
+        if (matches != null && matches[1]) {
+            filename = matches[1].replace(/['"]/g, '');
+        }
+    }
+
+    return filename;
+  }
+
+  private static triggerBrowserDownload(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(
+      new Blob([blob], { type: 'application/zip' })
+    );
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
 
   public static async downloadExamsZIP(examId: string, quantity: number, classId: string, date: string): Promise<void> {
     try {
@@ -237,28 +265,10 @@ class ExamsService {
         throw new Error(errorMessage);
       }
 
-      let filename = `Lote_Provas_${examId}.zip`;
-      const disposition = response.headers.get('Content-Disposition');
-      
-      if (disposition && disposition.indexOf('attachment') !== -1) {
-          const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-          const matches = filenameRegex.exec(disposition);
-          if (matches != null && matches[1]) {
-              filename = matches[1].replace(/['"]/g, '');
-          }
-      }
+      const filename = this.extractFilenameFromHeaders(response.headers, examId);
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(
-        new Blob([blob], { type: 'application/zip' })
-      );
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      this.triggerBrowserDownload(blob, filename);
 
     } catch (error) {
       console.error('Error downloading exams ZIP:', error);

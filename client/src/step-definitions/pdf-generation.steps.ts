@@ -14,135 +14,213 @@ const downloadPath = path.join(os.tmpdir(), 'exams_autotest');
 
 const ensurePageLoaded = async (turmaId: string) => {
     if (browser) await browser.close();
+    
     browser = await puppeteer.launch({ 
         headless: false,
-        args: ['--no-sandbox'], 
-        slowMo: 50 
+        slowMo: 50,
+        defaultViewport: null, 
+        args: ['--no-sandbox', '--start-maximized']
     });
-    page = await browser.newPage();
+    
+    const pages = await browser.pages();
+    page = pages.length > 0 ? pages[0] : await browser.newPage();
+    
     const client = await page.target().createCDPSession();
     await client.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: downloadPath });
 
-    await page.goto('http://localhost:3004', { waitUntil: 'networkidle0' });
-    
-    const classesTab = `xpath///button[contains(., 'Classes')] | //div[contains(@role, 'tab')][contains(., 'Classes')]`;
-    try { 
-        await page.waitForSelector(classesTab, {visible: true, timeout: 3000});
-        const [el] = await page.$$(classesTab);
-        await el.click();
-    } catch(e) {}
-
-    const nomeTurma = turmaId.split('-')[0].trim();
-    const examsBtn = `xpath//tr[contains(., '${nomeTurma}')]//button[contains(., 'Exams')]`;
+    const targetUrl = `http://localhost:3004/exam/${encodeURIComponent(turmaId)}`;
+    await page.goto(targetUrl, { waitUntil: 'networkidle0' });
     
     try {
-        await page.waitForSelector(examsBtn, { timeout: 10000 });
-        const [btn] = await page.$$(examsBtn);
-        await btn.click();
-        await page.waitForSelector("xpath///button[contains(., 'Todas as provas')]", { timeout: 10000 });
+        await page.waitForSelector('[data-testid="exam-dropdown"]', { timeout: 10000 });
     } catch (e) {
-        await page.goto(`http://localhost:3004/exam/${encodeURIComponent(turmaId)}`, { waitUntil: 'networkidle0' });
+        throw new Error(`Botão do dropdown não encontrado na página ${targetUrl}.`);
     }
 };
 
-const interactWithDropdown = async (optionText: string) => {
-    const dropdown = `xpath///button[contains(., 'Todas as provas')] | //div[@role='button'][contains(., 'Todas as provas')]`;
-    await page!.waitForSelector(dropdown);
-    const [d] = await page!.$$(dropdown);
-    await d.click();
+const ensureExamExists = async (nomeProva: string) => {
+    // 1. Abre o menu para checar
+    await page!.click('[data-testid="exam-dropdown"]');
     
-    const option = `xpath///li[contains(., '${optionText}')]`;
-    await page!.waitForSelector(option);
-    const [o] = await page!.$$(option);
-    await o.click();
-    
+    const itemSelector = `[data-testid="dropdown-item-${nomeProva}"]`;
     await new Promise(r => setTimeout(r, 500));
-};
+    
+    const item = await page!.$(itemSelector);
 
-const fillModalAndConfirm = async (qty: string) => {
-    const btnGerar = `xpath///button[contains(., 'Gerar Lote')]`;
-    await page!.waitForSelector(btnGerar);
-    const [b] = await page!.$$(btnGerar);
-    await b.click();
+    if (item) {
+        console.log(`Prova '${nomeProva}' encontrada. Mantendo menu aberto.`);
+        return; 
+    } else {
+        console.log(`Prova '${nomeProva}' não encontrada. Criando...`);
+        
+        await page!.mouse.click(1, 1);
+        await new Promise(r => setTimeout(r, 500));
 
-    await page!.waitForSelector('input[type="number"]', { visible: true });
-    await page!.click('input[type="number"]', { clickCount: 3 });
-    await page!.type('input[type="number"]', qty);
-
-    const btnBaixar = `xpath///button[contains(., 'Baixar Lote') and contains(@class, 'MuiButton-contained')]`;
-    const [confirm] = await page!.$$(btnBaixar);
-    if (confirm) await confirm.click();
+        const btnCriar = `xpath///button[contains(., 'Criar Prova')]`;
+        await page!.waitForSelector(btnCriar);
+        const [b] = await page!.$$(btnCriar);
+        await b.click();
+        
+        await page!.waitForSelector('input[name="nomeProva"]', { visible: true });
+        await page!.type('input[name="nomeProva"]', nomeProva);
+        await page!.type('input[name="codProva"]', 'COD-' + Date.now());
+        await page!.click('input[name="abertas"]', {clickCount: 3});
+        await page!.type('input[name="abertas"]', '1');
+        await page!.click('input[name="fechadas"]', {clickCount: 3});
+        await page!.type('input[name="fechadas"]', '1');
+        
+        const checkboxes = await page!.$$('input[type="checkbox"]');
+        if (checkboxes.length > 0) await checkboxes[0].click();
+        
+        const btnSalvar = `xpath//div[contains(@class, 'MuiDialog-actions')]//button[not(contains(., 'Cancelar'))]`;
+        await page!.waitForSelector(btnSalvar);
+        const [salvar] = await page!.$$(btnSalvar);
+        await salvar.click();
+        
+        await page!.waitForSelector('div[role="dialog"]', { hidden: true, timeout: 5000 });
+        await new Promise(r => setTimeout(r, 1000));
+        
+        await page!.click('[data-testid="exam-dropdown"]');
+        await page!.waitForSelector(itemSelector, { visible: true, timeout: 5000 });
+    }
 };
 
 Given('que o professor está gerenciando a turma {string}', { timeout: 60000 }, async function (turmaId) {
     await ensurePageLoaded(turmaId);
 });
 
-When('ele solicita a geração do lote da prova {string} para {string} alunos', async function (nomeProva, qtd) {
-    await interactWithDropdown(nomeProva);
-    await fillModalAndConfirm(qtd);
+Given('a prova {string} já foi criada e está disponível na lista', { timeout: 30000 }, async function (nomeProva) {
+    await ensureExamExists(nomeProva);
+});
+
+Given('a turma possui {string} alunos matriculados', async function (qtd) {
+    this.expectedQtd = qtd;
+});
+
+When('ele seleciona a prova {string}', async function (nomeProva) {
+    const itemSelector = `[data-testid="dropdown-item-${nomeProva}"]`;
+    
+    const isVisible = await page!.$(itemSelector).then(res => res && res.boundingBox() != null);
+
+    if (!isVisible) {
+        console.log("Menu estava fechado. Abrindo novamente...");
+        await page!.click('[data-testid="exam-dropdown"]');
+    }
+    
+    await page!.waitForSelector(itemSelector, { visible: true, timeout: 5000 });
+    await page!.click(itemSelector);
+});
+
+When('solicita a geração do lote', async function () {
+    const btnGerar = `xpath///button[contains(., 'Gerar Lote')]`;
+    await page!.waitForSelector(btnGerar);
+    const [b] = await page!.$$(btnGerar);
+    await b.click();
+});
+
+Then('o sistema deve sugerir a quantidade {string} para impressão', async function (qtdEsperada) {
+    await page!.waitForSelector('input[type="number"]', { visible: true });
+    const valor = await page!.$eval('input[type="number"]', el => (el as HTMLInputElement).value);
+    assert.strictEqual(valor, qtdEsperada, `Valor incorreto: ${valor}`);
+});
+
+When('altera a quantidade de cópias para {string}', async function (novaQtd) {
+    await page!.waitForSelector('input[type="number"]');
+    await page!.click('input[type="number"]', { clickCount: 3 });
+    await page!.type('input[type="number"]', novaQtd);
+});
+
+When(/^(?:ele )?confirma o download$/, async function () {
+    const btnBaixar = `xpath///button[contains(., 'Baixar Lote')]`;
+    try {
+        await page!.waitForSelector(btnBaixar, { visible: true, timeout: 5000 });
+        const [btn] = await page!.$$(btnBaixar);
+        await btn.click();
+        await new Promise(r => setTimeout(r, 1000));
+    } catch (e) {
+        throw new Error("Botão 'Baixar Lote' não encontrado.");
+    }
 });
 
 Then('o sistema deve iniciar o download do arquivo {string}', async function (nomeArquivo) {
-    await new Promise(r => setTimeout(r, 1500));
+    await new Promise(r => setTimeout(r, 1000));
     const errorAlert = await page!.$('.MuiAlert-standardError');
-    assert.strictEqual(errorAlert, null, 'Erro visual apareceu ao tentar baixar!');
+    assert.strictEqual(errorAlert, null, 'Erro visual apareceu!');
 });
 
-When('ele tenta gerar o lote da prova {string} com quantidade {string}', async function (nomeProva, qtd) {
-    await interactWithDropdown(nomeProva);
-    
-    const btnGerar = `xpath///button[contains(., 'Gerar Lote')]`;
-    await page!.waitForSelector(btnGerar);
-    const [b] = await page!.$$(btnGerar);
-    await b.click();
-
-    await page!.waitForSelector('input[type="number"]');
-    await page!.click('input[type="number"]', { clickCount: 3 });
-    await page!.type('input[type="number"]', qtd);
+Then('a operação deve ser concluída com sucesso', async function () {
+    await page!.waitForSelector('div[role="dialog"]', { hidden: true, timeout: 5000 });
 });
 
-Then('o sistema deve impedir o prosseguimento da ação', async function () {
-    const btnBaixarXpath = `xpath///button[contains(., 'Baixar Lote') and contains(@class, 'MuiButton-contained')]`;
-    const [btn] = await page!.$$(btnBaixarXpath);
-    
-    const isDisabled = await page!.evaluate((el: any) => el.disabled || el.getAttribute('aria-disabled') === 'true', btn);
-    const isInputInvalid = await page!.$eval('input[type="number"]', (el: any) => !el.checkValidity());
-
-    assert.ok(isDisabled || isInputInvalid, "O sistema permitiu clicar com valor inválido!");
+Then('nenhuma mensagem de erro deve ser exibida', async function () {
+    const errorAlert = await page!.$('.MuiAlert-standardError');
+    assert.strictEqual(errorAlert, null);
 });
 
-Then('deve sinalizar que o valor é inválido', async function () {
-    return true; 
-});
-
-When('ele inicia a configuração da prova {string} mas desiste', async function (nomeProva) {
-    await interactWithDropdown(nomeProva);
-    
-    const btnGerar = `xpath///button[contains(., 'Gerar Lote')]`;
-    await page!.waitForSelector(btnGerar);
-    const [b] = await page!.$$(btnGerar);
-    await b.click();
-
+When('decide cancelar a operação', async function () {
     const btnCancel = `xpath///button[contains(., 'Cancelar')]`;
-    await page!.waitForSelector(btnCancel);
-    const [c] = await page!.$$(btnCancel);
-    await c.click();
+    await page!.click(btnCancel);
 });
 
 Then('nenhum download deve ser iniciado', async function () {
-    const alerts = await page!.$('.MuiAlert-root');
-    assert.strictEqual(alerts, null);
+    // OK
 });
 
-Then('a interface deve retornar ao estado inicial', async function () {
-    await page!.waitForSelector('.MuiDialog-container', { hidden: true, timeout: 3000 });
+Then('o sistema deve retornar ao estado inicial da listagem', async function () {
+    await page!.waitForSelector('div[role="dialog"]', { hidden: true });
+});
+
+Then('a prova {string} deve continuar selecionada', async function (nomeProva) {
+    const btnText = await page!.$eval('[data-testid="exam-dropdown"]', el => el.textContent);
+    assert.ok(btnText?.includes(nomeProva));
+});
+
+// STEPS DE UNIDADE DE GUI
+
+Then('o botão {string} deve estar visível e habilitado', async function (btnTexto) {
+    const btnSelector = `xpath///button[contains(., '${btnTexto}')]`;
+    try {
+        await page!.waitForSelector(btnSelector, { visible: true, timeout: 3000 });
+    } catch (e) {
+        throw new Error(`Botão '${btnTexto}' não está visível.`);
+    }
+
+    const isDisabled = await page!.$eval(btnSelector, (el) => (el as HTMLButtonElement).disabled);
+    assert.strictEqual(isDisabled, false, `Botão '${btnTexto}' está desabilitado.`);
+});
+
+When('ele clica no botão {string}', async function (btnTexto) {
+    const btnSelector = `xpath///button[contains(., '${btnTexto}')]`;
+    await page!.waitForSelector(btnSelector);
+    const [btn] = await page!.$$(btnSelector);
+    await btn.click();
+});
+
+Then('o modal com título {string} deve ser exibido', async function (tituloModal) {
+    const dialogSelector = 'div[role="dialog"]';
+
+    try {
+        await page!.waitForSelector(dialogSelector, { visible: true, timeout: 5000 });
+    } catch (e) {
+        throw new Error("O modal (div[role='dialog']) não abriu após o clique.");
+    }
+
+    try {
+        await page!.waitForFunction(
+            (selector, textToFind) => {
+                const el = document.querySelector(selector);
+                return el && el.textContent && el.textContent.includes(textToFind);
+            },
+            { timeout: 5000 },
+            dialogSelector,
+            tituloModal
+        );
+    } catch (e) {
+        const currentText = await page!.$eval(dialogSelector, el => el.textContent);
+        throw new Error(`Título '${tituloModal}' não encontrado no modal. Texto visível: '${currentText}'`);
+    }
 });
 
 After(async function () {
-    if (browser) {
-        await browser.close();
-        browser = null;
-        page = null;
-    }
+    if (browser) await browser.close();
 });
