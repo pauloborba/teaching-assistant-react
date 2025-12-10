@@ -11,7 +11,7 @@ let examTitleGlobal: string;
 let browser: Browser;
 let page: Page;
 
-Before({ tags: '@gui' }, async function () {
+Before({ tags: '@gui or @create-exam' }, async function () {
     browser = await launch({
         headless: false, // Set to true for CI/CD
         slowMo: 50 // Slow down actions for visibility
@@ -20,7 +20,7 @@ Before({ tags: '@gui' }, async function () {
     await page.setViewport({ width: 1280, height: 720 });
 });
 
-After({ tags: '@gui' }, async function () {
+After({ tags: '@gui or @create-exam' }, async function () {
 
     if (browser) {
         await browser.close();
@@ -126,10 +126,12 @@ Given('registers the exam {string} with questions {string} and {string} and {str
 
 
 Given('class {string} has exams {string} and {string} registered', async function (className: string, exam1: string, exam2: string) {
-    await page.waitForSelector('[data-testid="dropdown-button"]');
-    await page.click('[data-testid="dropdown-button"]');
-    await page.waitForSelector('[data-testid="dropdown-button"]');
+    await page.waitForSelector('[data-testid="exam-dropdown"]');
+    await page.click('[data-testid="exam-dropdown"]');
+    await page.waitForSelector('[data-testid="exam-dropdown"]');
 })
+
+Given
 
 
 /* ------------------------------------------------------------
@@ -164,12 +166,11 @@ When('selects the questions {string} and {string} and {string} and {string} and 
 When('confirms the exam registration', async function () {
     await page.waitForSelector('[data-testid="confirm-create-exam"]');
     await page.click('[data-testid="confirm-create-exam"]');
-    await page.waitForSelector('[data-testid="exam-table"]', { timeout: 5000 });
 });
 
 When('professor {string} deletes the exam {string}', async function (professorName: string, examTitle: string) {
     // First, select the exam from the dropdown
-    await page.click('[data-testid="dropdown-button"]');
+    await page.click('[data-testid="exam-dropdown"]');
     await page.waitForSelector(`[data-testid="dropdown-item-${examTitle}"]`);
     await page.click(`[data-testid="dropdown-item-${examTitle}"]`);
 
@@ -185,10 +186,14 @@ When('professor {string} deletes the exam {string}', async function (professorNa
     await page.click('[data-testid="delete-exam-button"]');
 });
 
-When('the professor clicks on {string}', async function (buttonName: string) {
+When('the professor uses {string}', async function (buttonName: string) {
     await page.waitForSelector(`[data-testid="${buttonName}"]`);
     await page.click(`[data-testid="${buttonName}"]`);
 });
+
+When('selects no questions', async function () {
+
+})
 
 /* ------------------------------------------------------------
    THEN
@@ -208,6 +213,9 @@ Then('popup {string} should be visible', async function (popupName: string) {
     await page.waitForSelector(`[data-testid="${popupName}"]`);
 })
 
+Then('the system still shows the popup {string}', async function (popupName: string) {
+    await page.waitForSelector(`[data-testid="${popupName}"]`);
+})
 
 Then('the system shows the message {string}', async function (msg: string) {
     // Wait for the alert message to appear
@@ -242,8 +250,7 @@ Then('the exam {string} is no longer in the list of registered exams', async fun
 });
 
 Then('the system registers the exam {string} successfully', async function (title: string) {
-    // Esse passo intermediário não faz verificação —
-    // os próximos steps validam o comportamento real.
+    await page.waitForSelector('[data-testid="exam-table"]', { timeout: 5000 });
 });
 
 Then('displays the message {string}', async function (msg: string) {
@@ -261,7 +268,7 @@ Then('displays the message {string}', async function (msg: string) {
 
 Then('the exam {string} appears in the list of registered exams', async function (title: string) {
     // Abrir dropdown
-    await page.click('[data-testid="dropdown-button"]');
+    await page.click('[data-testid="exam-dropdown"]');
 
     const selector = `[data-testid="dropdown-item-${title}"]`;
 

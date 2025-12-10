@@ -2,6 +2,8 @@ import request from 'supertest';
 import { expect, jest, describe, test, beforeEach } from '@jest/globals';
 import app from '../../src/server'; // Adjust path if needed, assumed from provs.test.ts
 
+//verifica se o código de roteamento, validação de dados e regras de negócio
+
 // Mocking the dependencies
 // We mock the methods exported by dataService that the route uses.
 const mockFindClassById = jest.fn();
