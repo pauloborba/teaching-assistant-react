@@ -135,7 +135,7 @@ export class Classes {
   addClassMetas(id: string, metas: any[]): void {
     const classObj = this.findClassById(id);
     if (!classObj) {
-      throw new Error('Class not found');
+      throw new Error('Turma não encontrada!');
     }
     classObj.setMetas(metas);
   }
