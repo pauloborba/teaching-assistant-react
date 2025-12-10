@@ -1,4 +1,4 @@
-import { Given, When, Then, Before, setDefaultTimeout } from '@cucumber/cucumber';
+import { Given, When, Then, Before, After, setDefaultTimeout } from '@cucumber/cucumber';
 import { Page } from 'puppeteer';
 import expect from 'expect';
 import { getPage } from '../shared-browser';
@@ -20,6 +20,10 @@ Before({ tags: '@gui-report' }, async function () {
   createdStudentCPFs = [];
 });
 
+After({ tags: '@gui-report' }, async function () {
+  await cleanup();
+});
+
 // Helper Functions
 
 function delay(ms: number): Promise<void> {
@@ -27,14 +31,34 @@ function delay(ms: number): Promise<void> {
 }
 
 async function cleanup(): Promise<void> {
+  const cleanupErrors: string[] = [];
+  
   for (const cpf of createdStudentCPFs) {
-    await fetch(`${SERVER_URL}/api/students/${cpf}`, { method: 'DELETE' }).catch(() => {});
+    try {
+      const response = await fetch(`${SERVER_URL}/api/students/${cpf}`, { method: 'DELETE' });
+      if (!response.ok) {
+        cleanupErrors.push(`Failed to delete student ${cpf}: ${response.status}`);
+      }
+    } catch (error) {
+      cleanupErrors.push(`Error deleting student ${cpf}: ${error}`);
+    }
   }
   createdStudentCPFs = [];
 
   if (currentClassId) {
-    await fetch(`${SERVER_URL}/api/classes/${currentClassId}`, { method: 'DELETE' }).catch(() => {});
+    try {
+      const response = await fetch(`${SERVER_URL}/api/classes/${currentClassId}`, { method: 'DELETE' });
+      if (!response.ok) {
+        cleanupErrors.push(`Failed to delete class ${currentClassId}: ${response.status}`);
+      }
+    } catch (error) {
+      cleanupErrors.push(`Error deleting class ${currentClassId}: ${error}`);
+    }
     currentClassId = null;
+  }
+  
+  if (cleanupErrors.length > 0) {
+    console.warn('Cleanup warnings:', cleanupErrors);
   }
 }
 

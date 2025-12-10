@@ -23,12 +23,37 @@ Before({ tags: '@gui-report' }, async function () {
 });
 
 After({ tags: '@gui-report' }, async function () {
-  for (const cpf of createdCpfs) {
-    await fetch(`${SERVER_URL}/api/students/${cpf}`, { method: 'DELETE' }).catch(() => {});
-  }
-  if (currentClassId) {
-    await fetch(`${SERVER_URL}/api/classes/${currentClassId}`, { method: 'DELETE' }).catch(() => {});
-  }
+  const cleanup = async () => {
+    let cleanupErrors: string[] = [];
+    
+    for (const cpf of createdCpfs) {
+      try {
+        const response = await fetch(`${SERVER_URL}/api/students/${cpf}`, { method: 'DELETE' });
+        if (!response.ok) {
+          cleanupErrors.push(`Failed to delete student ${cpf}: ${response.status}`);
+        }
+      } catch (error) {
+        cleanupErrors.push(`Error deleting student ${cpf}: ${error}`);
+      }
+    }
+    
+    if (currentClassId) {
+      try {
+        const response = await fetch(`${SERVER_URL}/api/classes/${currentClassId}`, { method: 'DELETE' });
+        if (!response.ok) {
+          cleanupErrors.push(`Failed to delete class ${currentClassId}: ${response.status}`);
+        }
+      } catch (error) {
+        cleanupErrors.push(`Error deleting class ${currentClassId}: ${error}`);
+      }
+    }
+    
+    if (cleanupErrors.length > 0) {
+      console.warn('Cleanup warnings:', cleanupErrors);
+    }
+  };
+  
+  await cleanup();
 });
 
 // Helper Functions
