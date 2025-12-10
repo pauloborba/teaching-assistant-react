@@ -2,7 +2,7 @@ import { Given, When, Then, After, DataTable, setDefaultTimeout } from '@cucumbe
 import expect from 'expect';
 
 // Set default timeout for all steps
-setDefaultTimeout(30 * 1000); // 30 seconds
+// setDefaultTimeout(30 * 1000); // 30 seconds
 
 const serverUrl = 'http://localhost:3005';
 

@@ -12,6 +12,7 @@ interface ClassesProps {
   onClassUpdated: () => void;
   onClassDeleted: () => void;
   onError: (errorMessage: string) => void;
+  onSuccess?: (message: string) => void;
 }
 
 const Classes: React.FC<ClassesProps> = ({ 
@@ -19,7 +20,8 @@ const Classes: React.FC<ClassesProps> = ({
   onClassAdded, 
   onClassUpdated, 
   onClassDeleted, 
-  onError 
+  onError,
+  onSuccess
 }) => {
   const [formData, setFormData] = useState<CreateClassRequest>({
     topic: '',
@@ -27,6 +29,12 @@ const Classes: React.FC<ClassesProps> = ({
     year: new Date().getFullYear(),
     especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA
   });
+  // Metas management state (local, before sending to server)
+  const [localMetas, setLocalMetas] = useState<string[]>([]);
+  const [editingMetaIndex, setEditingMetaIndex] = useState<number | null>(null);
+  const [editingMetaValue, setEditingMetaValue] = useState<string>('');
+  // Separate modal state for metas management
+  const [metaPanelClass, setMetaPanelClass] = useState<Class | null>(null);
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -151,7 +159,13 @@ const Classes: React.FC<ClassesProps> = ({
         setEditingClass(null);
       } else {
         // Add new class
-        await ClassService.addClass(formData);
+        const created = await ClassService.addClass(formData);
+        // After creating a class, prepare localMetas for metas flow
+        if (created && created.id) {
+          setLocalMetas([]);
+          // open enrollment panel automatically for the newly created class
+          setEnrollmentPanelClass(created);
+        }
         onClassAdded();
       }
       
@@ -166,6 +180,59 @@ const Classes: React.FC<ClassesProps> = ({
       onError((error as Error).message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Metas UI handlers
+  // Add meta locally; do not block duplicates here — server is responsible for uniqueness
+  const handleAddMetaLocally = (meta: string) => {
+    if (!meta || !meta.trim()) return;
+    setLocalMetas(prev => [...prev, meta]);
+  };
+
+  const handleEditMetaStart = (index: number) => {
+    setEditingMetaIndex(index);
+    setEditingMetaValue(localMetas[index]);
+  };
+
+  const handleEditMetaSave = () => {
+    if (editingMetaIndex === null) return;
+    const newVal = editingMetaValue.trim();
+    if (!newVal) return;
+    setLocalMetas(prev => prev.map((m, i) => i === editingMetaIndex ? newVal : m));
+    setEditingMetaIndex(null);
+    setEditingMetaValue('');
+  };
+
+  const handleDeleteMeta = (index: number) => {
+    setLocalMetas(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Post metas to server for a given class id (uses ClassService)
+  const handleCreateMetasOnServer = async (classObj: Class) => {
+    try {
+      if (!classObj || !classObj.id) {
+        onError('Classe inválida');
+        return;
+      }
+
+      const data = await ClassService.setMetas(classObj.id, localMetas);
+
+      // Show server message if provided
+      const serverMessage = data && (data.message || data.msg) ? (data.message || data.msg) : 'Metas criadas com sucesso!';
+      if (onSuccess) {
+        onSuccess(serverMessage);
+      } else {
+        onError(serverMessage);
+      }
+
+      // Refresh classes list and close metas panel
+      await loadAllStudents();
+      onClassUpdated();
+      setEnrollmentPanelClass(null);
+      setMetaPanelClass(null);
+    } catch (error) {
+      onError((error as Error).message);
     }
   };
 
@@ -323,6 +390,15 @@ const Classes: React.FC<ClassesProps> = ({
                       >
                         Enroll
                       </button>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginLeft: '0.5rem' }}>
+                        <button
+                          className="metas-btn"
+                          onClick={() => { setMetaPanelClass(classObj); setLocalMetas(classObj.metas || []); }}
+                          title="Manage metas"
+                        >
+                          Metas
+                        </button>
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -342,8 +418,9 @@ const Classes: React.FC<ClassesProps> = ({
                 className="close-modal-btn"
                 onClick={handleCloseEnrollmentPanel}
                 title="Close"
+                aria-label="Close"
               >
-                ×
+                &times;
               </button>
             </div>
 
@@ -432,6 +509,89 @@ const Classes: React.FC<ClassesProps> = ({
                     : `Enroll ${selectedStudentsForEnrollment.size} Student${selectedStudentsForEnrollment.size !== 1 ? 's' : ''}`
                   }
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Metas Modal reusing enrollment modal design */}
+      {metaPanelClass && (
+        <div className="enrollment-overlay">
+          <div className="enrollment-modal">
+            <div className="enrollment-modal-header">
+              <h3>Metas for {metaPanelClass.topic}</h3>
+              <button 
+                className="close-modal-btn" 
+                onClick={() => setMetaPanelClass(null)}
+                title="Close"
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="enrollment-modal-content">
+              {metaPanelClass.metas && metaPanelClass.metas.length > 0 ? (
+                <div className="existing-metas">
+                  <h4>Existing Metas</h4>
+                  <ul className="local-metas-list">
+                    {metaPanelClass.metas.map((meta, idx) => (
+                      <li key={`${meta}-${idx}`} className="local-meta-item">
+                        <span>{meta}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <>
+                  <div className="add-meta-row">
+                    <input
+                      type="text"
+                      placeholder="New meta"
+                      value={editingMetaValue}
+                      onChange={(e) => setEditingMetaValue(e.target.value)}
+                    />
+                    <button type="button" className="meta-add-btn" onClick={() => {
+                      if (editingMetaIndex === null) {
+                        handleAddMetaLocally(editingMetaValue);
+                        setEditingMetaValue('');
+                      } else {
+                        handleEditMetaSave();
+                      }
+                    }}>{editingMetaIndex === null ? 'Add Meta' : 'Save'}</button>
+                    {editingMetaIndex !== null && (
+                      <button type="button" className="meta-edit-btn" onClick={() => { setEditingMetaIndex(null); setEditingMetaValue(''); }}>Cancel</button>
+                    )}
+                  </div>
+
+                  <ul className="local-metas-list">
+                    {localMetas.length === 0 ? (
+                      <li className="no-local-metas">No local metas added yet</li>
+                    ) : (
+                      localMetas.map((meta, idx) => (
+                        <li key={`${meta}-${idx}`} className="local-meta-item">
+                          <span>{meta}</span>
+                          <div className="meta-actions">
+                            <button type="button" className="meta-edit-btn" onClick={() => handleEditMetaStart(idx)}>Edit</button>
+                            <button type="button" className="meta-delete-btn" onClick={() => handleDeleteMeta(idx)}>Delete</button>
+                          </div>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                </>
+              )}
+
+              <div className="enrollment-actions">
+                {metaPanelClass.metas && metaPanelClass.metas.length > 0 ? (
+                  <button type="button" className="cancel-btn" onClick={() => setMetaPanelClass(null)}>Close</button>
+                ) : (
+                  <>
+                    <button type="button" className="meta-create-btn" onClick={() => handleCreateMetasOnServer(metaPanelClass)} disabled={localMetas.length === 0}>Create Metas</button>
+                    <button type="button" className="cancel-btn" onClick={() => setMetaPanelClass(null)}>Close</button>
+                  </>
+                )}
               </div>
             </div>
           </div>

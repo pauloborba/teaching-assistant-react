@@ -119,7 +119,24 @@ export class Classes {
         }
       });
     });
+    
 
     return students;
+  }
+
+  getClassMetas(id: string): any[] {
+    const classObj = this.findClassById(id);
+    if (!classObj) {
+      throw new Error('Turma não encontrada!');
+    }
+    return classObj.getMetas();
+  }
+
+  addClassMetas(id: string, metas: any[]): void {
+    const classObj = this.findClassById(id);
+    if (!classObj) {
+      throw new Error('Turma não encontrada!');
+    }
+    classObj.setMetas(metas);
   }
 }

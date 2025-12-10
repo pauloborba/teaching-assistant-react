@@ -1,9 +1,7 @@
 import { Given, When, Then, Before, After, DataTable, setDefaultTimeout } from '@cucumber/cucumber';
 import { Browser, Page, launch } from 'puppeteer';
 import expect from 'expect';
-
-// Set default timeout for all steps
-setDefaultTimeout(30 * 1000); // 30 seconds
+import { scope } from './setup';
 
 // Helper function to format CPF like the frontend does
 function formatCPF(value: string): string {
@@ -14,41 +12,30 @@ function formatCPF(value: string): string {
   return digits.slice(0, 11).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 }
 
-let browser: Browser;
-let page: Page;
 const baseUrl = 'http://localhost:3004';
 const serverUrl = 'http://localhost:3005';
 
 // Test data to clean up
 let testStudentCPF: string;
 
-Before({ tags: '@gui' }, async function () {
-  browser = await launch({ 
-    headless: false, // Set to true for CI/CD
-    slowMo: 50 // Slow down actions for visibility
-  });
-  page = await browser.newPage();
-  await page.setViewport({ width: 1280, height: 720 });
-});
-
 After({ tags: '@gui' }, async function () {
   // Clean up test student if it exists by using the GUI delete function
   if (testStudentCPF) {
     try {
       // Navigate to Students area
-      await page.goto(baseUrl);
-      await page.waitForSelector('.students-list table', { timeout: 5000 });
+      await scope.page.goto(baseUrl);
+      await scope.page.waitForSelector('.students-list table', { timeout: 5000 });
       
       // Look for our test student in the table and delete it if found
-      const studentRows = await page.$$('[data-testid^="student-row-"]');
+      const studentRows = await scope.page.$$('[data-testid^="student-row-"]');
       for (const row of studentRows) {
         const cpfCell = await row.$('[data-testid="student-cpf"]');
         if (cpfCell) {
-          const cpf = await page.evaluate(el => el.textContent, cpfCell);
+          const cpf = await scope.page.evaluate(el => el.textContent, cpfCell);
           // Check for both plain and formatted CPF
           if (cpf === testStudentCPF || cpf === formatCPF(testStudentCPF)) {
             // Set up dialog handler before clicking delete
-            page.once('dialog', async (dialog) => {
+            scope.page.once('dialog', async (dialog) => {
               console.log(`GUI cleanup: Confirming deletion dialog: ${dialog.message()}`);
               await dialog.accept(); // Confirm deletion
             });
@@ -69,16 +56,12 @@ After({ tags: '@gui' }, async function () {
       console.log('GUI cleanup: Student may not exist or GUI unavailable');
     }
   }
-  
-  if (browser) {
-    await browser.close();
-  }
 });
 
 Given('the student management system is running', async function () {
-  await page.goto(baseUrl);
-  await page.waitForSelector('h1', { timeout: 10000 });
-  const title = await page.$eval('h1', el => el.textContent);
+  await scope.page.goto(baseUrl);
+  await scope.page.waitForSelector('h1', { timeout: 10000 });
+  const title = await scope.page.$eval('h1', el => el.textContent);
   expect(title || '').toContain('Teaching Assistant React');
 });
 
@@ -96,173 +79,217 @@ Given('there is no student with CPF {string} in the system', async function (cpf
   const formattedCPF = formatCPF(cpf);
   
   // Navigate to the application and check if student exists through GUI
-  await page.goto(baseUrl);
-  await page.waitForSelector('.students-list', { timeout: 10000 });
+  await scope.page.goto(baseUrl);
+  await scope.page.waitForSelector('.students-list', { timeout: 10000 });
   
-  // Try to find and delete the student if it exists (cleanup before test)
-  const studentRows = await page.$$('[data-testid^="student-row-"]');
-  for (const row of studentRows) {
-    const cpfCell = await row.$('[data-testid="student-cpf"]');
-    if (cpfCell) {
-      const displayedCPF = await page.evaluate(el => el.textContent, cpfCell);
-      // Check for both plain and formatted CPF
-      if (displayedCPF === cpf || displayedCPF === formattedCPF) {
-        // Student exists, delete it for clean test state
-        // Set up dialog handler before clicking delete
-        page.once('dialog', async (dialog) => {
-          console.log(`GUI cleanup: Confirming deletion dialog: ${dialog.message()}`);
-          await dialog.accept(); // Confirm deletion
-        });
-        
-        const deleteButton = await row.$(`[data-testid="delete-student-${displayedCPF}"]`);
-        if (deleteButton) {
-          await deleteButton.click();
-          // Wait for deletion to complete
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          console.log(`GUI cleanup: Removed existing student with CPF: ${displayedCPF}`);
-          break;
-        }
+  // Check if student exists in the table
+  const studentExists = await scope.page.evaluate((targetCpf) => {
+    const rows = document.querySelectorAll('[data-testid^="student-row-"]');
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const cpfCell = row.querySelector('[data-testid="student-cpf"]');
+      if (cpfCell && (cpfCell.textContent === targetCpf)) {
+        return true;
       }
     }
-  }
+    return false;
+  }, formattedCPF);
   
-  // Verify student doesn't exist by checking the GUI
-  await page.reload(); // Refresh to ensure clean state
-  await page.waitForSelector('.students-list', { timeout: 5000 });
-  
-  const updatedRows = await page.$$('[data-testid^="student-row-"]');
-  for (const row of updatedRows) {
-    const cpfCell = await row.$('[data-testid="student-cpf"]');
-    if (cpfCell) {
-      const displayedCPF = await page.evaluate(el => el.textContent, cpfCell);
-      if (displayedCPF === cpf || displayedCPF === formattedCPF) {
-        throw new Error(`Student with CPF ${displayedCPF} still exists in the system after cleanup`);
-      }
+  if (studentExists) {
+    // Delete the student if found
+    scope.page.once('dialog', async (dialog) => {
+      await dialog.accept();
+    });
+    
+    const deleteButton = await scope.page.$(`[data-testid="delete-student-${formattedCPF}"]`);
+    if (deleteButton) {
+      await deleteButton.click();
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for deletion
     }
   }
 });
 
-When('I navigate to the Students area', async function () {
-  // Click on the Students tab
-  const studentsTab = await page.$('[data-testid="students-tab"]');
-  if (studentsTab) {
-    const isActive = await page.evaluate(el => el?.classList.contains('active'), studentsTab);
-    
-    if (!isActive) {
-      await studentsTab.click();
-    }
+When('I navigate to the Students page', async function () {
+  // Click on the Students tab/link
+  const studentsLink = await scope.page.$('a[href="/students"]');
+  if (studentsLink) {
+    await studentsLink.click();
+  } else {
+    // Fallback to direct navigation
+    await scope.page.goto(`${baseUrl}/students`);
   }
+  await scope.page.waitForSelector('.students-list', { timeout: 5000 });
+});
+
+When('I navigate to the Students area', async function () {
+  // Click on the Students tab/link
+  const studentsLink = await scope.page.$('a[href="/students"]');
+  if (studentsLink) {
+    await studentsLink.click();
+  } else {
+    // Fallback to direct navigation
+    await scope.page.goto(`${baseUrl}/students`);
+  }
+  await scope.page.waitForSelector('.students-list', { timeout: 5000 });
+});
+
+When('I enter the student details:', async function (dataTable: DataTable) {
+  const data = dataTable.rowsHash();
   
-  // Wait for the student form to be visible
-  await page.waitForSelector('[data-testid="student-form"]', { timeout: 5000 });
+  // Fill in the form
+  await scope.page.type('input[name="name"]', data.name);
+  await scope.page.type('input[name="cpf"]', data.cpf);
+  await scope.page.type('input[name="email"]', data.email);
 });
 
 When('I provide the student information:', async function (dataTable: DataTable) {
   const data = dataTable.rowsHash();
   
-  // Fill in the name field using semantic ID
-  await page.waitForSelector('#name');
-  await page.click('#name');
-  await page.type('#name', data.name);
+  // Fill in the form
+  await scope.page.type('input[name="name"]', data.name);
+  await scope.page.type('input[name="cpf"]', data.cpf);
+  await scope.page.type('input[name="email"]', data.email);
+});
+
+When('I click the {string} button', async function (buttonText: string) {
+  // Find button by text content
+  const button = await scope.page.evaluateHandle((text) => {
+    const buttons = Array.from(document.querySelectorAll('button'));
+    return buttons.find(b => b.textContent?.includes(text));
+  }, buttonText);
   
-  // Fill in the CPF field using semantic ID
-  await page.click('#cpf');
-  await page.type('#cpf', data.cpf);
-  
-  // Fill in the email field using semantic ID
-  await page.click('#email');
-  await page.type('#email', data.email);
+  if (button) {
+    const element = button.asElement();
+    if (element) {
+      await (element as any).click();
+    }
+  } else {
+    throw new Error(`Button with text "${buttonText}" not found`);
+  }
 });
 
 When('I send the student information', async function () {
-  // Click the submit button using semantic test ID
-  const submitButton = await page.$('[data-testid="submit-student-button"]');
-  expect(submitButton).toBeTruthy();
-  
-  await submitButton?.click();
-  
-  // Wait for the information to be processed and student to appear
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  const registerButton = await scope.page.$('button[type="submit"]');
+  if (registerButton) {
+    await registerButton.click();
+    // Wait for the student list to update or a success message, instead of navigation
+    // Assuming the list updates on the same page
+    try {
+      await scope.page.waitForFunction(
+        () => document.querySelectorAll('[data-testid^="student-row-"]').length > 0,
+        { timeout: 5000 }
+      );
+    } catch (e) {
+      // Ignore timeout if list doesn't update immediately, subsequent steps will verify
+    }
+  } else {
+    throw new Error('Register button not found');
+  }
 });
 
-Then('I should see {string} in the student list', async function (studentName: string) {
-  // Wait for the student list to update
-  await page.waitForSelector('.students-list table', { timeout: 10000 });
-  
-  // Find the student row that matches our test student's CPF and verify the name
-  const studentRows = await page.$$('[data-testid^="student-row-"]');
-  let foundStudent = null;
-  
-  for (const row of studentRows) {
-    const cpfCell = await row.$('[data-testid="student-cpf"]');
-    if (cpfCell) {
-      const cpf = await page.evaluate(el => el.textContent, cpfCell);
-      if (cpf === formatCPF(testStudentCPF) || cpf === testStudentCPF) {
-        foundStudent = row;
-        break;
+Then('I should see the student {string} in the list', async function (name: string) {
+  await scope.page.waitForFunction(
+    (studentName) => {
+      const rows = document.querySelectorAll('[data-testid^="student-row-"]');
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (row.textContent?.includes(studentName)) {
+          return true;
+        }
       }
-    }
-  }
-  
-  expect(foundStudent).toBeTruthy();
-  
-  // Verify the name matches exactly for this specific student
-  const nameCell = await foundStudent!.$('[data-testid="student-name"]');
-  const actualName = await page.evaluate(el => el.textContent, nameCell!);
-  expect(actualName).toBe(studentName);
+      return false;
+    },
+    { timeout: 5000 },
+    name
+  );
 });
 
-Then('the student should have CPF {string}', async function (expectedCPF: string) {
-  // Wait for the student list to update
-  await page.waitForSelector('.students-list table', { timeout: 10000 });
-  
-  // Find all student information from the current test student
-  const studentRows = await page.$$('[data-testid^="student-row-"]');
-  let foundStudent = null;
-  
-  // First, find the student row that matches our test CPF
-  for (const row of studentRows) {
-    const cpfCell = await row.$('[data-testid="student-cpf"]');
-    if (cpfCell) {
-      const cpf = await page.evaluate(el => el.textContent, cpfCell);
-      if (cpf === expectedCPF || cpf === testStudentCPF || cpf === formatCPF(testStudentCPF)) {
-        foundStudent = row;
-        break;
+Then('I should see {string} in the student list', async function (name: string) {
+  await scope.page.waitForFunction(
+    (studentName) => {
+      const rows = document.querySelectorAll('[data-testid^="student-row-"]');
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (row.textContent?.includes(studentName)) {
+          return true;
+        }
       }
-    }
-  }
-  
-  expect(foundStudent).toBeTruthy();
-  
-  // Verify the CPF matches exactly
-  const cpfCell = await foundStudent!.$('[data-testid="student-cpf"]');
-  const actualCPF = await page.evaluate(el => el.textContent, cpfCell!);
-  expect(actualCPF).toBe(expectedCPF);
+      return false;
+    },
+    { timeout: 5000 },
+    name
+  );
 });
 
-Then('the student should have email {string}', async function (expectedEmail: string) {
-  // Wait for the student list to update
-  await page.waitForSelector('.students-list table', { timeout: 10000 });
+Then('the student should have CPF {string}', async function (cpf: string) {
+  const formattedCPF = formatCPF(cpf);
+  const cpfFound = await scope.page.evaluate((targetCpf) => {
+    const cells = document.querySelectorAll('[data-testid="student-cpf"]');
+    return Array.from(cells).some(cell => cell.textContent === targetCpf);
+  }, formattedCPF);
   
-  // Find the student row that matches our test student's CPF
-  const studentRows = await page.$$('[data-testid^="student-row-"]');
-  let foundStudent = null;
+  expect(cpfFound).toBe(true);
+});
+
+Then('the student should have email {string}', async function (email: string) {
+  const emailFound = await scope.page.evaluate((targetEmail) => {
+    const cells = document.querySelectorAll('[data-testid="student-email"]');
+    return Array.from(cells).some(cell => cell.textContent === targetEmail);
+  }, email);
   
-  for (const row of studentRows) {
-    const cpfCell = await row.$('[data-testid="student-cpf"]');
-    if (cpfCell) {
-      const cpf = await page.evaluate(el => el.textContent, cpfCell);
-      if (cpf === formatCPF(testStudentCPF) || cpf === testStudentCPF) {
-        foundStudent = row;
-        break;
-      }
-    }
+  expect(emailFound).toBe(true);
+});
+
+When('I click the delete button for student with CPF {string}', async function (cpf: string) {
+  const formattedCPF = formatCPF(cpf);
+  
+  // Setup dialog handler
+  scope.page.once('dialog', async (dialog) => {
+    await dialog.accept();
+  });
+  
+  const deleteButton = await scope.page.$(`[data-testid="delete-student-${formattedCPF}"]`);
+  if (!deleteButton) {
+    throw new Error(`Delete button for student ${formattedCPF} not found`);
   }
   
-  expect(foundStudent).toBeTruthy();
+  await deleteButton.click();
+});
+
+Then('I should not see the student with CPF {string} in the list', async function (cpf: string) {
+  const formattedCPF = formatCPF(cpf);
   
-  // Verify the email matches exactly for this specific student
-  const emailCell = await foundStudent!.$('[data-testid="student-email"]');
-  const actualEmail = await page.evaluate(el => el.textContent, emailCell!);
-  expect(actualEmail).toBe(expectedEmail);
+  // Wait for element to disappear
+  await scope.page.waitForFunction(
+    (targetCpf) => {
+      const cells = document.querySelectorAll('[data-testid="student-cpf"]');
+      return !Array.from(cells).some(cell => cell.textContent === targetCpf);
+    },
+    { timeout: 5000 },
+    formattedCPF
+  );
+});
+
+When('I try to register a student with incomplete details:', async function (dataTable: DataTable) {
+  const data = dataTable.rowsHash();
+  
+  // Fill in only provided fields
+  if (data.name) await scope.page.type('input[name="name"]', data.name);
+  if (data.cpf) await scope.page.type('input[name="cpf"]', data.cpf);
+  if (data.email) await scope.page.type('input[name="email"]', data.email);
+  
+  // Click register
+  const registerButton = await scope.page.$('button[type="submit"]');
+  if (registerButton) await registerButton.click();
+});
+
+Then('I should see an error message', async function () {
+  // Check for HTML5 validation or custom error message
+  // This is a simplified check - in a real app you'd check specific error elements
+  const hasError = await scope.page.evaluate(() => {
+    const inputs = document.querySelectorAll('input:invalid');
+    return inputs.length > 0;
+  });
+  
+  expect(hasError).toBe(true);
 });

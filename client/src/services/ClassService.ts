@@ -1,4 +1,4 @@
-import { Class } from '../types/Class';
+import { Class, CreateClassRequest, UpdateClassRequest } from '../types/Class';
 import { ReportData } from '../types/Report';
 
 const API_BASE_URL = 'http://localhost:3005';
@@ -20,7 +20,7 @@ class ClassService {
     }
   }
 
-  static async addClass(classData: Omit<Class, 'id' | 'enrollments'>): Promise<Class> {
+  static async addClass(classData: CreateClassRequest): Promise<Class> {
     try {
       const response = await fetch(`${API_BASE_URL}/api/classes`, {
         method: 'POST',
@@ -42,7 +42,7 @@ class ClassService {
     }
   }
 
-  static async updateClass(classId: string, classData: Omit<Class, 'id' | 'enrollments'>): Promise<Class> {
+  static async updateClass(classId: string, classData: UpdateClassRequest): Promise<Class> {
     try {
       const response = await fetch(`${API_BASE_URL}/api/classes/${classId}`, {
         method: 'PUT',
@@ -92,6 +92,27 @@ class ClassService {
       return response.json();
     } catch (error) {
       console.error('Error fetching class report:', error);
+      throw error;
+    }
+  }
+
+  static async setMetas(classId: string, metas: string[]): Promise<any> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/classes/${classId}/metas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ metas })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to set metas');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error setting metas:', error);
       throw error;
     }
   }

@@ -48,6 +48,8 @@ const saveDataToFile = (): void => {
         topic: classObj.getTopic(),
         semester: classObj.getSemester(),
         year: classObj.getYear(),
+        metas: classObj.getMetas(),
+        metasLocked: classObj.isMetasLocked(),
         especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
         enrollments: classObj.getEnrollments().map(enrollment => ({
           studentCPF: enrollment.getStudent().getCPF(),
@@ -92,7 +94,7 @@ const loadDataFromFile = (): void => {
       if (data.classes && Array.isArray(data.classes)) {
         data.classes.forEach((classData: any) => {
           try {
-            const classObj = new Class(classData.topic, classData.semester, classData.year, EspecificacaoDoCalculoDaMedia.fromJSON(classData.especificacaoDoCalculoDaMedia));
+            const classObj = new Class(classData.topic, classData.semester, classData.year, classData.metas, EspecificacaoDoCalculoDaMedia.fromJSON(classData.especificacaoDoCalculoDaMedia));
             classes.addClass(classObj);
 
             // Load enrollments for this class
@@ -301,7 +303,7 @@ app.post('/api/classes', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Topic, semester, and year are required' });
     }
 
-    const classObj = new Class(topic, semester, year, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA);
+    const classObj = new Class(topic, semester, year, [], DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA);
     const newClass = classes.addClass(classObj);
     triggerSave(); // Save to file after adding class
     res.status(201).json(newClass.toJSON());
@@ -349,6 +351,46 @@ app.delete('/api/classes/:id', (req: Request, res: Response) => {
     
     triggerSave(); // Save to file after deleting class
     res.status(204).send();
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /api/classes/:id/metas - Pegar todas as metas de uma turma
+app.get('/api/classes/:id/metas', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    try {
+      const metas = classes.getClassMetas(id);
+      res.json({ metas });
+    } catch (error) {
+      if ((error as Error).message === 'Turma não encontrada!') {
+        return res.status(404).json({ error: 'Turma não encontrada!' });
+      }
+      throw error;
+    }
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// POST /api/classes/:id/metas - Adicionar as metas de uma turma
+app.post('/api/classes/:id/metas', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { metas } = req.body;
+
+    try {
+      classes.addClassMetas(id, metas);
+      triggerSave(); // Save to file after adding metas
+      res.status(201).json({ message: 'Metas criadas com sucesso!' });
+    } catch (err) {
+      const errorMessage = (err as Error).message;
+      if (errorMessage === 'Turma não encontrada!') {
+        return res.status(404).json({ error: errorMessage });
+      }
+      return res.status(409).json({ error: errorMessage });
+    }
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }

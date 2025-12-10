@@ -17,6 +17,7 @@ const App: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('students');
 
@@ -109,6 +110,12 @@ const App: React.FC = () => {
     setError(errorMessage);
   };
 
+  const handleSuccess = (message: string) => {
+    setSuccess(message);
+    // Clear success after a short timeout
+  setTimeout(() => setSuccess(''), 5000);
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -120,6 +127,11 @@ const App: React.FC = () => {
         {error && (
           <div className="error-message">
             <strong>Error:</strong> {error}
+          </div>
+        )}
+        {success && (
+          <div className="success-message">
+            {success}
           </div>
         )}
 
@@ -213,6 +225,7 @@ const App: React.FC = () => {
               onClassUpdated={handleClassUpdated}
               onClassDeleted={handleClassDeleted}
               onError={handleError}
+              onSuccess={handleSuccess}
             />
           )}
         </div>

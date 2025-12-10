@@ -6,6 +6,8 @@ export interface Class {
   topic: string;
   semester: number;
   year: number;
+  metas: string[];
+  metasLocked?: boolean;
   especificacaoDoCalculoDaMedia: EspecificacaoDoCalculoDaMedia;
   enrollments: Enrollment[];
 }
@@ -15,12 +17,14 @@ export interface CreateClassRequest {
   semester: number;
   year: number;
   especificacaoDoCalculoDaMedia: EspecificacaoDoCalculoDaMedia;
+  metas?: string[];
 }
 
 export interface UpdateClassRequest {
   topic?: string;
   semester?: number;
   year?: number;
+  metas?: string[];
 }
 
 // Helper function to generate class ID
