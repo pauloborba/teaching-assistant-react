@@ -12,11 +12,11 @@ Feature: Server Student Management
     When I submit a request to create student with:
       | field | value                    |
       | name  | API Test Student         |
-      | cpf   | 987.654.321-00          |
+      | cpf   | 987.654.321-00           |
       | email | api.test@email.com       |
     Then the request should be accepted successfully
     And the server should have stored the student with:
       | field | value                    |
       | name  | API Test Student         |
-      | cpf   | 987.654.321-00          |
+      | cpf   | 987.654.321-00           |
       | email | api.test@email.com       |

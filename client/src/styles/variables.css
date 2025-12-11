@@ -1,0 +1,96 @@
+/* Design Tokens - Variáveis CSS Globais */
+
+:root {
+  /* Cores Principais */
+  --color-primary: #667eea;
+  --color-primary-dark: #764ba2;
+  --color-primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  
+  /* Cores de Texto */
+  --color-text-primary: #2d3748;
+  --color-text-secondary: #4a5568;
+  --color-text-tertiary: #718096;
+  --color-text-white: #ffffff;
+  
+  /* Cores de Fundo */
+  --color-background: #f5f7fa;
+  --color-background-white: #ffffff;
+  --color-background-light: #f7fafc;
+  --color-background-hover: #f8fafc;
+  
+  /* Cores de Borda */
+  --color-border: #e2e8f0;
+  --color-border-light: #cbd5e0;
+  --color-border-focus: #667eea;
+  
+  /* Cores de Overlay */
+  --color-overlay: rgba(45, 55, 72, 0.7);
+  
+  /* Cores de Erro */
+  --color-error: #c53030;
+  --color-error-bg: #fee;
+  --color-error-border: #fc8181;
+  
+  /* Cores de Scrollbar */
+  --color-scrollbar-track: #f7fafc;
+  --color-scrollbar-thumb: #cbd5e0;
+  --color-scrollbar-thumb-hover: #667eea;
+  
+  /* Sombras */
+  --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-primary: 0 4px 12px rgba(102, 126, 234, 0.3);
+  --shadow-focus: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  
+  /* Fontes */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  
+  /* Tamanhos de Fonte */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.9rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.1rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 2.5rem;
+  
+  /* Pesos de Fonte */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Espaçamentos */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 50%;
+  
+  /* Transições */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  /* Z-index */
+  --z-index-modal: 1000;
+  --z-index-dropdown: 100;
+  --z-index-sticky: 10;
+  
+  /* Line Height */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.3;
+  --line-height-relaxed: 1.6;
+}
+

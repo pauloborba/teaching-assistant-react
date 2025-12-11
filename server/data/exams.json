@@ -1,0 +1,42 @@
+{
+  "exams": [
+    {
+      "id": 1,
+      "classId": "Engenharia de Software e Sistemas-2025-1",
+      "title": "Exame de Requisitos",
+      "isValid": true,
+      "openQuestions": 1,
+      "closedQuestions": 1,
+      "questions": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": 2,
+      "classId": "Engenharia de Software e Sistemas-2025-1",
+      "title": "Gerência de Configuração",
+      "isValid": true,
+      "openQuestions": 2,
+      "closedQuestions": 3,
+      "questions": [
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "id": 5,
+      "classId": "Engenharia de Software e Sistemas-2025-1",
+      "title": "Refatoração",
+      "isValid": true,
+      "openQuestions": 1,
+      "closedQuestions": 0,
+      "questions": [
+        26
+      ]
+    }
+  ]
+}

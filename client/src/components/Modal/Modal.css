@@ -1,0 +1,146 @@
+/* Importar variáveis CSS */
+@import '../../styles/variables.css';
+
+/* Modal Overlay - Fundo escuro */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-index-modal);
+    padding: var(--spacing-xl);
+}
+
+/* Container do Modal - Estilo hand-drawn com cores do App.css */
+.modal-container {
+    position: relative;
+    background: var(--color-background-white);
+    border: 3px solid var(--color-primary);
+    border-radius: var(--radius-xl);
+    padding: 40px 50px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow:
+        0 0 0 2px var(--color-background-white),
+        0 0 0 4px var(--color-primary),
+        var(--shadow-md),
+        0 10px 30px rgba(102, 126, 234, 0.2);
+    animation: modalAppear var(--transition-slow) ease-out;
+}
+
+/* Animação de entrada */
+@keyframes modalAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Título do Modal */
+.modal-title {
+    font-family: var(--font-family-base);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--spacing-2xl) 0;
+    text-align: center;
+    text-transform: none;
+    letter-spacing: 0.5px;
+    line-height: var(--line-height-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Conteúdo do Modal */
+.modal-content {
+    color: var(--color-text-secondary);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Botão de fechar */
+.modal-close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: var(--color-primary);
+    font-size: 22px;
+    font-weight: var(--font-weight-bold);
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-family-base);
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+    transition: all var(--transition-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.modal-close-button:hover {
+    background: transparent;
+    color: var(--color-primary-dark);
+    opacity: 0.8;
+}
+
+.modal-close-button:active {
+    transform: scale(0.95);
+}
+
+/* Scrollbar personalizada para o modal */
+.modal-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-container::-webkit-scrollbar-track {
+    background: var(--color-scrollbar-track);
+    border-radius: var(--radius-sm);
+}
+
+.modal-container::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar-thumb);
+    border-radius: var(--radius-sm);
+}
+
+.modal-container::-webkit-scrollbar-thumb:hover {
+    background: var(--color-scrollbar-thumb-hover);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .modal-container {
+        padding: var(--spacing-2xl) var(--spacing-xl);
+        max-width: 95%;
+    }
+
+    .modal-title {
+        font-size: var(--font-size-2xl);
+        margin-bottom: var(--spacing-xl);
+    }
+}

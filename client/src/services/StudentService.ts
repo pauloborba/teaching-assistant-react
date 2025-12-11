@@ -1,3 +1,4 @@
+import { Exam } from '../types/Exam';
 import { Student, CreateStudentRequest, UpdateStudentRequest } from '../types/Student';
 
 export class StudentService {

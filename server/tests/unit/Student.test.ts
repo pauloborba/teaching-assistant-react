@@ -1,4 +1,4 @@
-import { Student } from '../models/Student';
+import { Student } from '../../src/models/Student';
 
 describe('Student Class', () => {
   describe('Constructor and Basic Functionality', () => {
@@ -267,3 +267,4 @@ describe('Student Class', () => {
     });
   });
 });
+

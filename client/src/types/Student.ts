@@ -1,3 +1,5 @@
+import { Exam } from "./Exam";
+
 export interface Student {
   name: string;
   cpf: string;

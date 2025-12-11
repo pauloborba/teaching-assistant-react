@@ -1,0 +1,113 @@
+@import '../../styles/variables.css';
+
+/* Botão Base */
+.custom-button {
+    font-family: var(--font-family-base);
+    font-weight: var(--font-weight-medium);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    outline: none;
+}
+
+.custom-button:focus {
+    box-shadow: var(--shadow-focus);
+}
+
+.custom-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Variantes */
+/* Primary */
+.custom-button--primary {
+    background: var(--color-primary-gradient);
+    color: var(--color-text-white) !important;
+    box-shadow: var(--shadow-sm);
+}
+
+.custom-button--primary:hover:not(:disabled) {
+    color: var(--color-text-white) !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-primary);
+}
+
+.custom-button--primary:active:not(:disabled) {
+    color: var(--color-text-white) !important;
+    transform: translateY(0);
+}
+
+.custom-button--primary:focus {
+    color: var(--color-text-white) !important;
+}
+
+/* Secondary */
+.custom-button--secondary {
+    background-color: var(--color-background-light);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.custom-button--secondary:hover:not(:disabled) {
+    background-color: var(--color-border-light);
+    border-color: var(--color-border-light);
+}
+
+/* Outline */
+.custom-button--outline {
+    background: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+}
+
+.custom-button--outline:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: var(--color-text-white);
+    box-shadow: var(--shadow-primary);
+}
+
+/* Text */
+.custom-button--text {
+    background: transparent;
+    color: var(--color-primary);
+    border: none;
+    box-shadow: none;
+}
+
+.custom-button--text:hover:not(:disabled) {
+    background: var(--color-background-light);
+    color: var(--color-primary-dark);
+}
+
+/* Tamanhos */
+.custom-button--small {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    min-width: 80px;
+}
+
+.custom-button--medium {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-base);
+    min-width: 100px;
+}
+
+.custom-button--large {
+    padding: var(--spacing-md) var(--spacing-xl);
+    font-size: var(--font-size-lg);
+    min-width: 120px;
+}
+
+/* Full Width */
+.custom-button--full-width {
+    width: 100%;
+}

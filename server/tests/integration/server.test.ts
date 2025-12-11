@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { app, studentSet, classes } from '../server';
+import { app, studentSet, classes } from '../../src/server';
 
 describe('Server API - Student Endpoints', () => {
   // Clean up data before each test to ensure isolation
@@ -473,3 +473,4 @@ describe('Server API - Student Endpoints', () => {
     });
   });
 });
+

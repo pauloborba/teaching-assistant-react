@@ -1,0 +1,195 @@
+/* Estilos específicos para o modal de correções */
+/* O estilo inline no componente garante que o modal seja largo o suficiente */
+
+.corrections-view-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  max-height: 70vh;
+}
+
+.corrections-loading,
+.corrections-error,
+.corrections-empty {
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.corrections-error {
+  color: #dc3545;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+}
+
+.corrections-table-container {
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  max-height: 50vh;
+}
+
+.corrections-table-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  position: relative;
+}
+
+.corrections-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+  min-width: 600px;
+}
+
+.corrections-table thead {
+  background-color: var(--color-background-light);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.corrections-table th {
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+  background-color: var(--color-background-light);
+}
+
+.corrections-table td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.corrections-table tbody tr:hover {
+  background-color: var(--color-background-light);
+}
+
+/* Colunas fixas (sticky) */
+.sticky-col {
+  position: sticky;
+  background-color: white;
+  z-index: 5;
+}
+
+.sticky-col-left {
+  left: 0;
+  min-width: 200px;
+  max-width: 200px;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.sticky-col-left-2 {
+  left: 200px;
+  min-width: 150px;
+  max-width: 150px;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.sticky-col-right {
+  right: 0;
+  min-width: 100px;
+  max-width: 100px;
+  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.corrections-table thead .sticky-col {
+  background-color: var(--color-background-light);
+  z-index: 15;
+}
+
+.corrections-table tbody tr:hover .sticky-col {
+  background-color: var(--color-background-light);
+}
+
+/* Cabeçalho de questões */
+.question-header {
+  text-align: center;
+  min-width: 100px;
+  background-color: var(--color-background-light);
+}
+
+.average-header {
+  text-align: center;
+  font-weight: var(--font-weight-bold);
+}
+
+/* Células de nota */
+.grade-cell {
+  text-align: center;
+}
+
+.grade-value {
+  font-weight: var(--font-weight-semibold);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+}
+
+.grade-pass {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.grade-medium {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.grade-fail {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.grade-not-corrected {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+/* Célula de média */
+.average-cell {
+  text-align: center;
+  font-weight: var(--font-weight-semibold);
+}
+
+.average-value {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  font-size: var(--font-size-base);
+}
+
+.average-pass {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.average-medium {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.average-fail {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.average-not-available {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.corrections-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+

@@ -1,0 +1,346 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "Qual é a principal característica de um requisito funcional?",
+      "topic": "Requisitos de Software",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Descrever o que o sistema deve fazer",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Definir restrições de desempenho",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "question": "O que é análise de requisitos?",
+      "topic": "Requisitos de Software",
+      "type": "open",
+      "answer": "Processo de detalhar, validar e refinar requisitos coletados para garantir entendimento preciso do problema."
+    },
+    {
+      "id": 3,
+      "question": "Qual técnica é comumente usada para elicitação de requisitos?",
+      "topic": "Requisitos de Software",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Entrevistas",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Refatoração",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "question": "Explique o que são requisitos não funcionais.",
+      "topic": "Requisitos de Software",
+      "type": "open",
+      "answer": "São restrições ou características de qualidade que definem como o sistema deve se comportar, como desempenho, segurança e usabilidade."
+    },
+    {
+      "id": 5,
+      "question": "Qual documento normalmente reúne todos os requisitos do sistema?",
+      "topic": "Requisitos de Software",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Especificação de Requisitos de Software (ERS)",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Plano de Testes",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "question": "O que é controle de versão?",
+      "topic": "Gerência de Configuração",
+      "type": "open",
+      "answer": "É o processo de registrar, acompanhar e gerenciar diferentes versões de artefatos de software ao longo do tempo."
+    },
+    {
+      "id": 7,
+      "question": "Qual ferramenta é amplamente utilizada para controle de versão?",
+      "topic": "Gerência de Configuração",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Git",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Excel",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "question": "O que é baseline?",
+      "topic": "Gerência de Configuração",
+      "type": "open",
+      "answer": "Uma versão formalmente aprovada de um artefato, que serve como ponto de referência para futuras mudanças."
+    },
+    {
+      "id": 9,
+      "question": "Qual documento descreve o processo de mudanças em artefatos?",
+      "topic": "Gerência de Configuração",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Plano de Gerência de Configuração",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Backlog do Produto",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "question": "Explique o que é auditoria de configuração.",
+      "topic": "Gerência de Configuração",
+      "type": "open",
+      "answer": "É a verificação formal de que artefatos estão consistentes, completos e em conformidade com padrões e baselines."
+    },
+    {
+      "id": 11,
+      "question": "Qual é o objetivo do Scrum Master?",
+      "topic": "Gerência de Projetos Ágeis",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Ajudar a equipe a seguir o Scrum e remover impedimentos",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Priorizar backlog",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "question": "O que é um incremento no Scrum?",
+      "topic": "Gerência de Projetos Ágeis",
+      "type": "open",
+      "answer": "É a soma de todo trabalho completado durante um Sprint que representa um avanço potencialmente entregável do produto."
+    },
+    {
+      "id": 13,
+      "question": "Qual evento marca o início de um Sprint?",
+      "topic": "Gerência de Projetos Ágeis",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Sprint Planning",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Retrospective",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "question": "Explique o propósito da Daily Scrum.",
+      "topic": "Gerência de Projetos Ágeis",
+      "type": "open",
+      "answer": "Reunião diária curta para alinhar o trabalho e identificar impedimentos."
+    },
+    {
+      "id": 15,
+      "question": "Qual artefato lista todas as necessidades do produto?",
+      "topic": "Gerência de Projetos Ágeis",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Product Backlog",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Sprint Burn-down",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "question": "O que um Diagrama de Classes representa?",
+      "topic": "Modelagem UML",
+      "type": "open",
+      "answer": "Mostra classes, atributos, métodos e relacionamentos entre classes do sistema."
+    },
+    {
+      "id": 17,
+      "question": "Qual diagrama UML mostra o fluxo de atividades?",
+      "topic": "Modelagem UML",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Diagrama de Atividades",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Diagrama de Implantação",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "question": "Explique o objetivo de um diagrama de sequência.",
+      "topic": "Modelagem UML",
+      "type": "open",
+      "answer": "Modelar interações entre objetos ao longo do tempo, mostrando a ordem das mensagens."
+    },
+    {
+      "id": 19,
+      "question": "O diagrama de casos de uso representa:",
+      "topic": "Modelagem UML",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Interações entre atores e o sistema",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Arquitetura física do sistema",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "question": "O que é um ator em um caso de uso?",
+      "topic": "Modelagem UML",
+      "type": "open",
+      "answer": "Uma entidade externa que interage com o sistema, podendo ser um usuário ou outro sistema."
+    },
+    {
+      "id": 21,
+      "question": "O que é o escopo de um projeto?",
+      "topic": "Gerência de Projetos",
+      "type": "open",
+      "answer": "Conjunto de entregas, funcionalidades e limites do projeto."
+    },
+    {
+      "id": 22,
+      "question": "Qual ferramenta é usada para representar cronogramas?",
+      "topic": "Gerência de Projetos",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Gráfico de Gantt",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Diagrama de Atividades",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "question": "Explique o que é risco em gerenciamento de projetos.",
+      "topic": "Gerência de Projetos",
+      "type": "open",
+      "answer": "Um evento incerto que pode impactar positiva ou negativamente o projeto."
+    },
+    {
+      "id": 24,
+      "question": "Qual área de conhecimento trata da distribuição de responsabilidades entre membros do projeto?",
+      "topic": "Gerência de Projetos",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Gerenciamento de Recursos",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Gerenciamento de Custos",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "question": "O que é a EAP (Estrutura Analítica de Projeto)?",
+      "topic": "Gerência de Projetos",
+      "type": "open",
+      "answer": "Uma decomposição hierárquica do projeto em partes menores e mais gerenciáveis."
+    },
+    {
+      "id": 26,
+      "question": "Qual é o Nome do melhor aluno de Paulo Borba?",
+      "topic": "Conhecimentos Gerais",
+      "type": "open",
+      "answer": "Vlsm"
+    },
+    {
+      "id": 27,
+      "question": "Quem é do piaui?",
+      "topic": "Conhecimentos Gerais",
+      "type": "closed",
+      "options": [
+        {
+          "id": 1,
+          "option": "Rafael",
+          "isCorrect": true
+        },
+        {
+          "id": 2,
+          "option": "Marcelo",
+          "isCorrect": false
+        },
+        {
+          "id": 3,
+          "option": "Vini",
+          "isCorrect": false
+        },
+        {
+          "id": 4,
+          "option": "Alvaro",
+          "isCorrect": true
+        }
+      ]
+    }
+  ]
+}
