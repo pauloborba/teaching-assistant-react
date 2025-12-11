@@ -71,58 +71,90 @@ export function loadMockScriptsAndAnswers(
       console.log('✓ Student 3 enrolled:', student3.getCPF());
     }
     // Create mock tasks if none exist
-    if (taskset.getAllTasks().length === 0) {
-      const task1 = taskset.addTask(
+    let task1 = taskset.findById('task-001');
+    if (!task1) {
+      task1 = taskset.addTask(
         new Task('task-001', 'Explain the basic concepts covered in class')
       );
+      console.log('✓ Task created: task-001');
+    } else {
+      console.log('✓ Task already exists: task-001');
+    }
 
-      const task2 = taskset.addTask(
+    let task2 = taskset.findById('task-002');
+    if (!task2) {
+      task2 = taskset.addTask(
         new Task('task-002', 'Implement the algorithm discussed')
       );
+      console.log('✓ Task created: task-002');
+    } else {
+      console.log('✓ Task already exists: task-002');
+    }
 
-      const task3 = taskset.addTask(
+    let task3 = taskset.findById('task-003');
+    if (!task3) {
+      task3 = taskset.addTask(
         new Task('task-003', 'Analyze the problem and propose a solution')
       );
-
-      console.log('Mock tasks created:', [task1.getId(), task2.getId(), task3.getId()]);
+      console.log('✓ Task created: task-003');
+    } else {
+      console.log('✓ Task already exists: task-003');
     }
 
     // Create mock scripts if none exist
-    if (scripts.getAllScripts().length === 0) {
       const foundTask1 = taskset.findById('task-001');
       const foundTask2 = taskset.findById('task-002');
       const foundTask3 = taskset.findById('task-003');
+      let script1 = scripts.findById('script-001');
+      if (!script1) {
+        script1 = scripts.addScript({
+          id: 'script-001',
+          title: 'Midterm Exam - Math 101',
+          description: 'Comprehensive midterm assessment',
+          tasks: [foundTask1, foundTask2, foundTask3].filter(Boolean)
+        });
+        console.log('✓ Script created: script-001');
+      } else {
+        console.log('✓ Script already exists: script-001');
+      }
 
-      const script1 = scripts.addScript({
-        id: 'script-001',
-        title: 'Midterm Exam - Math 101',
-        description: 'Comprehensive midterm assessment',
-        tasks: [foundTask1, foundTask2, foundTask3].filter(Boolean)
-      });
+      let script2 = scripts.findById('script-002');
+      if (!script2) {
+        script2 = scripts.addScript({
+          id: 'script-002',
+          title: 'Final Exam - Math 101',
+          description: 'Final comprehensive exam',
+          tasks: [foundTask1, foundTask2, foundTask3].filter(Boolean)
+        });
+        console.log('✓ Script created: script-002');
+      } else {
+        console.log('✓ Script already exists: script-002');
+      }
 
-      const script2 = scripts.addScript({
-        id: 'script-002',
-        title: 'Final Exam - Math 101',
-        description: 'Final comprehensive exam',
-        tasks: [foundTask1, foundTask2, foundTask3].filter(Boolean)
-      });
-
-      const script3 = scripts.addScript({
-        id: 'script-003',
-        title: 'Quiz - Programming 201',
-        description: 'Programming fundamentals quiz',
-        tasks: [foundTask2, foundTask3].filter(Boolean)
-      });
-
-      const script4 = scripts.addScript({
-        id: 'script-004',
-        title: 'Quiz - Programming 202',
-        description: 'Advanced programming quiz',
-        tasks: [foundTask2, foundTask3].filter(Boolean)
-      });
-
-      console.log('Mock scripts created:', [script1.getId(), script2.getId(), script3.getId(), script4.getId()]);
-    }
+      let script3 = scripts.findById('script-003');
+      if (!script3) {
+        script3 = scripts.addScript({
+          id: 'script-003',
+          title: 'Quiz - Programming 201',
+          description: 'Programming fundamentals quiz',
+          tasks: [foundTask2, foundTask3].filter(Boolean)
+        });
+        console.log('✓ Script created: script-003');
+      } else {
+        console.log('✓ Script already exists: script-003');
+      }
+      let script4 = scripts.findById('script-004');
+      if (!script4) {
+        script4 = scripts.addScript({
+          id: 'script-004',
+          title: 'Quiz - Programming 202',
+          description: 'Advanced programming quiz',
+          tasks: [foundTask2, foundTask3].filter(Boolean)
+        });
+        console.log('✓ Script created: script-004');
+      } else {
+        console.log('✓ Script already exists: script-004');
+      }
 
     // === Test data for individual scenarios ===
     // These are ALWAYS verified/created to ensure test isolation works properly

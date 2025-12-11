@@ -366,4 +366,14 @@ app.post(scriptAnswerurl+':id/timeout', (req: Request, res: Response) => {
       return res.status(500).json({ error: 'Failed to delete all script answers' });
     }
   });
+
+  app.post('/api/reset-mock-data', (req: Request, res: Response) => {
+    try {
+      const { loadMockScriptsAndAnswers } = require('../mock_scripts');
+      loadMockScriptsAndAnswers(TaskSet, scripts, scriptAnswerSet, classes, studentSet, '11111111111');
+      return res.status(200).json({ message: 'Mock data reset successfully' });
+    } catch (error) {
+      return res.status(500).json({ error: (error as Error).message });
+    }
+  });
 }

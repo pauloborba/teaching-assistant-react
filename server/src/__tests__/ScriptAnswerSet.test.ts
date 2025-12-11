@@ -74,9 +74,9 @@ describe('ScriptAnswerSet', () => {
   // -----------------------------------------
   describe('removeAllScriptAnswers', () => {
     test('should remove all script answers and return the count', () => {
-      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', studentId: 'ST1' });
-      set.addScriptAnswer({ id: 'A2', scriptId: 'S2', studentId: 'ST2' });
-      set.addScriptAnswer({ id: 'A3', scriptId: 'S3', studentId: 'ST3' });
+      set.addScriptAnswer({ id: 'A1', scriptId: 'S1', classId: 'C1', studentId: 'ST1' });
+      set.addScriptAnswer({ id: 'A2', scriptId: 'S2', classId: 'C2', studentId: 'ST2' });
+      set.addScriptAnswer({ id: 'A3', scriptId: 'S3', classId: 'C3', studentId: 'ST3' });
       expect(set.getAll().length).toBe(3);
 
       const count = set.removeAllScriptAnswers();
@@ -98,6 +98,7 @@ describe('ScriptAnswerSet', () => {
       set.addScriptAnswer({ 
         id: 'A1', 
         scriptId: 'S1', 
+        classId: 'C1',
         studentId: 'ST1', 
         grade: 'MA',
         taskAnswers: [
@@ -107,6 +108,7 @@ describe('ScriptAnswerSet', () => {
       set.addScriptAnswer({ 
         id: 'A2', 
         scriptId: 'S2', 
+        classId: 'C2',
         studentId: 'ST2', 
         grade: 'MANA'
       });

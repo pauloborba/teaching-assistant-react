@@ -1,4 +1,4 @@
-import { Given, When, Then } from '@cucumber/cucumber';
+import { Given, When, Then, Before, After } from '@cucumber/cucumber';
 import expect from 'expect';
 
 const API_URL = 'http://localhost:3005/api';
@@ -25,6 +25,23 @@ const context: TestContext = {
   classesByName: new Map(),
   studentsByCPF: new Map(),
 };
+
+Before({ tags: '@server' }, async function () {
+  try {
+    await fetchAPI('POST', '/reset-mock-data');
+  } catch (error) {
+    console.warn('⚠ Could not reset mock data:', error);
+  }
+});
+
+After({ tags: '@server' }, async function () {
+  try {
+    await fetchAPI('DELETE', '/scriptanswers');
+    console.log('✓ Cleanup: Deleted all scriptanswers');
+  } catch (error) {
+    console.warn('⚠ Cleanup failed:', error);
+  }
+});
 
 // ============================================================
 // Helper Functions

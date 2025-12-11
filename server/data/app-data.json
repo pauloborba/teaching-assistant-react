@@ -19,6 +19,16 @@
       "name": "Joana Refatoração",
       "cpf": "55555555555",
       "email": "jr@gmail.com"
+    },
+    {
+      "name": "Pedro Oliveira",
+      "cpf": "12345678901",
+      "email": "pedro@example.com"
+    },
+    {
+      "name": "Maria Santos",
+      "cpf": "99999999999",
+      "email": "maria@example.com"
     }
   ],
   "classes": [
@@ -192,6 +202,195 @@
           ]
         }
       ]
+    },
+    {
+      "topic": "Math101",
+      "semester": 2024,
+      "year": 2024,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Gerência de Configuração": 1,
+          "Gerência de Projeto": 1,
+          "Qualidade de Software": 1
+        }
+      },
+      "enrollments": [
+        {
+          "studentCPF": "11111111111",
+          "evaluations": []
+        },
+        {
+          "studentCPF": "12345678901",
+          "evaluations": []
+        }
+      ]
+    }
+  ],
+  "scriptAnswers": [
+    {
+      "id": "scriptanswer-start",
+      "scriptId": "script-002",
+      "classId": "Math101-2024-2024",
+      "student": "11111111111",
+      "answers": [],
+      "started_at": 1765460950458,
+      "status": "in_progress"
+    },
+    {
+      "id": "scriptanswer-submit-nonfinal",
+      "scriptId": "script-002",
+      "classId": "Math101-2024-2024",
+      "student": "11111111111",
+      "answers": [
+        {
+          "id": "ta-nf-001",
+          "task": "task-001",
+          "answer": "",
+          "started_at": 1765460950458,
+          "comments": "",
+          "status": "started"
+        }
+      ],
+      "started_at": 1765460950458,
+      "status": "in_progress"
+    },
+    {
+      "id": "scriptanswer-submit-final",
+      "scriptId": "script-002",
+      "classId": "Math101-2024-2024",
+      "student": "11111111111",
+      "answers": [
+        {
+          "id": "ta-f-001",
+          "task": "task-001",
+          "answer": "Already submitted",
+          "started_at": 1765460940458,
+          "submitted_at": 1765460941458,
+          "time_taken_seconds": 1,
+          "grade": "MA",
+          "comments": "",
+          "status": "submitted"
+        },
+        {
+          "id": "ta-f-002",
+          "task": "task-002",
+          "answer": "Already submitted",
+          "started_at": 1765460942458,
+          "submitted_at": 1765460943458,
+          "time_taken_seconds": 1,
+          "grade": "MA",
+          "comments": "",
+          "status": "submitted"
+        },
+        {
+          "id": "ta-f-003",
+          "task": "task-003",
+          "answer": "",
+          "started_at": 1765460950458,
+          "comments": "",
+          "status": "started"
+        }
+      ],
+      "started_at": 1765460950458,
+      "status": "in_progress"
+    },
+    {
+      "id": "scriptanswer-timeout",
+      "scriptId": "script-003",
+      "classId": "Math101-2024-2024",
+      "student": "11111111111",
+      "answers": [
+        {
+          "id": "ta-t-001",
+          "task": "task-001",
+          "answer": "",
+          "started_at": 1765453750458,
+          "comments": "",
+          "status": "started"
+        },
+        {
+          "id": "ta-t-002",
+          "task": "task-002",
+          "answer": "",
+          "started_at": 1765453750458,
+          "comments": "",
+          "status": "started"
+        },
+        {
+          "id": "ta-t-003",
+          "task": "task-003",
+          "answer": "",
+          "started_at": 1765460950458,
+          "comments": "",
+          "status": "pending"
+        }
+      ],
+      "started_at": 1765453750458,
+      "status": "in_progress"
+    },
+    {
+      "id": "scriptanswer-resubmit-fail",
+      "scriptId": "script-004",
+      "classId": "Math101-2024-2024",
+      "student": "11111111111",
+      "answers": [
+        {
+          "id": "ta-rsf-001",
+          "task": "task-001",
+          "answer": "Already submitted",
+          "started_at": 1765460950458,
+          "submitted_at": 1765460950458,
+          "time_taken_seconds": 0,
+          "grade": "MA",
+          "comments": "",
+          "status": "submitted"
+        }
+      ],
+      "started_at": 1765460950458,
+      "status": "in_progress"
+    },
+    {
+      "id": "enrollment-001",
+      "scriptId": "script-001",
+      "classId": "Math101-2024-2024",
+      "student": "12345678901",
+      "answers": [
+        {
+          "id": "ta-enroll-001",
+          "task": "task-001",
+          "answer": "Test response for enrollment query",
+          "started_at": 1765460950458,
+          "grade": "MA",
+          "comments": "",
+          "status": "started"
+        }
+      ],
+      "started_at": 1765460950458,
+      "status": "in_progress"
+    },
+    {
+      "id": "enrollment-002",
+      "scriptId": "script-002",
+      "classId": "Math101-2024-2024",
+      "student": "12345678901",
+      "answers": [
+        {
+          "id": "ta-enroll-002",
+          "task": "task-001",
+          "answer": "Another test response",
+          "started_at": 1765460950459,
+          "grade": "MPA",
+          "comments": "",
+          "status": "started"
+        }
+      ],
+      "started_at": 1765460950459,
+      "status": "in_progress"
     }
   ]
 }

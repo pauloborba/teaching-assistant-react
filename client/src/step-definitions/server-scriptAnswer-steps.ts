@@ -7,6 +7,7 @@ import expect from 'expect';
 setDefaultTimeout(30 * 10000);
 
 const serverUrl = 'http://localhost:3005';
+const CLASS_ID = 'Math101-2024-2024';
 
 // ============================================================
 // Shared test state
@@ -64,11 +65,42 @@ async function createScript(title : string, id: string) {
   return response;
 }
 
+async function ensureClassExists(classId: string = CLASS_ID) {
+  const res = await fetch(`${serverUrl}/api/classes`);
+  const classes = await res.json();
+  const found = classes.find((c: any) => c.id === classId);
+  if (found) return found;
+
+  const [topic, year, semester] = classId.split('-');
+  const response = await fetch(`${serverUrl}/api/classes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ topic, year: Number(year) || 2024, semester: Number(semester) || 1 })
+  });
+  return response.json();
+}
+
+async function ensureEnrollmentExists(cpf: string, classId: string = CLASS_ID) {
+  const res = await fetch(`${serverUrl}/api/classes`);
+  const classes = await res.json();
+  const found = classes.find((c: any) => c.id === classId);
+  if (!found) return;
+  const enrolled = found.enrollments?.some((e: any) => e.studentCPF === cpf);
+  if (enrolled) return;
+  await fetch(`${serverUrl}/api/classes/${classId}/enroll`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ studentCPF: cpf })
+  });
+}
 
 
 
-async function createScriptAnswer(id: string, studentId: string) {
+
+async function createScriptAnswer(id: string, studentId: string, classId: string = CLASS_ID) {
   await createScript(`Script for ${id}`, `script-${id}`);
+  await ensureClassExists(classId);
+  await ensureEnrollmentExists(studentId, classId);
 
   const check = await fetch(`${serverUrl}/api/scriptanswers/${id}`);
   if (check.status === 200) {
@@ -80,7 +112,7 @@ async function createScriptAnswer(id: string, studentId: string) {
   const response = await fetch(`${serverUrl}/api/scriptanswers/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, scriptId: `script-${id}`, studentId, answers: [] })
+    body: JSON.stringify({ id, scriptId: `script-${id}`, classId, studentId, answers: [] })
   });
 
   if (response.status === 201) {

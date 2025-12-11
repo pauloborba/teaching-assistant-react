@@ -27,15 +27,6 @@ After({ tags: '@server' }, async function () {
   }
 });
 
-Given('the server API is available', async function () {
-  try {
-    const response = await fetch(`${serverUrl}/api/students`);
-    expect(response.status).toBe(200);
-  } catch (error) {
-    throw new Error('Server is not available. Make sure the backend server is running on port 3005');
-  }
-});
-
 Given('there is no student with CPF {string} in the server', async function (cpf: string) {
   testStudentCPF = cpf;
   

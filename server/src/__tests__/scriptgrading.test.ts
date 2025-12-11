@@ -3,7 +3,6 @@ import { app, scriptAnswerSet, studentSet, classes, scripts } from '../server';
 import { Student } from '../models/Student';
 import { TaskAnswer } from '../models/TaskAnswer';
 import { Class } from '../models/Class';
-import { Script } from '../models/Script';
 import { Task } from '../models/Task';
 import { EspecificacaoDoCalculoDaMedia } from '../models/EspecificacaoDoCalculoDaMedia';
 
@@ -24,6 +23,9 @@ describe('Server API – Script Answers Endpoints', () => {
     const allClasses = classes.getAllClasses();
     allClasses.forEach(c => classes.removeClass(c.getClassId()));
 
+    // Clear scripts
+    scripts.getAllScripts().length = 0;
+
     // Create test student with valid 11-digit CPF
     const testStudent = new Student('Test Student', '12345678901', 'test@test.com');
     studentSet.addStudent(testStudent);
@@ -37,9 +39,16 @@ describe('Server API – Script Answers Endpoints', () => {
     // Enroll student in class
     testClass.addEnrollment(testStudent);
 
-    // Create test script
-    const testScript = new Script('1', 'Test Script');
-    scripts.addScript({ id: '1', title: 'Test Script' });
+    // Create test script with tasks (required by Scripts.addScript)
+    scripts.addScript({
+      id: '1',
+      title: 'Test Script',
+      description: 'Test Script Description',
+      tasks: [
+        { id: 't1', statement: 'Task 1' },
+        { id: 't2', statement: 'Task 2' }
+      ]
+    });
   });
 
   // ----------------------------------------------------------
@@ -185,7 +194,6 @@ describe('Server API – Script Answers Endpoints', () => {
   // ----------------------------------------------------------
 
   test('POST /api/scriptanswers → creates a new script answer', async () => {
-    scripts.addScript({ id: '1', title: 'Test Script', tasks: [{id: 't1'}], description: 'desc' });
     const res = await request(app)
       .post('/api/scriptanswers/')
       .send({
@@ -271,7 +279,12 @@ describe('Server API – Script Answers Endpoints', () => {
   // ----------------------------------------------------------
 
   test('DELETE /api/scriptanswers/:id → deletes existing script answer', async () => {
-    scriptAnswerSet.addScriptAnswer({ id: '130', scriptId: '1', studentId: 'S1' });
+    scriptAnswerSet.addScriptAnswer({
+      id: '130',
+      scriptId: '1',
+      classId: 'Test Class-2024-1',
+      studentId: '12345678901'
+    });
     expect(scriptAnswerSet.getAll().length).toBe(1);
 
     const res = await request(app).delete('/api/scriptanswers/130');
@@ -298,9 +311,9 @@ describe('Server API – Script Answers Endpoints', () => {
   // ----------------------------------------------------------
 
   test('DELETE /api/scriptanswers → deletes all script answers', async () => {
-    scriptAnswerSet.addScriptAnswer({ id: '140', scriptId: '1', studentId: 'S1' });
-    scriptAnswerSet.addScriptAnswer({ id: '141', scriptId: '2', studentId: 'S2' });
-    scriptAnswerSet.addScriptAnswer({ id: '142', scriptId: '3', studentId: 'S3' });
+    scriptAnswerSet.addScriptAnswer({ id: '140', scriptId: '1', classId: 'Test Class-2024-1', studentId: '12345678901' });
+    scriptAnswerSet.addScriptAnswer({ id: '141', scriptId: '1', classId: 'Test Class-2024-1', studentId: '12345678901' });
+    scriptAnswerSet.addScriptAnswer({ id: '142', scriptId: '1', classId: 'Test Class-2024-1', studentId: '12345678901' });
     expect(scriptAnswerSet.getAll().length).toBe(3);
 
     const res = await request(app).delete('/api/scriptanswers/');
