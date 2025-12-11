@@ -22,7 +22,29 @@ let mostRecentTaskId: string | null = null;
 // Helper functions
 // ============================================================
 
+async function createTask(statement : string, id: string) {
+  const check = await fetch(`${serverUrl}/api/tasks/${id}`);
+  if (check.status === 200) {
+    mostRecentTaskId = id;
+    return check;
+  }
+
+  const response = await fetch(`${serverUrl}/api/tasks/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: id, statement: statement, type: 'text', answerKey: '' })
+  });
+
+  mostRecentTaskId = id;
+  lastResponse = response;
+  expect(response.status).toBe(201);
+
+  return response;
+}
+
 async function createScript(title : string, id: string) {
+  await createTask(`Task for ${id}`, `task-${id}`);
+
   const check = await fetch(`${serverUrl}/api/scripts/${id}`);
   if (check.status === 200) {
     createdScriptsIds.push(id);
@@ -32,7 +54,7 @@ async function createScript(title : string, id: string) {
   const response = await fetch(`${serverUrl}/api/scripts/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id: id, title: title, tasks: [] })
+    body: JSON.stringify({ id: id, title: title, tasks: [{id: `task-${id}`, statement: `Task for ${id}`}], description: 'testdesciption' })
   });
 
   lastResponse = response;

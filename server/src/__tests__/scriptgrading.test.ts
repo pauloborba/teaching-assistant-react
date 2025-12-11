@@ -185,7 +185,7 @@ describe('Server API – Script Answers Endpoints', () => {
   // ----------------------------------------------------------
 
   test('POST /api/scriptanswers → creates a new script answer', async () => {
-    scripts.addScript({ id: '1', title: 'Test Script' });
+    scripts.addScript({ id: '1', title: 'Test Script', tasks: [{id: 't1'}], description: 'desc' });
     const res = await request(app)
       .post('/api/scriptanswers/')
       .send({
