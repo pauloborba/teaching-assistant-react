@@ -31,7 +31,7 @@ npx cypress open
 npx cypress run
 
 # Run specific feature
-npx cypress run --spec "cypress/e2e/features/import-students.feature"
+npx cypress run --spec "cypress/e2e/features/classComparison.feature"
 ```
 
 ## Test Philosophy
