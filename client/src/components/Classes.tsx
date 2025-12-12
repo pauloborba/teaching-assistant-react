@@ -725,7 +725,7 @@ const Classes: React.FC<ClassesProps> = ({
         />
       )}
 
-      { /* Class Comparisson */ }
+      { /* Class Comparison */ }
       {Object.keys(comparisonReports).length > 0 && (
         <ClassComparison
           classes={classes}

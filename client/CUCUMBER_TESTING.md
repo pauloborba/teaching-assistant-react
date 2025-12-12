@@ -27,14 +27,7 @@ This script will:
 
 ```bash
 # From the client directory
-npm run test:cucumber
-```
-
-### Method 3: Watch Mode (for development)
-
-```bash
-# From the client directory
-npm run test:cucumber:watch
+npm run test -- --watchAll
 ```
 
 ## 🧪 Test Structure
