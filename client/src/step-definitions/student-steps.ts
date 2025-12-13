@@ -266,3 +266,4 @@ Then('the student should have email {string}', async function (expectedEmail: st
   const actualEmail = await page.evaluate(el => el.textContent, emailCell!);
   expect(actualEmail).toBe(expectedEmail);
 });
+
