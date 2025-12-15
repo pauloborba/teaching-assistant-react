@@ -541,14 +541,11 @@ When('I try to upload a file {string} that contains no data rows', function (fil
         cy.reload();
         cy.contains('button', 'Classes').click();
         cy.wait(1000);
-        
-        // Find the class and click Enroll
-        cy.contains('td', testContext.classData.topic, { timeout: 10000 })
+
+        // Click the enroll button directly by data-testid to avoid DOM position fragility
+        cy.get(`[data-testid="enroll-class-${testContext.createdClassId}"]`, { timeout: 10000 })
           .should('be.visible')
-          .parent('tr')
-          .within(() => {
-            cy.contains('button', 'Enroll').click();
-          });
+          .click();
         
         // Wait for modal
         cy.contains('h3', `Enroll Students in ${testContext.classData.topic}`).should('be.visible');
@@ -563,12 +560,9 @@ When('I try to upload a file {string} that contains no data rows', function (fil
     });
   } else {
     // We already have a class from previous steps
-    cy.contains('td', testContext.classData.topic, { timeout: 10000 })
+    cy.get(`[data-testid="enroll-class-${testContext.createdClassId}"]`, { timeout: 10000 })
       .should('be.visible')
-      .parent('tr')
-      .within(() => {
-        cy.contains('button', 'Enroll').click();
-      });
+      .click();
     
     cy.contains('h3', `Enroll Students in ${testContext.classData.topic}`).should('be.visible');
     

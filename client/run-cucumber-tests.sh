@@ -44,7 +44,7 @@ echo "🚀 Running Cucumber tests..."
 echo ""
 
 # Run the tests
-npm run test:cucumber
+npm run test -- --watchAll
 
 echo ""
 echo "📊 Test reports generated in the 'reports' directory"

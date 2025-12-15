@@ -8,6 +8,7 @@ import { studentService } from '../services/StudentService';
 import EnrollmentService from '../services/EnrollmentService';
 import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA, EspecificacaoDoCalculoDaMedia } from '../types/EspecificacaoDoCalculoDaMedia';
 import ClassReport from './ClassReport';
+import ClassComparison, { MAX_COMPARISON_SELECTION } from './ClassComparison';
 
 interface ClassesProps {
   classes: Class[];
@@ -17,6 +18,13 @@ interface ClassesProps {
   onError: (errorMessage: string) => void;
 }
 
+const DEFAULT_FORM_DATA: CreateClassRequest = {
+  topic: '',
+  semester: 1,
+  year: new Date().getFullYear(),
+  especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA
+};
+
 const Classes: React.FC<ClassesProps> = ({ 
   classes, 
   onClassAdded, 
@@ -24,12 +32,7 @@ const Classes: React.FC<ClassesProps> = ({
   onClassDeleted, 
   onError 
 }) => {
-  const [formData, setFormData] = useState<CreateClassRequest>({
-    topic: '',
-    semester: 1,
-    year: new Date().getFullYear(),
-    especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA
-  });
+  const [formData, setFormData] = useState<CreateClassRequest>(DEFAULT_FORM_DATA);
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -50,6 +53,25 @@ const Classes: React.FC<ClassesProps> = ({
   const [reportPanelClass, setReportPanelClass] = useState<Class | null>(null);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isLoadingReport, setIsLoadingReport] = useState(false);
+
+  // Class comparison state
+  const [selectedClassesForComparison, setSelectedClassesForComparison] = useState<Set<string>>(new Set());
+  const [comparisonReports, setComparisonReports] = useState<{ [classId: string]: ReportData }>({});
+  const [isLoadingComparison, setIsLoadingComparison] = useState(false);
+  const [comparisonError, setComparisonError] = useState<string | null>(null);
+  const [comparisonViewType, setComparisonViewType] = useState<'table' | 'charts'>('charts');
+
+  // Helper to reset form data
+  const resetFormData = () => setFormData(DEFAULT_FORM_DATA);
+
+  // Helper to reset enrollment panel state
+  const resetEnrollmentPanel = () => {
+    setEnrollmentPanelClass(null);
+    setSelectedStudentsForEnrollment(new Set());
+  };
+
+  // Helper to clear comparison error
+  const clearComparisonError = () => setComparisonError(null);
 
   // Load all students for enrollment dropdown
   const loadAllStudents = useCallback(async () => {
@@ -83,8 +105,7 @@ const Classes: React.FC<ClassesProps> = ({
       await Promise.all(enrollmentPromises);
       
       // Reset enrollment panel
-      setSelectedStudentsForEnrollment(new Set());
-      setEnrollmentPanelClass(null);
+      resetEnrollmentPanel();
       
       // Refresh class data
       onClassUpdated();
@@ -188,13 +209,49 @@ const Classes: React.FC<ClassesProps> = ({
   };
 
   // Handle opening report panel for a specific class
-  const handleOpenReportPanel = (classObj: Class) => {
+  const handleOpenReportPanel = async (classObj: Class) => {
     setReportPanelClass(classObj);
+    setIsLoadingReport(true);
+    
+    try {
+      const report = await ClassService.getClassReport(classObj.id);
+      setReportData(report);
+    } catch (error) {
+      onError((error as Error).message);
+      setReportPanelClass(null);
+      clearComparisonError();
+    } finally {
+      setIsLoadingReport(false);
+    }
+  };
+
+  // Handle class selection for comparison
+  const handleClassSelectionToggle = (classId: string) => {
+    const newSelection = new Set(selectedClassesForComparison);
+
+    if (newSelection.has(classId)) {
+      newSelection.delete(classId);
+      setSelectedClassesForComparison(newSelection);
+      setComparisonError(null);
+      return;
+    }
+
+    // Trying to add
+    if (newSelection.size >= MAX_COMPARISON_SELECTION) {
+      setComparisonError(`You are not allowed to select more than ${MAX_COMPARISON_SELECTION} classes for comparison`);
+      return;
+    }
+
+    newSelection.add(classId);
+    setSelectedClassesForComparison(newSelection);
+    setComparisonError(null); // Clear error on new selection
   };
 
   // Handle closing report panel
   const handleCloseReportPanel = () => {
     setReportPanelClass(null);
+    setReportData(null);
+    clearComparisonError();
   };
 
   // Handle form input changes
@@ -230,12 +287,7 @@ const Classes: React.FC<ClassesProps> = ({
       }
       
       // Reset form
-      setFormData({
-        topic: '',
-        semester: 1,
-        year: new Date().getFullYear(),
-        especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA
-      });
+      resetFormData();
     } catch (error) {
       onError((error as Error).message);
     } finally {
@@ -246,23 +298,13 @@ const Classes: React.FC<ClassesProps> = ({
   // Handle edit button click
   const handleEdit = (classObj: Class) => {
     setEditingClass(classObj);
-    setFormData({
-      topic: classObj.topic,
-      semester: classObj.semester,
-      year: classObj.year,
-      especificacaoDoCalculoDaMedia: classObj.especificacaoDoCalculoDaMedia
-    });
+    setFormData(classObj);
   };
 
   // Handle cancel edit
   const handleCancelEdit = () => {
     setEditingClass(null);
-    setFormData({
-      topic: '',
-      semester: 1,
-      year: new Date().getFullYear(),
-      especificacaoDoCalculoDaMedia: DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA
-    });
+    resetFormData();
   };
 
   // Handle delete
@@ -281,7 +323,97 @@ const Classes: React.FC<ClassesProps> = ({
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
 
-return (
+  // Handle comparison button click
+  const handleCompareClasses = async () => {
+    const selectedIds = Array.from(selectedClassesForComparison);
+    setIsLoadingComparison(true);
+    clearComparisonError();
+    
+    // Pre-check: ensure at least 2 selected
+    if (selectedIds.length < 2) {
+      setComparisonError('Please select at least 2 classes to compare');
+      setIsLoadingComparison(false);
+      return;
+    }
+
+    // Check for classes with no enrollments and inform user with names
+    const emptyClasses = selectedIds
+      .map(id => classes.find(c => c.id === id))
+      .filter(Boolean)
+      .filter(c => (c as Class).enrollments.length === 0) as Class[];
+
+    if (emptyClasses.length > 0) {
+      const names = emptyClasses.map(c => c.topic);
+      const first = names[0];
+      const others = names.length - 1;
+      const msg = others > 0
+        ? `The class "${first}" and ${others} other(s) have no enrolled students`
+        : `The class "${first}" has no enrolled students`;
+      setComparisonError(msg);
+      setIsLoadingComparison(false);
+      return;
+    }
+
+    try {
+      const { fetchClassReportsForComparison } = await import('../services/ClassService');
+      const result = await fetchClassReportsForComparison(selectedIds);
+
+      if (result.error) {
+        setComparisonError(result.error);
+        setIsLoadingComparison(false);
+        return;
+      }
+
+      setComparisonReports(result.reports);
+      clearComparisonError();
+    } catch (error) {
+      setComparisonError((error as Error).message || 'Failed to fetch comparison reports');
+    } finally {
+      setIsLoadingComparison(false);
+    }
+  };
+
+  // Selection info text for display
+  const selectionInfoText = (() => {
+    if (selectedClassesForComparison.size === 0) return 'Select at least 2 classes to compare';
+    if (selectedClassesForComparison.size >= MAX_COMPARISON_SELECTION) {
+      return `Maximum of ${MAX_COMPARISON_SELECTION} classes selected`;
+    }
+    return `${selectedClassesForComparison.size} class${selectedClassesForComparison.size !== 1 ? 'es' : ''} selected`;
+  })();
+
+  // Toggle select all visible classes for comparison
+  const handleToggleSelectAllVisible = () => {
+    const MAX = MAX_COMPARISON_SELECTION;
+    const withReports = classes.filter(c => Boolean(comparisonReports[c.id]));
+    const withoutReports = classes.filter(c => !comparisonReports[c.id]);
+    const prioritized = [...withReports, ...withoutReports];
+    const toSelect = prioritized.slice(0, Math.min(MAX, prioritized.length));
+
+    const allSelected = toSelect.every(c => selectedClassesForComparison.has(c.id));
+    if (allSelected) {
+      setSelectedClassesForComparison(new Set());
+      clearComparisonError();
+      return;
+    }
+
+    const newSelection = new Set<string>(toSelect.map(c => c.id));
+    setSelectedClassesForComparison(newSelection);
+    clearComparisonError();
+  };
+
+  // Check if all visible classes are selected
+  const headerAllSelected = (() => {
+    if (!classes || classes.length === 0) return false;
+    const MAX = MAX_COMPARISON_SELECTION;
+    const withReports = classes.filter(c => Boolean(comparisonReports[c.id]));
+    const withoutReports = classes.filter(c => !comparisonReports[c.id]);
+    const prioritized = [...withReports, ...withoutReports];
+    const toCheck = prioritized.slice(0, Math.min(MAX, prioritized.length));
+    return toCheck.length > 0 && toCheck.every(c => selectedClassesForComparison.has(c.id));
+  })();
+
+  return (
     <div className="classes-container">
       <h2>Class Management</h2>
       
@@ -361,20 +493,36 @@ return (
             <table data-testid="classes-table">
               <thead>
                 <tr>
+                  <th className="checkbox-col">
+                    <input 
+                      type="checkbox" 
+                      title="Select visible classes for comparison"
+                      checked={headerAllSelected}
+                      onChange={handleToggleSelectAllVisible}
+                    />
+                  </th>
                   <th>Topic</th>
                   <th>Year</th>
-                  <th>Semester</th>
                   <th>Enrolled Students</th>
+                  <th>Semester</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {classes.map((classObj) => (
-                  <tr key={getClassId(classObj)} data-testid={`class-row-${getClassId(classObj)}`}>
+                  <tr key={getClassId(classObj)}>
+                    <td className="checkbox-col">
+                      <input 
+                        type="checkbox"
+                        checked={selectedClassesForComparison.has(classObj.id)}
+                        onChange={() => handleClassSelectionToggle(classObj.id)}
+                        title="Select for comparison"
+                      />
+                    </td>
                     <td><strong>{classObj.topic}</strong></td>
                     <td><strong>{classObj.year}</strong></td>
-                    <td><strong>{classObj.semester === 1 ? '1st Semester' : '2nd Semester'}</strong></td>
                     <td data-testid="enrolled-count">{classObj.enrollments.length}</td>
+                    <td><strong>{classObj.semester === 1 ? '1st Semester' : '2nd Semester'}</strong></td>
                     <td>
                       <div className="actions-grid">
                         <button
@@ -415,6 +563,22 @@ return (
                 ))}
               </tbody>
             </table>
+
+            {/* Comparison Controls */}
+            {classes.length > 1 && (
+              <div className="comparison-controls">
+                <p className="selection-info">{selectionInfoText}</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    className="compare-btn"
+                    onClick={handleCompareClasses}
+                    disabled={selectedClassesForComparison.size < 2 || isLoadingComparison}
+                  >
+                    {isLoadingComparison ? 'Loading...' : `Compare (${selectedClassesForComparison.size})`}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -558,6 +722,24 @@ return (
         <ClassReport
           classObj={reportPanelClass}
           onClose={handleCloseReportPanel}
+          onError={onError}
+        />
+      )}
+
+      { /* Class Comparison */ }
+      {Object.keys(comparisonReports).length > 0 && (
+        <ClassComparison
+          classes={classes}
+          selectedClassesForComparison={selectedClassesForComparison}
+          setSelectedClassesForComparison={setSelectedClassesForComparison}
+          comparisonReports={comparisonReports}
+          setComparisonReports={setComparisonReports}
+          comparisonError={comparisonError}
+          setComparisonError={setComparisonError}
+          comparisonViewType={comparisonViewType}
+          setComparisonViewType={setComparisonViewType}
+          isLoadingComparison={isLoadingComparison}
+          setIsLoadingComparison={setIsLoadingComparison}
           onError={onError}
         />
       )}

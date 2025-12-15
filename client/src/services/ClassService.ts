@@ -98,4 +98,29 @@ class ClassService {
 
 }
 
+// Utility: Fetch multiple class reports and handle errors for comparison scenarios
+// Usage: fetchClassReportsForComparison(['id1', 'id2'])
+export async function fetchClassReportsForComparison(classIds: string[]): Promise<
+  { reports: { [classId: string]: ReportData }, error?: string }
+> {
+  if (classIds.length < 2) {
+    return { reports: {}, error: 'At least two classes are required for comparison.' };
+  }
+
+  const reports: { [classId: string]: ReportData } = {};
+  for (const classId of classIds) {
+    try {
+      const report = await ClassService.getClassReport(classId);
+      // Consider a report missing if it is null, undefined, or empty object
+      if (!report || Object.keys(report).length === 0) {
+        return { reports: {}, error: 'One or more selected classes do not have available report.' };
+      }
+      reports[classId] = report;
+    } catch (err) {
+      return { reports: {}, error: 'One or more selected classes do not have available report.' };
+    }
+  }
+  return { reports };
+}
+
 export default ClassService;
