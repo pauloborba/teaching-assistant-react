@@ -1,11 +1,6 @@
 {
   "students": [
     {
-      "name": "Paulo Borba",
-      "cpf": "11111111111",
-      "email": "phmb@cin.ufpe.br"
-    },
-    {
       "name": "Maria Modularidade",
       "cpf": "22222222222",
       "email": "mm@cin.ufpe.br"
@@ -44,183 +39,6 @@
   "classes": [
     {
       "topic": "Engenharia de Software e Sistemas",
-      "semester": 1,
-      "year": 2025,
-      "especificacaoDoCalculoDaMedia": {
-        "pesosDosConceitos": {
-          "MA": 10,
-          "MPA": 7,
-          "MANA": 0
-        },
-        "pesosDasMetas": {
-          "Requirements": 1,
-          "Configuration Management": 1,
-          "Project Management": 1,
-          "Design": 1,
-          "Tests": 1,
-          "Refactoring": 1
-        }
-      },
-      "enrollments": [
-        {
-          "studentCPF": "11111111111",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "55555555555",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "22222222222",
-          "evaluations": [
-            {
-              "goal": "Configuration Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "topic": "Engenharia de Software e Sistemas",
-      "semester": 2,
-      "year": 2025,
-      "especificacaoDoCalculoDaMedia": {
-        "pesosDosConceitos": {
-          "MA": 10,
-          "MPA": 7,
-          "MANA": 0
-        },
-        "pesosDasMetas": {
-          "Requirements": 1,
-          "Configuration Management": 1,
-          "Project Management": 1,
-          "Design": 1,
-          "Tests": 1,
-          "Refactoring": 1
-        }
-      },
-      "enrollments": [
-        {
-          "studentCPF": "22222222222",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            }
-          ]
-        },
-        {
-          "studentCPF": "33333333333",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "topic": "Engenharia de Software e Sistemas",
       "semester": 2,
       "year": 2024,
       "especificacaoDoCalculoDaMedia": {
@@ -239,35 +57,6 @@
         }
       },
       "enrollments": [
-        {
-          "studentCPF": "11111111111",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ]
-        },
         {
           "studentCPF": "44444444444",
           "evaluations": [
@@ -365,27 +154,6 @@
         }
       },
       "enrollments": [
-        {
-          "studentCPF": "11111111111",
-          "evaluations": [
-            {
-              "goal": "Requirements Analysis",
-              "grade": "MA"
-            },
-            {
-              "goal": "Use Cases",
-              "grade": "MA"
-            },
-            {
-              "goal": "Architecture",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Database Design",
-              "grade": "MA"
-            }
-          ]
-        },
         {
           "studentCPF": "22222222222",
           "evaluations": [
@@ -492,23 +260,6 @@
         }
       },
       "enrollments": [
-        {
-          "studentCPF": "11111111111",
-          "evaluations": [
-            {
-              "goal": "Creational Patterns",
-              "grade": "MA"
-            },
-            {
-              "goal": "Structural Patterns",
-              "grade": "MA"
-            },
-            {
-              "goal": "Behavioral Patterns",
-              "grade": "MPA"
-            }
-          ]
-        },
         {
           "studentCPF": "22222222222",
           "evaluations": [
@@ -695,6 +446,69 @@
               "grade": "MPA"
             }
           ]
+        }
+      ]
+    },
+    {
+      "topic": "Engenharia de Software e Sistemas",
+      "semester": 1,
+      "year": 2025,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
+      "enrollments": []
+    },
+    {
+      "topic": "E2E Test Class 1765767192105",
+      "semester": 1,
+      "year": 2025,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Requirements": 1,
+          "Configuration Management": 1,
+          "Project Management": 1,
+          "Design": 1,
+          "Tests": 1,
+          "Refactoring": 1
+        }
+      },
+      "enrollments": [
+        {
+          "studentCPF": "11111110001",
+          "evaluations": []
+        },
+        {
+          "studentCPF": "11111110002",
+          "evaluations": []
+        },
+        {
+          "studentCPF": "11111110003",
+          "evaluations": []
+        },
+        {
+          "studentCPF": "11111110004",
+          "evaluations": []
+        },
+        {
+          "studentCPF": "11111110005",
+          "evaluations": []
         }
       ]
     }

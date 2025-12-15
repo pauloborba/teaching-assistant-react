@@ -1,0 +1,8 @@
+{
+  "stepDefinitions": [
+    "cypress/e2e/stepDefinitions/**/*.js"
+  ],
+  "messages": {
+    "enabled": false
+  }
+}

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Class, CreateClassRequest, getClassId } from '../types/Class';
 import { Student } from '../types/Student';
 import { ReportData } from '../types/Report';
@@ -40,6 +41,13 @@ const Classes: React.FC<ClassesProps> = ({
   const [enrollmentPanelClass, setEnrollmentPanelClass] = useState<Class | null>(null);
   const [selectedStudentsForEnrollment, setSelectedStudentsForEnrollment] = useState<Set<string>>(new Set());
   const [isEnrolling, setIsEnrolling] = useState(false);
+
+  // Bulk import state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Navigation hook
+  const navigate = useNavigate();
 
   // Report state - only track which class to show report for
   const [reportPanelClass, setReportPanelClass] = useState<Class | null>(null);
@@ -118,7 +126,57 @@ const Classes: React.FC<ClassesProps> = ({
 
   // Handle closing enrollment panel
   const handleCloseEnrollmentPanel = () => {
-    resetEnrollmentPanel();
+    setEnrollmentPanelClass(null);
+    setSelectedStudentsForEnrollment(new Set());
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Handle file selection
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  // Handle bulk import
+  const handleImport = async () => {
+    if (!selectedFile || !enrollmentPanelClass) {
+      return;
+    }
+
+    const classId = enrollmentPanelClass.id;
+
+    try {
+      const result = await EnrollmentService.enrollStudentsBulk(classId, selectedFile);
+      
+      // Refresh class data to show newly enrolled students
+      onClassUpdated();
+      
+      // Navigate to success page
+      navigate('/import-success', { 
+        state: { 
+          imported: result.importedCount, 
+          rejected: result.rejectedCount 
+        } 
+      });
+    } catch (error) {
+      // Navigate to error page
+      navigate('/import-error', { 
+        state: { 
+          message: (error as Error).message 
+        } 
+      });
+    } finally {
+      // Clean up
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   // Handle student selection toggle
@@ -432,7 +490,7 @@ const Classes: React.FC<ClassesProps> = ({
           </div>
         ) : (
           <div className="table-container">
-            <table>
+            <table data-testid="classes-table">
               <thead>
                 <tr>
                   <th className="checkbox-col">
@@ -464,11 +522,12 @@ const Classes: React.FC<ClassesProps> = ({
                     <td><strong>{classObj.topic}</strong></td>
                     <td><strong>{classObj.year}</strong></td>
                     <td><strong>{classObj.semester === 1 ? '1st Semester' : '2nd Semester'}</strong></td>
-                    <td>{classObj.enrollments.length}</td>
+                    <td data-testid="enrolled-count">{classObj.enrollments.length}</td>
                     <td>
                       <div className="actions-grid">
                         <button
                           className="edit-btn"
+                          data-testid={`edit-class-${getClassId(classObj)}`}
                           onClick={() => handleEdit(classObj)}
                           title="Edit class"
                         >
@@ -476,6 +535,7 @@ const Classes: React.FC<ClassesProps> = ({
                         </button>
                         <button
                           className="delete-btn"
+                          data-testid={`delete-class-${getClassId(classObj)}`}
                           onClick={() => handleDelete(classObj)}
                           title="Delete class"
                         >
@@ -483,6 +543,7 @@ const Classes: React.FC<ClassesProps> = ({
                         </button>
                         <button
                           className="enroll-btn"
+                          data-testid={`enroll-class-${getClassId(classObj)}`}
                           onClick={() => handleOpenEnrollmentPanel(classObj)}
                           title="Enroll students"
                         >
@@ -490,6 +551,7 @@ const Classes: React.FC<ClassesProps> = ({
                         </button>
                         <button
                           className="report-btn"
+                          data-testid={`report-class-${getClassId(classObj)}`}
                           onClick={() => handleOpenReportPanel(classObj)}
                           title="View class report"
                         >
@@ -551,6 +613,34 @@ const Classes: React.FC<ClassesProps> = ({
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Bulk Import Section */}
+              <div className="bulk-import-section">
+                <h4>Import Students from File:</h4>
+                <div className="bulk-import-controls">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                    onChange={handleFileChange}
+                    className="file-input"
+                  />
+                  <button
+                    className="import-btn"
+                    onClick={handleImport}
+                    disabled={!selectedFile}
+                    title={!selectedFile ? 'Please select a file first' : 'Import students from file'}
+                  >
+                    Import Students
+                  </button>
+                </div>
+                {selectedFile && (
+                  <p className="file-selected">Selected: {selectedFile.name}</p>
+                )}
+                <p className="import-hint">
+                  Upload a CSV or Excel file with a column named "cpf" containing student CPFs
+                </p>
               </div>
 
               {/* Available Students to Enroll */}
@@ -627,7 +717,7 @@ const Classes: React.FC<ClassesProps> = ({
         </div>
       )}
 
-      {/* Report Panel */}
+      {/* Report Panel - Agora simplificado usando o componente extraído */}
       {reportPanelClass && (
         <ClassReport
           classObj={reportPanelClass}

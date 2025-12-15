@@ -41,6 +41,33 @@ class EnrollmentService {
     }
   }
 
+  static async enrollStudentsBulk(classId: string, file: File): Promise<{ importedCount: number, rejectedCount: number }> {
+    try {
+      // Create FormData and append the file
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Make POST request to bulk enrollment endpoint
+      const response = await fetch(`${API_BASE_URL}/api/classes/${classId}/enroll-bulk`, {
+        method: 'POST',
+        body: formData,
+        // Note: Do NOT set Content-Type header - browser will set it automatically with boundary
+      });
+      
+      // Handle error responses
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to enroll students in bulk');
+      }
+      
+      // Return success response with counters
+      return response.json();
+    } catch (error) {
+      console.error('Error enrolling students in bulk:', error);
+      throw error;
+    }
+  }
+
   static async getClassEnrollments(classId: string): Promise<Enrollment[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/api/classes/${classId}/enrollments`);

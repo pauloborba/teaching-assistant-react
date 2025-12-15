@@ -1,13 +1,60 @@
+# Dependencies
 node_modules/
+package-lock.json
+
+# Build outputs
 server/dist/
 client/build/
 
-# Cucumber test reports
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Test files
+test-*.csv
+test-*.xlsx
+test-*.js
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# Cucumber test reports (client-side)
 client/reports/
 cucumber-report.*
 
-# jest coverage directory
+# Jest coverage directory
 coverage/
 
-# multer folder
+# Multer temporary folder
 tmp_data/
+
+# Notes
+notes/
+
+# Extra (local documentation files)
+commit_log.txt
+demo.csv
+diff_log.txt
+FEATURE_SUMMARY.md
