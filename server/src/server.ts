@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { StudentSet } from './models/StudentSet';
 import { Student } from './models/Student';
-import { Evaluation } from './models/Evaluation';
+import { Evaluation, Grade } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import { Report } from './models/Report';
@@ -37,6 +37,11 @@ const ensureDataDirectory = (): void => {
 };
 
 const saveDataToFile = (): void => {
+  // Skip saving in test environment
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+  
   try {
     const data = {
       students: studentSet.getAllStudents().map(student => ({
@@ -48,10 +53,10 @@ const saveDataToFile = (): void => {
         topic: classObj.getTopic(),
         semester: classObj.getSemester(),
         year: classObj.getYear(),
-        especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
         enrollments: classObj.getEnrollments().map(enrollment => ({
           studentCPF: enrollment.getStudent().getCPF(),
-          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
+          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+          selfEvaluations: enrollment.getSelfEvaluations().map(selfEvaluation => selfEvaluation.toJSON())
         }))
       }))
     };
@@ -61,6 +66,16 @@ const saveDataToFile = (): void => {
   } catch (error) {
     console.error('Error saving students to file:', error);
   }
+};
+
+const loadEvaluations = (
+  evalArray: any[],
+  addFn: (goal: string, grade: Grade) => void
+) => {
+  evalArray.forEach((e: any) => {
+    const evaluation = Evaluation.fromJSON(e);
+    addFn(evaluation.getGoal(), evaluation.getGrade());
+  });
 };
 
 // Load data from file
@@ -102,24 +117,27 @@ const loadDataFromFile = (): void => {
                 if (student) {
                   const enrollment = classObj.addEnrollment(student);
                   
-                  // Load evaluations for this enrollment
+                  // Load evaluations
                   if (enrollmentData.evaluations && Array.isArray(enrollmentData.evaluations)) {
-                    enrollmentData.evaluations.forEach((evalData: any) => {
-                      const evaluation = Evaluation.fromJSON(evalData);
-                      enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
-                    });
+                    loadEvaluations(enrollmentData.evaluations, enrollment.addOrUpdateEvaluation.bind(enrollment));
                   }
-                    
-                    // Load medias and attendance status if provided in the data file
-                    if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
-                      enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
-                    }
-                    if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
-                      enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
-                    }
-                    if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
-                      enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
-                    }
+
+                  // Load self-evaluations
+                  if (enrollmentData.selfEvaluations && Array.isArray(enrollmentData.selfEvaluations)) {
+                    loadEvaluations(enrollmentData.selfEvaluations, enrollment.addOrUpdateSelfEvaluation.bind(enrollment));
+                  }
+
+                  // Load medias and attendance status if provided in the data file
+                  if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
+                    enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
+                  }
+                  if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
+                    enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
+                  }
+                  if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
+                    enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
+                  }
+
                 } else {
                   console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
                 }
@@ -136,27 +154,67 @@ const loadDataFromFile = (): void => {
   }
 };
 
-// Test mode flag to disable file persistence
-const isTestMode = process.env.NODE_ENV === 'test';
-
 // Trigger save after any modification (async to not block operations)
 const triggerSave = (): void => {
-  if (!isTestMode) {
-    setImmediate(() => {
-      saveDataToFile();
-    });
-  }
+  setImmediate(() => {
+    saveDataToFile();
+  });
 };
 
-// Load existing data on startup (only in non-test mode)
-if (!isTestMode) {
-  loadDataFromFile();
-}
+// Load existing data on startup
+loadDataFromFile();
 
 // Helper function to clean CPF
 const cleanCPF = (cpf: string): string => {
   return cpf.replace(/[.-]/g, '');
 };
+
+// Handlers for evaluation and self-evaluation updates
+const handleEvaluationUpdate = (req: Request, res: Response, options: {
+  type: 'evaluation' | 'selfEvaluation';
+}) => {
+  try {
+    const { classId, studentCPF } = req.params;
+    const { goal, grade } = req.body;
+
+    if (!goal) {
+      return res.status(400).json({ error: 'Goal is required' });
+    }
+
+    const classObj = classes.findClassById(classId);
+    if (!classObj) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    const cleanedCPF = cleanCPF(studentCPF);
+    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
+    if (!enrollment) {
+      return res.status(404).json({ error: 'Student not enrolled in this class' });
+    }
+
+    const isSelf = options.type === 'selfEvaluation';
+
+    if (grade === '' || grade === null || grade === undefined) {
+      isSelf
+        ? enrollment.removeSelfEvaluation(goal)
+        : enrollment.removeEvaluation(goal);
+    } else {
+      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
+        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA or MA' });
+      }
+
+      isSelf
+        ? enrollment.addOrUpdateSelfEvaluation(goal, grade)
+        : enrollment.addOrUpdateEvaluation(goal, grade);
+    }
+
+    triggerSave();
+    res.json(enrollment.toJSON());
+
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+}
 
 // Routes
 
@@ -423,73 +481,15 @@ app.get('/api/classes/:classId/enrollments', (req: Request, res: Response) => {
   }
 });
 
-// GET /api/classes/:classId/enrollments/:studentCPF/evaluation - Get the student's average and final average for a class
-app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
-  try {
-    const { classId, studentCPF } = req.params;
-
-    const classObj = classes.findClassById(classId);
-    if (!classObj) {
-      return res.status(404).json({ error: 'Class not found' });
-    }
-
-    const cleanedCPF = cleanCPF(studentCPF);
-    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
-    if (!enrollment) {
-      return res.status(404).json({ error: 'Student not enrolled in this class' });
-    }
-
-    const mediaPreFinal = enrollment.getMediaPreFinal();
-    const mediaPosFinal = enrollment.getMediaPosFinal();
-
-    res.json({
-      student: enrollment.getStudent().toJSON(),
-      average: mediaPreFinal,
-      final_average: mediaPosFinal
-    });
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
-  }
-});
-
 // PUT /api/classes/:classId/enrollments/:studentCPF/evaluation - Update evaluation for an enrolled student
-app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
-  try {
-    const { classId, studentCPF } = req.params;
-    const { goal, grade } = req.body;
-    
-    if (!goal) {
-      return res.status(400).json({ error: 'Goal is required' });
-    }
+app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req, res) =>
+  handleEvaluationUpdate(req, res, { type: 'evaluation' })
+);
 
-    const classObj = classes.findClassById(classId);
-    if (!classObj) {
-      return res.status(404).json({ error: 'Class not found' });
-    }
+app.put('/api/classes/:classId/enrollments/:studentCPF/selfEvaluation', (req, res) =>
+  handleEvaluationUpdate(req, res, { type: 'selfEvaluation' })
+);
 
-    const cleanedCPF = cleanCPF(studentCPF);
-    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
-    if (!enrollment) {
-      return res.status(404).json({ error: 'Student not enrolled in this class' });
-    }
-
-    if (grade === '' || grade === null || grade === undefined) {
-      // Remove evaluation
-      enrollment.removeEvaluation(goal);
-    } else {
-      // Add or update evaluation
-      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
-        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
-      }
-      enrollment.addOrUpdateEvaluation(goal, grade);
-    }
-
-    triggerSave(); // Save to file after evaluation update
-    res.json(enrollment.toJSON());
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
-  }
-});
 
 // POST api/classes/gradeImport/:classId, usado na feature de importacao de grades
 // Vai ser usado em 2 fluxos(poderia ter divido em 2 endpoints mas preferi deixar em apenas 1)
@@ -498,24 +498,6 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (req: express.Request, res: express.Response) => {
   res.status(501).json({ error: "Endpoint ainda não implementado." });
 });
-
-// GET /api/classes/:classId/report - Generate statistics report for a class
-app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
-  try {
-    const { classId } = req.params;
-    
-    const classObj = classes.findClassById(classId);
-    if (!classObj) {
-      return res.status(404).json({ error: 'Class not found' });
-    }
-
-    const report = new Report(classObj);
-    res.json(report.toJSON());
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
-  }
-});
-
 
 // Export the app for testing
 export { app, studentSet, classes };

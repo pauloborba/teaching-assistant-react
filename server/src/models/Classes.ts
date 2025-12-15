@@ -1,4 +1,5 @@
 import { Class } from './Class';
+import { Enrollment } from './Enrollment';
 import { Student } from './Student';
 
 export class Classes {
@@ -54,22 +55,18 @@ export class Classes {
       const existingEnrollment = existingClass.findEnrollmentByStudentCPF(studentCPF);
       
       if (existingEnrollment) {
-        // Update existing enrollment's evaluations
-        const updatedEvaluations = updatedEnrollment.getEvaluations();
-        updatedEvaluations.forEach(evaluation => {
-          existingEnrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
-        });
+        // Update existing enrollment's evaluations and self-evaluations
+        existingEnrollment.mergeEvaluationsFrom(updatedEnrollment);
+        existingEnrollment.mergeSelfEvaluationsFrom(updatedEnrollment);
       } else {
         // Add new enrollment that doesn't exist yet
         try {
           existingClass.addEnrollment(updatedEnrollment.getStudent());
           const newEnrollment = existingClass.findEnrollmentByStudentCPF(studentCPF);
           if (newEnrollment) {
-            // Copy over evaluations from updated enrollment
-            const updatedEvaluations = updatedEnrollment.getEvaluations();
-            updatedEvaluations.forEach(evaluation => {
-              newEnrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
-            });
+            // Copy over evaluations and self-evaluations from updated enrollment
+            newEnrollment.mergeEvaluationsFrom(updatedEnrollment);
+            newEnrollment.mergeSelfEvaluationsFrom(updatedEnrollment);
           }
         } catch (error) {
           // Enrollment already exists, this shouldn't happen but handle gracefully

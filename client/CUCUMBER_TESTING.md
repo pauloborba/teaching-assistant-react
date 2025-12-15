@@ -13,9 +13,30 @@ This project uses Cucumber for behavior-driven development (BDD) testing with Ty
 
 ### Method 1: Using the Test Runner Script (Recommended)
 
+#### Headless Mode (default - no browser window)
 ```bash
 # From the client directory
 ./run-cucumber-tests.sh
+```
+
+#### Headed Mode (watch tests execute in browser)
+```bash
+# Normal speed (10ms delay - recommended)
+./run-cucumber-tests.sh --headed
+# or
+./run-cucumber-tests.sh -h
+
+# Fast mode (no delay)
+./run-cucumber-tests.sh --headed fast
+# or
+./run-cucumber-tests.sh --headed-fast
+./run-cucumber-tests.sh -hf
+
+# Slow mode (50ms delay - better for demos)
+./run-cucumber-tests.sh --headed slow
+# or
+./run-cucumber-tests.sh --headed-slow
+./run-cucumber-tests.sh -hs
 ```
 
 This script will:
@@ -25,9 +46,22 @@ This script will:
 
 ### Method 2: Manual Execution
 
+#### Headless Mode
 ```bash
 # From the client directory
 npm run test:cucumber
+```
+
+#### Headed Mode (visible browser)
+```bash
+# Normal speed (10ms delay)
+npm run test:cucumber:headed
+
+# Fast mode (no delay)
+npm run test:cucumber:headed:fast
+
+# Slow mode (50ms delay - for demos)
+npm run test:cucumber:headed:slow
 ```
 
 ### Method 3: Watch Mode (for development)

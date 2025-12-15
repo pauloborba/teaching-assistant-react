@@ -19,6 +19,21 @@
       "name": "Joana Refatoração",
       "cpf": "55555555555",
       "email": "jr@gmail.com"
+    },
+    {
+      "name": "A",
+      "cpf": "44444444444",
+      "email": "a@gmail.com"
+    },
+    {
+      "name": "B",
+      "cpf": "66666666666",
+      "email": "b@gmail.com"
+    },
+    {
+      "name": "C",
+      "cpf": "77777777777",
+      "email": "c@gmail.com"
     }
   ],
   "classes": [
@@ -26,18 +41,6 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 1,
       "year": 2025,
-      "especificacaoDoCalculoDaMedia": {
-        "pesosDosConceitos": {
-          "MA": 10,
-          "MPA": 7,
-          "MANA": 0
-        },
-        "pesosDasMetas": {
-          "Gerência de Configuração": 1,
-          "Gerência de Projeto": 1,
-          "Qualidade de Software": 1
-        }
-      },
       "enrollments": [
         {
           "studentCPF": "11111111111",
@@ -61,6 +64,32 @@
             {
               "goal": "Tests",
               "grade": "MPA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
             },
             {
               "goal": "Refactoring",
@@ -95,6 +124,32 @@
               "goal": "Tests",
               "grade": "MPA"
             }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
           ]
         },
         {
@@ -111,6 +166,44 @@
             {
               "goal": "Project Management",
               "grade": "MPA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
             }
           ]
         }
@@ -120,25 +213,39 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 2,
       "year": 2025,
-      "especificacaoDoCalculoDaMedia": {
-        "pesosDosConceitos": {
-          "MA": 10,
-          "MPA": 7,
-          "MANA": 0
-        },
-        "pesosDasMetas": {
-          "Gerência de Configuração": 1,
-          "Gerência de Projeto": 1,
-          "Qualidade de Software": 1
-        }
-      },
       "enrollments": [
         {
           "studentCPF": "22222222222",
           "evaluations": [
             {
               "goal": "Requirements",
-              "grade": "MPA"
+              "grade": "MANA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MANA"
+            }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
             },
             {
               "goal": "Configuration Management",
@@ -146,18 +253,18 @@
             },
             {
               "goal": "Project Management",
-              "grade": "MPA"
+              "grade": "MA"
             },
             {
               "goal": "Design",
               "grade": "MA"
             },
             {
-              "goal": "Refactoring",
+              "goal": "Tests",
               "grade": "MA"
             },
             {
-              "goal": "Tests",
+              "goal": "Refactoring",
               "grade": "MA"
             }
           ]
@@ -184,6 +291,351 @@
             {
               "goal": "Tests",
               "grade": "MANA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
+          ],
+          "selfEvaluations": []
+        }
+      ]
+    },
+    {
+      "topic": "Turma Com Discrepancia",
+      "semester": 1,
+      "year": 2025,
+      "enrollments": [
+        {
+          "studentCPF": "44444444444",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MPA"
+            }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MPA"
+            }
+          ]
+        },
+        {
+          "studentCPF": "66666666666",
+          "evaluations": [
+            {
+              "goal": "Refactoring",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MPA"
+            }
+          ]
+        },
+        {
+          "studentCPF": "77777777777",
+          "evaluations": [
+            {
+              "goal": "Refactoring",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MPA"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Turma Sem Discrepancia",
+      "semester": 1,
+      "year": 2025,
+      "enrollments": [
+        {
+          "studentCPF": "77777777777",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
+          ]
+        },
+        {
+          "studentCPF": "66666666666",
+          "evaluations": [
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
+          ]
+        },
+        {
+          "studentCPF": "44444444444",
+          "evaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
+            },
+            {
+              "goal": "Refactoring",
+              "grade": "MA"
+            }
+          ],
+          "selfEvaluations": [
+            {
+              "goal": "Requirements",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
             },
             {
               "goal": "Refactoring",

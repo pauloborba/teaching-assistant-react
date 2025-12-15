@@ -52,6 +52,11 @@ export class EspecificacaoDoCalculoDaMedia {
 
     // Reconstrói uma instância a partir de dados serializados
     static fromJSON(data: any): EspecificacaoDoCalculoDaMedia {
+        // Validate data exists and has required properties
+        if (!data || typeof data !== 'object') {
+            return DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA;
+        }
+
         const normalize = (x: any): Map<string, number> => {
             if (!x) return new Map();
             // já é objeto { key: value, ... }

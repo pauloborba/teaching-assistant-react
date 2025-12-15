@@ -43,8 +43,28 @@ echo ""
 echo "🚀 Running Cucumber tests..."
 echo ""
 
-# Run the tests
-npm run test:cucumber
+# Check if --headed flag is passed with speed options
+if [ "$1" = "--headed" ] || [ "$1" = "-h" ]; then
+    if [ "$2" = "slow" ]; then
+        echo "🖥️  Running tests in headed mode (slow - 50ms delay)..."
+        npm run test:cucumber:headed:slow
+    elif [ "$2" = "fast" ]; then
+        echo "🖥️  Running tests in headed mode (fast - no delay)..."
+        npm run test:cucumber:headed:fast
+    else
+        echo "🖥️  Running tests in headed mode (normal - 10ms delay)..."
+        npm run test:cucumber:headed
+    fi
+elif [ "$1" = "--headed-fast" ] || [ "$1" = "-hf" ]; then
+    echo "🖥️  Running tests in headed mode (fast - no delay)..."
+    npm run test:cucumber:headed:fast
+elif [ "$1" = "--headed-slow" ] || [ "$1" = "-hs" ]; then
+    echo "🖥️  Running tests in headed mode (slow - 50ms delay)..."
+    npm run test:cucumber:headed:slow
+else
+    echo "🔒 Running tests in headless mode (no browser window)..."
+    npm run test:cucumber
+fi
 
 echo ""
 echo "📊 Test reports generated in the 'reports' directory"

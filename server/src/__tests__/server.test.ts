@@ -1,27 +1,36 @@
 import request from 'supertest';
 import { app, studentSet, classes } from '../server';
 
+/**
+ * Clean up all students and classes from the test environment
+ * Used in beforeEach to ensure test isolation
+ */
+const cleanupTestData = (): void => {
+  // Clear all students
+  const allStudents = studentSet.getAllStudents();
+  allStudents.forEach(student => {
+    try {
+      studentSet.removeStudent(student.getCPF());
+    } catch (error) {
+      // Student might not exist, which is fine for cleanup
+    }
+  });
+
+  // Clear all classes
+  const allClasses = classes.getAllClasses();
+  allClasses.forEach(classObj => {
+    try {
+      classes.removeClass(classObj.getClassId());
+    } catch (error) {
+      // Class might not exist, which is fine for cleanup
+    }
+  });
+};
+
 describe('Server API - Student Endpoints', () => {
   // Clean up data before each test to ensure isolation
   beforeEach(() => {
-    // Clear all students and classes for clean test state
-    const allStudents = studentSet.getAllStudents();
-    allStudents.forEach(student => {
-      try {
-        studentSet.removeStudent(student.getCPF());
-      } catch (error) {
-        // Student might not exist, which is fine for cleanup
-      }
-    });
-
-    const allClasses = classes.getAllClasses();
-    allClasses.forEach(classObj => {
-      try {
-        classes.removeClass(classObj.getClassId());
-      } catch (error) {
-        // Class might not exist, which is fine for cleanup
-      }
-    });
+    cleanupTestData();
   });
 
   describe('POST /api/students - Student Creation', () => {
