@@ -164,6 +164,57 @@ The server provides a REST API:
 
 The application uses ports 3005 and 3004 to avoid conflicts with other applications that might be using ports 3000-3003.
 
+## Running Cucumber Tests
+
+### Method 1: Using the Test Runner Script (Recommended)
+
+```bash
+# From the client directory
+./run-cucumber-tests.sh
+```
+
+This script will:
+- Check if both server and client are running
+- Run all Cucumber tests
+- Generate HTML and JSON reports
+
+### Method 2: Manual Execution
+
+```bash
+# From the client directory
+npm run test -- --watchAll
+```
+
+### Details
+
+Testing with cucumber is further detailed in the /client/CUCUMBER_TESTING.md file.
+
+## Running Cypress Tests
+
+### Option 1: Interactive Mode (Cypress Test Runner)
+
+Open the Cypress Test Runner UI:
+```bash
+npx cypress run open
+```
+
+1. Select "E2E Testing"
+2. Choose your browser
+3. Click on `classComparison.feature`
+4. Watch the test run in real-time
+
+### Option 2: Headless Mode (CI/CD)
+
+Run all tests in headless mode:
+```bash
+npx cypress run
+```
+
+Or run a specific feature, e.g.:
+```bash
+npx cypress run --spec "cypress/e2e/features/classComparison.feature"
+```
+
 ## License
 
 ISC

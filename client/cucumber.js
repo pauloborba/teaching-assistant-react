@@ -1,7 +1,7 @@
 module.exports = {
   default: {
+    requireModule: ['ts-node/register'],
     require: [
-      'ts-node/register',
       'src/step-definitions/**/*.ts'
     ],
     format: [
@@ -12,7 +12,6 @@ module.exports = {
     formatOptions: {
       snippetInterface: 'async-await'
     },
-    paths: ['src/features/**/*.feature'],
-    requireModule: ['ts-node/register']
+    paths: ['src/features/**/*.feature']
   }
 };

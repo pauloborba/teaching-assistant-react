@@ -9,14 +9,21 @@
     "install:client": "npm install --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "PORT=3005 npm run dev --prefix server",
-    "client": "PORT=3004 npm start --prefix client",
+    "server": "cross-env PORT=3005 npm run dev --prefix server",
+    "client": "cross-env PORT=3004 npm start --prefix client",
     "build": "npm run build --prefix client",
     "test": "npm test --prefix client",
-    "lint": "npm run lint --prefix client"
+    "lint": "npm run lint --prefix client",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "test:e2e": "cypress run"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@badeball/cypress-cucumber-preprocessor": "^24.0.0",
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.8",
+    "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0",
+    "cypress": "^15.7.1"
   },
   "keywords": [
     "react",
@@ -31,5 +38,10 @@
   "workspaces": [
     "client",
     "server"
-  ]
+  ],
+  "dependencies": {
+    "esbuild": "^0.27.1",
+    "form-data": "^4.0.4",
+    "node-fetch": "^2.7.0"
+  }
 }

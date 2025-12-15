@@ -52,6 +52,14 @@ export class EspecificacaoDoCalculoDaMedia {
 
     // Reconstrói uma instância a partir de dados serializados
     static fromJSON(data: any): EspecificacaoDoCalculoDaMedia {
+        // Handle undefined or null data by returning default instance
+        if (!data) {
+            return new EspecificacaoDoCalculoDaMedia(
+                DEFAULT_PESOS_DOS_CONCEITOS,
+                DEFAULT_PESOS_DAS_METAS
+            );
+        }
+
         const normalize = (x: any): Map<string, number> => {
             if (!x) return new Map();
             // já é objeto { key: value, ... }
@@ -86,9 +94,12 @@ const DEFAULT_PESOS_DOS_CONCEITOS = new Map<Grade, number>([
 ]);
 
 const DEFAULT_PESOS_DAS_METAS = new Map<Meta, number>([
-  ['Gerência de Configuração', 1],
-  ['Gerência de Projeto', 1],
-  ['Qualidade de Software', 1],
+  ['Requirements', 1],
+  ['Configuration Management', 1],
+  ['Project Management', 1],
+  ['Design', 1],
+  ['Tests', 1],
+  ['Refactoring', 1],
 ]);
 
 export const DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA = new EspecificacaoDoCalculoDaMedia(
