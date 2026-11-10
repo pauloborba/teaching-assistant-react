@@ -1,0 +1,6 @@
+{
+    "cucumber": {
+        "features": "./features",
+        "stepDefinitions": "./stepDefinitions"
+    }
+}
