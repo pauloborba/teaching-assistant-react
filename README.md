@@ -80,12 +80,18 @@ open `server/coverage/index.html`.
 
 The acceptance tests are separate, because they exercise the running system
 through its interface and through its API with Cucumber and Puppeteer. Start the
-application first, and then, in another terminal:
+application in acceptance test mode first, and then, in another terminal:
 
 ```bash
-npm run dev           # terminal 1: client and server running
-npm run test:cucumber # terminal 2: the acceptance tests
+npm run dev:acceptance # terminal 1: client and server, in acceptance test mode
+npm run test:cucumber  # terminal 2: the acceptance tests
 ```
+
+In acceptance test mode the server keeps its data in
+`server/data/acceptance-data.json` (never in `app-data.json`), and exposes
+`PUT /api/test/clock`, which the scenarios use to fix the date the server takes
+as today. Set `HEADLESS=true` to run the GUI scenarios without showing the
+browser.
 
 `client/CUCUMBER_TESTING.md` and `server/JEST_TESTING.md` describe how to write
 new tests of each kind.

@@ -12,7 +12,7 @@ check_server() {
         return 0
     else
         echo "❌ Server is not running on port 3005"
-        echo "Please start the server with: npm run dev (from server directory)"
+        echo "Please start the server with: npm run dev:acceptance (from server directory)"
         return 1
     fi
 }
