@@ -7,7 +7,14 @@ export interface Class {
   semester: number;
   year: number;
   averageCalculationSpecification: AverageCalculationSpecification;
+  /** The professor's request for the self-assessment (ISO dates), null while not made */
+  selfAssessmentRequest?: SelfAssessmentRequest | null;
   enrollments: Enrollment[];
+}
+
+export interface SelfAssessmentRequest {
+  deadline: string;
+  sentDate: string;
 }
 
 /** Fields a client provides to create or update a class (the server assigns the default average specification). */
