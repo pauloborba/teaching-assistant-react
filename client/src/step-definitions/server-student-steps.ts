@@ -1,10 +1,9 @@
 import { Given, When, Then, After, DataTable, setDefaultTimeout } from '@cucumber/cucumber';
 import expect from 'expect';
+import { serverUrl } from './support/api';
 
 // Set default timeout for all steps
 setDefaultTimeout(30 * 1000); // 30 seconds
-
-const serverUrl = 'http://localhost:3005';
 
 // Test data to clean up
 let testStudentCPF: string;
