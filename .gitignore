@@ -13,3 +13,9 @@ coverage/
 tmp_data/
 # macOS metadata
 .DS_Store
+
+# Course material and local scratch files (slides, screenshots)
+/*.pdf
+/*.png
+/*.jpg
+/*.jpeg
