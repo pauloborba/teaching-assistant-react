@@ -103,6 +103,26 @@ describe('SelfAssessment', () => {
     await waitFor(() => expect(gradeOf('Requirements')).toBe('MPA'));
   });
 
+  test('choosing another student discards the unsaved changes of the previous one', async () => {
+    const user = await openAnasSelfAssessment();
+    await user.selectOptions(screen.getByTestId('self-assessment-grade-Tests'), 'MA');
+    await user.selectOptions(screen.getByTestId('self-assessment-student-select'), bruno.cpf);
+    expect(gradeOf('Requirements')).toBe('');
+    expect(gradeOf('Tests')).toBe('');
+    await user.selectOptions(screen.getByTestId('self-assessment-student-select'), ana.cpf);
+    expect(gradeOf('Requirements')).toBe('MPA');
+    expect(gradeOf('Tests')).toBe('');
+    expect(setGrade).not.toHaveBeenCalled();
+  });
+
+  test('says when the classes cannot be loaded', async () => {
+    getAllClasses.mockRejectedValue(new Error('Failed to fetch classes: Service Unavailable'));
+    render(<SelfAssessment />);
+    expect(await screen.findByTestId('error-message'))
+      .toHaveTextContent('Failed to load classes: Failed to fetch classes: Service Unavailable');
+    expect(screen.queryByTestId('self-assessment-grades')).not.toBeInTheDocument();
+  });
+
   test('changing a grade clears the previous message', async () => {
     const user = await openAnasSelfAssessment();
     setGrade.mockResolvedValue({});

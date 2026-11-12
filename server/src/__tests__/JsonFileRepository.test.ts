@@ -114,6 +114,28 @@ describe('JsonFileRepository', () => {
     expect(enrollment.getSelfAssessments()).toEqual([]);
   });
 
+  test('load drops a self-assessment request with invalid dates, keeping the class and its grades', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify({
+      students: [{ name: 'Ana Lima', cpf: '12345678901', email: 'ana@cin.ufpe.br' }],
+      classes: [{
+        topic: 'SE', semester: 1, year: 2025,
+        averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
+        selfAssessmentRequest: { deadline: '20/10/2026', sentDate: '2026-10-08' },
+        enrollments: [{ studentCPF: '12345678901', evaluations: [], selfAssessments: [{ goal: 'Tests', grade: 'MA' }] }]
+      }]
+    }));
+    const students = new StudentSet();
+    const classes = new Classes();
+    repository.load(students, classes);
+    const classObj = classes.findClassById('SE-2025-1')!;
+    expect(classObj.getSelfAssessmentRequest()).toBeNull();
+    expect(classObj.getEnrollments()[0].toJSON().selfAssessments).toEqual([{ goal: 'Tests', grade: 'MA' }]);
+    expect(consoleError).toHaveBeenCalledWith('Error loading the self-assessment request of class SE:', expect.any(Error));
+    consoleError.mockRestore();
+  });
+
   test('load skips invalid records and enrollments of unknown students', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
