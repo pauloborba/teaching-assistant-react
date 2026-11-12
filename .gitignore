@@ -24,3 +24,6 @@ tmp_data/
 docs/ddd-model.md
 docs/ddd-model.py
 docs/ddd-model.svg
+
+# Data of the server started for the acceptance tests (npm run dev:acceptance)
+server/data/acceptance-data.json

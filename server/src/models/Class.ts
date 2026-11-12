@@ -1,12 +1,17 @@
 import { Student } from './Student';
 import { Enrollment } from './Enrollment';
 import { AverageCalculationSpecification } from './AverageCalculationSpecification';
-import { DomainError } from './DomainError';
+import { DomainError, NotFoundError } from './DomainError';
+import { SelfAssessmentRequest } from './SelfAssessmentRequest';
+import { isGoal, isGrade } from './Evaluation';
+import { formatDate } from './Dates';
+import { cleanCPF } from './CPF';
 
 /**
  * A class (offering of a course) given in a semester of a year, identified by
- * 'topic-year-semester', with the enrolled students and the specification
- * of how their averages are computed. A student is enrolled at most once.
+ * 'topic-year-semester', with the enrolled students, the specification of how
+ * their averages are computed and, once the professor makes it, the request
+ * for the students' self-assessment. A student is enrolled at most once.
  */
 export class Class {
   private topic: string;
@@ -14,6 +19,7 @@ export class Class {
   private year: number;
   private readonly averageCalculationSpecification: AverageCalculationSpecification;
   private enrollments: Enrollment[];
+  private selfAssessmentRequest: SelfAssessmentRequest | null = null;
 
   constructor(topic: string, semester: number, year: number, averageCalculationSpecification: AverageCalculationSpecification, enrollments: Enrollment[] = []) {
     this.topic = topic;
@@ -94,6 +100,68 @@ export class Class {
     );
   }
 
+  /** The self-assessment request of the class, or null while the professor has not made one. */
+  getSelfAssessmentRequest(): SelfAssessmentRequest | null {
+    return this.selfAssessmentRequest;
+  }
+
+  /** Requests the self-assessment of the class, sent on sentDate (ISO dates). */
+  requestSelfAssessment(deadline: string, sentDate: string): SelfAssessmentRequest {
+    this.selfAssessmentRequest = new SelfAssessmentRequest(deadline, sentDate);
+    return this.selfAssessmentRequest;
+  }
+
+  /** Withdraws the self-assessment request; tells whether there was one. */
+  cancelSelfAssessmentRequest(): boolean {
+    const hadRequest = this.selfAssessmentRequest !== null;
+    this.selfAssessmentRequest = null;
+    return hadRequest;
+  }
+
+  /** The self-assessment can be changed while there is a request whose deadline has not passed. */
+  isSelfAssessmentOpen(today: string): boolean {
+    return this.selfAssessmentRequest !== null && this.selfAssessmentRequest.isOpenOn(today);
+  }
+
+  /** Stores the grade an enrolled student assigns to themselves for a goal of the class. */
+  setSelfAssessment(studentCPF: string, goal: string, grade: unknown, today: string): Enrollment {
+    const enrollment = this.selfAssessmentEnrollment(studentCPF, goal, today);
+    if (!isGrade(grade)) {
+      throw new DomainError('Invalid grade. Must be MANA, MPA, or MA');
+    }
+    enrollment.setSelfAssessment(goal, grade);
+    return enrollment;
+  }
+
+  /** Removes the grade an enrolled student assigned to themselves for a goal of the class. */
+  removeSelfAssessment(studentCPF: string, goal: string, today: string): Enrollment {
+    const enrollment = this.selfAssessmentEnrollment(studentCPF, goal, today);
+    enrollment.removeSelfAssessment(goal);
+    return enrollment;
+  }
+
+  /**
+   * The enrollment whose self-assessment is about to change, once checked
+   * that the student is enrolled, the goal is evaluated in the class, and
+   * the self-assessment is open today.
+   */
+  private selfAssessmentEnrollment(studentCPF: string, goal: string, today: string): Enrollment {
+    const enrollment = this.findEnrollmentByStudentCPF(studentCPF);
+    if (!enrollment) {
+      throw new NotFoundError('Student not enrolled in this class');
+    }
+    if (!isGoal(goal)) {
+      throw new DomainError(`${goal} is not a goal of the class`);
+    }
+    if (!this.selfAssessmentRequest) {
+      throw new DomainError('The self-assessment of the class was not requested');
+    }
+    if (!this.selfAssessmentRequest.isOpenOn(today)) {
+      throw new DomainError(`The self-assessment deadline ${formatDate(this.selfAssessmentRequest.deadline)} has passed`);
+    }
+    return enrollment;
+  }
+
   // Get all enrolled students
   getEnrolledStudents(): Student[] {
     return this.enrollments.map(enrollment => enrollment.getStudent());
@@ -107,15 +175,17 @@ export class Class {
       semester: this.semester,
       year: this.year,
       averageCalculationSpecification: this.averageCalculationSpecification.toJSON(),
+      selfAssessmentRequest: this.selfAssessmentRequest ? this.selfAssessmentRequest.toJSON() : null,
       enrollments: this.enrollments.map(enrollment => enrollment.toJSON())
     };
   }
 
   // Create Class from JSON object
-  static fromJSON(data: { topic: string; semester: number; year: number; averageCalculationSpecification: any, enrollments: any[] }, allStudents: Student[]): Class {
+  static fromJSON(data: { topic: string; semester: number; year: number; averageCalculationSpecification: any, enrollments: any[], selfAssessmentRequest?: any }, allStudents: Student[]): Class {
     const enrollments = data.enrollments
       ? data.enrollments.map((enrollmentData: any) => {
-          const student = allStudents.find(s => s.getCPF() === enrollmentData.student.cpf);
+          // toJSON writes the CPF formatted, students keep it clean
+          const student = allStudents.find(s => s.getCPF() === cleanCPF(enrollmentData.student.cpf));
           if (!student) {
             throw new DomainError(`Student with CPF ${enrollmentData.student.cpf} not found`);
           }
@@ -126,6 +196,10 @@ export class Class {
     // Rebuilds the average calculation specification
     const averageCalculationSpecification = AverageCalculationSpecification.fromJSON(data.averageCalculationSpecification);
 
-    return new Class(data.topic, data.semester, data.year, averageCalculationSpecification, enrollments);
+    const classObj = new Class(data.topic, data.semester, data.year, averageCalculationSpecification, enrollments);
+    if (data.selfAssessmentRequest) {
+      classObj.selfAssessmentRequest = SelfAssessmentRequest.fromJSON(data.selfAssessmentRequest);
+    }
+    return classObj;
   }
 }

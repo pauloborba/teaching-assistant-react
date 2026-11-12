@@ -33,6 +33,8 @@ describe('JsonFileRepository', () => {
     enrollment.addOrUpdateEvaluation('Design', 'MA');
     enrollment.setAverageBeforeFinalExam(8.5);
     enrollment.setFailedByAbsence(true);
+    se.requestSelfAssessment('2026-10-20', '2026-10-08');
+    enrollment.setSelfAssessment('Design', 'MPA');
     return { students, classes };
   };
 
@@ -57,9 +59,11 @@ describe('JsonFileRepository', () => {
         semester: 1,
         year: 2025,
         averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
+        selfAssessmentRequest: { deadline: '2026-10-20', sentDate: '2026-10-08' },
         enrollments: [{
           studentCPF: '12345678901',
           evaluations: [{ goal: 'Design', grade: 'MA' }],
+          selfAssessments: [{ goal: 'Design', grade: 'MPA' }],
           averageBeforeFinalExam: 8.5,
           averageAfterFinalExam: null,
           failedByAbsence: true
@@ -83,6 +87,9 @@ describe('JsonFileRepository', () => {
     expect(enrollment.getAverageBeforeFinalExam()).toBe(8.5);
     expect(enrollment.getAverageAfterFinalExam()).toBeNull();
     expect(enrollment.getFailedByAbsence()).toBe(true);
+    expect(enrollment.toJSON().selfAssessments).toEqual([{ goal: 'Design', grade: 'MPA' }]);
+    expect(classes.findClassById('Software Engineering-2025-1')!.getSelfAssessmentRequest()?.toJSON())
+      .toEqual({ deadline: '2026-10-20', sentDate: '2026-10-08' });
   });
 
   test('load reads averages and absence status when the file has them', () => {
@@ -102,6 +109,9 @@ describe('JsonFileRepository', () => {
     expect(enrollment.getAverageBeforeFinalExam()).toBe(7);
     expect(enrollment.getAverageAfterFinalExam()).toBe(8);
     expect(enrollment.getFailedByAbsence()).toBe(true);
+    // Files written before the self-assessment existed have neither field
+    expect(classes.findClassById('SE-2025-1')!.getSelfAssessmentRequest()).toBeNull();
+    expect(enrollment.getSelfAssessments()).toEqual([]);
   });
 
   test('load skips invalid records and enrollments of unknown students', () => {

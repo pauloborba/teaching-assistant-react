@@ -9,12 +9,23 @@ import { enrollmentRoutes } from './routes/enrollments';
 import { reportRoutes } from './routes/reports';
 import { gradeImportRoutes } from './routes/gradeImport';
 import { errorHandler } from './routes/HttpError';
+import { Clock, SettableClock, SystemClock } from './services/Clock';
+import { Services } from './services/Services';
+import { selfAssessmentRoutes } from './routes/selfAssessment';
+import { testSupportRoutes } from './routes/testSupport';
 
 /** Everything the HTTP application needs, injected by the composition root. */
 export interface AppDependencies {
   students: StudentSet;
   classes: Classes;
   repository: AppStateRepository;
+  /** Where the application reads today's date; the system clock by default. */
+  clock?: Clock;
+  /**
+   * Only for the acceptance tests: when given, the application also exposes
+   * PUT /api/test/clock, which fixes the date this clock tells.
+   */
+  testClock?: SettableClock;
 }
 
 /**
@@ -25,7 +36,7 @@ export interface AppDependencies {
  * Persistence is deferred (setImmediate) so that responses are not delayed
  * by disk access.
  */
-export function createApp({ students, classes, repository }: AppDependencies): Express {
+export function createApp({ students, classes, repository, clock, testClock }: AppDependencies): Express {
   const app = express();
   app.use(cors());
   app.use(express.json());
@@ -38,6 +49,11 @@ export function createApp({ students, classes, repository }: AppDependencies): E
   app.use('/api/classes', classRoutes(classes, onStateChanged));
   app.use('/api/classes', enrollmentRoutes(classes, students, onStateChanged));
   app.use('/api/classes', reportRoutes(classes));
+  const services = new Services(classes, testClock ?? clock ?? new SystemClock());
+  app.use('/api/classes', selfAssessmentRoutes(services, onStateChanged));
+  if (testClock) {
+    app.use('/api/test', testSupportRoutes(testClock));
+  }
   app.use('/api/classes', gradeImportRoutes());
   app.use(errorHandler);
 

@@ -10,3 +10,14 @@ export class DomainError extends Error {
     this.name = 'DomainError';
   }
 }
+
+/**
+ * A request names something that does not exist (e.g. a class, or the
+ * enrollment of a student in a class). Reported to the client as a 404.
+ */
+export class NotFoundError extends DomainError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotFoundError';
+  }
+}

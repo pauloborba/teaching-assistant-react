@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev:acceptance": "DATA_FILE=./data/acceptance-data.json ENABLE_TEST_ROUTES=true ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",

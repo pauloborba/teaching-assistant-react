@@ -2,9 +2,10 @@ import { Student } from './Student';
 import { Evaluation, Grade } from './Evaluation';
 
 /**
- * A student's participation in a class: the grades of the learning goals,
- * the averages (null until computed) and whether the student failed by
- * absence. At most one evaluation per goal.
+ * A student's participation in a class: the grades the professor assigned to
+ * the learning goals, the grades the student assigned to themselves
+ * (self-assessment), the averages (null until computed) and whether the
+ * student failed by absence. At most one grade per goal in each collection.
  */
 export class Enrollment {
   private student: Student;
@@ -14,10 +15,13 @@ export class Enrollment {
   // Student's average after the final exam (null until computed)
   private averageAfterFinalExam: number | null;
   private failedByAbsence: boolean;
+  // Grades the student assigned to themselves
+  private selfAssessments: Evaluation[];
 
-  constructor(student: Student, evaluations: Evaluation[] = [], averageBeforeFinalExam: number | null = null, averageAfterFinalExam: number | null = null, failedByAbsence: boolean = false) {
+  constructor(student: Student, evaluations: Evaluation[] = [], averageBeforeFinalExam: number | null = null, averageAfterFinalExam: number | null = null, failedByAbsence: boolean = false, selfAssessments: Evaluation[] = []) {
     this.student = student;
     this.evaluations = evaluations;
+    this.selfAssessments = selfAssessments;
     this.averageBeforeFinalExam = averageBeforeFinalExam;
     this.averageAfterFinalExam = averageAfterFinalExam;
     this.failedByAbsence = failedByAbsence;
@@ -93,6 +97,31 @@ export class Enrollment {
     return false;
   }
 
+  /** The grades the student assigned to themselves, at most one per goal. */
+  getSelfAssessments(): Evaluation[] {
+    return [...this.selfAssessments];
+  }
+
+  /** Registers or updates the grade the student assigns to themselves for a goal. */
+  setSelfAssessment(goal: string, grade: Grade): void {
+    const existing = this.selfAssessments.find(evaluation => evaluation.getGoal() === goal);
+    if (existing) {
+      existing.setGrade(grade);
+    } else {
+      this.selfAssessments.push(new Evaluation(goal, grade));
+    }
+  }
+
+  /** Removes the grade the student assigned to themselves for a goal; tells whether there was one. */
+  removeSelfAssessment(goal: string): boolean {
+    const index = this.selfAssessments.findIndex(evaluation => evaluation.getGoal() === goal);
+    if (index < 0) {
+      return false;
+    }
+    this.selfAssessments.splice(index, 1);
+    return true;
+  }
+
   // Get evaluation for a specific goal
   getEvaluationForGoal(goal: string): Evaluation | undefined {
     return this.evaluations.find(evaluation => evaluation.getGoal() === goal);
@@ -103,6 +132,7 @@ export class Enrollment {
     return {
       student: this.student.toJSON(),
       evaluations: this.evaluations.map(evaluation => evaluation.toJSON()),
+      selfAssessments: this.selfAssessments.map(evaluation => evaluation.toJSON()),
       averageBeforeFinalExam: this.averageBeforeFinalExam,
       averageAfterFinalExam: this.averageAfterFinalExam,
       failedByAbsence: this.failedByAbsence
@@ -113,8 +143,9 @@ export class Enrollment {
   static fromJSON(data: { 
     student: any; 
     evaluations: any[];
-    averageBeforeFinalExam?: number;
-    averageAfterFinalExam?: number;
+    selfAssessments?: any[];
+    averageBeforeFinalExam?: number | null;
+    averageAfterFinalExam?: number | null;
     failedByAbsence?: boolean;
   }, student: Student): Enrollment {
     const evaluations = data.evaluations
@@ -125,6 +156,11 @@ export class Enrollment {
     const averageAfterFinalExam = data.averageAfterFinalExam ?? null;
     const failedByAbsence = data.failedByAbsence ?? false;
     
-    return new Enrollment(student, evaluations, averageBeforeFinalExam, averageAfterFinalExam, failedByAbsence);
+    // Absent from JSON written before the self-assessment existed
+    const selfAssessments = Array.isArray(data.selfAssessments)
+      ? data.selfAssessments.map((evalData: any) => Evaluation.fromJSON(evalData))
+      : [];
+
+    return new Enrollment(student, evaluations, averageBeforeFinalExam, averageAfterFinalExam, failedByAbsence, selfAssessments);
   }
 }

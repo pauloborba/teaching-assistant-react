@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { errorHandler, badRequest, notFound } from '../routes/HttpError';
-import { DomainError } from '../models/DomainError';
+import { DomainError, NotFoundError } from '../models/DomainError';
 
 describe('errorHandler', () => {
   const handle = (error: unknown, headersSent = false) => {
@@ -32,6 +32,12 @@ describe('errorHandler', () => {
     const { res } = handle(new DomainError('Student with this CPF already exists'));
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ error: 'Student with this CPF already exists' });
+  });
+
+  test('reports a NotFoundError (something the request names does not exist) as a 404', () => {
+    const { res } = handle(new NotFoundError('Student not enrolled in this class'));
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Student not enrolled in this class' });
   });
 
   test('reports any other error as a 500 without its message, and logs it', () => {

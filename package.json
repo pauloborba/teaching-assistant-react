@@ -6,6 +6,7 @@
   "scripts": {
     "setup": "npm install",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev:acceptance": "concurrently \"npm run dev:acceptance --prefix server\" \"npm run client\"",
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "server": "npm run dev --prefix server",
     "client": "npm start --prefix client",
