@@ -19,3 +19,8 @@ tmp_data/
 /*.png
 /*.jpg
 /*.jpeg
+
+# DDD model sources: only the rendered image (docs/ddd-model.png) is versioned
+docs/ddd-model.md
+docs/ddd-model.py
+docs/ddd-model.svg
