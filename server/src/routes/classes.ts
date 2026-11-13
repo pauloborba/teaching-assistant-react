@@ -4,6 +4,7 @@ import { Class } from '../models/Class';
 import { DEFAULT_AVERAGE_CALCULATION_SPECIFICATION } from '../models/AverageCalculationSpecification';
 import { badRequest, notFound } from './HttpError';
 import { isInteger, isNonEmptyString } from './validation';
+import { BuildCorrelation, CORRELATION_VARIABLES, CorrelationVariable } from '../models/BuildCorrelation';
 
 /**
  * Routes for creating, listing, updating and removing classes.
@@ -39,6 +40,21 @@ export function classRoutes(classes: Classes, onStateChanged: () => void): Route
   // GET /api/classes - Get all classes
   router.get('/', (req, res) => {
     res.json(classes.getAllClasses().map(c => c.toJSON()));
+  });
+
+  router.post('/correlation', (req, res) => {
+    const { classIds, variables } = req.body;
+    const knownVariables = new Set<string>(CORRELATION_VARIABLES.map(option => option.value));
+    if (!Array.isArray(classIds) || classIds.length < 2 || classIds.some(id => !isNonEmptyString(id))) {
+      throw badRequest('Select at least two classes');
+    }
+    if (!Array.isArray(variables) || variables.length !== 2 || variables.some(variable => !knownVariables.has(variable))) {
+      throw badRequest('Select two valid variables');
+    }
+    if (variables[0] === variables[1]) {
+      throw badRequest('Select two different variables');
+    }
+    res.json(BuildCorrelation(classes.getAllClasses(), classIds, variables as [CorrelationVariable, CorrelationVariable]));
   });
 
   // POST /api/classes - Add a new class
