@@ -46,6 +46,12 @@ Open http://localhost:3004 and use the three tabs: **Students** (register, edit
 and remove students, filtering by class), **Classes** (create classes and enroll
 students) and **Evaluations** (grade each learning goal with MANA, MPA or MA).
 
+The **Classes** tab also provides **Class Correlations**. Select classes as the
+data set, then select two different variables—such as Requirements and Overall
+average—to measure their relationship across the selected students. The result
+uses Pearson's correlation coefficient and includes a plain-language
+interpretation.
+
 To start only one of them, run `npm run server` or `npm run client`. In VS Code,
 "Run and Debug" → "Launch Full Stack" starts both with the debugger attached.
 
