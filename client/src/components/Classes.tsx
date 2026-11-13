@@ -5,6 +5,7 @@ import { studentService } from '../services/StudentService';
 import ClassForm from './ClassForm';
 import ClassList from './ClassList';
 import EnrollmentModal from './EnrollmentModal';
+import CorrelationSection from './CorrelationSection';
 
 interface ClassesProps {
   classes: Class[];
@@ -70,6 +71,8 @@ const Classes: React.FC<ClassesProps> = ({
         onEnrollStudents={setEnrollmentModalClass}
         onError={onError}
       />
+
+      <CorrelationSection classes={classes} onError={onError} />
 
       {enrollmentModalClass && (
         <EnrollmentModal
