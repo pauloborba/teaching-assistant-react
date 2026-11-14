@@ -12,6 +12,7 @@ import { errorHandler } from './routes/HttpError';
 import { Clock, SettableClock, SystemClock } from './services/Clock';
 import { Services } from './services/Services';
 import { selfAssessmentRoutes } from './routes/selfAssessment';
+import { discrepancyRoutes } from './routes/discrepancies';
 import { testSupportRoutes } from './routes/testSupport';
 
 /** Everything the HTTP application needs, injected by the composition root. */
@@ -51,6 +52,7 @@ export function createApp({ students, classes, repository, clock, testClock }: A
   app.use('/api/classes', reportRoutes(classes));
   const services = new Services(classes, testClock ?? clock ?? new SystemClock());
   app.use('/api/classes', selfAssessmentRoutes(services, onStateChanged));
+  app.use('/api/classes', discrepancyRoutes(services, onStateChanged));
   if (testClock) {
     app.use('/api/test', testSupportRoutes(testClock));
   }
