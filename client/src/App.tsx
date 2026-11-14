@@ -6,14 +6,16 @@ import { classService } from './services/ClassService';
 import StudentsTab from './components/StudentsTab';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
+import SelfAssessment from './components/SelfAssessment';
 import './App.css';
 
-type TabType = 'students' | 'evaluations' | 'classes';
+type TabType = 'students' | 'evaluations' | 'classes' | 'self-assessment';
 
 const TABS: { type: TabType; label: string }[] = [
   { type: 'students', label: 'Students' },
   { type: 'evaluations', label: 'Evaluations' },
-  { type: 'classes', label: 'Classes' }
+  { type: 'classes', label: 'Classes' },
+  { type: 'self-assessment', label: 'My self-assessment' }
 ];
 
 /**
@@ -139,6 +141,8 @@ const App: React.FC = () => {
               onError={setError}
             />
           )}
+
+          {activeTab === 'self-assessment' && <SelfAssessment />}
         </div>
       </main>
     </div>

@@ -48,6 +48,7 @@ describe('Class endpoints', () => {
           Requirements: 1, 'Configuration Management': 1, 'Project Management': 1, Design: 1, Tests: 1, Refactoring: 1
         }
       },
+      selfAssessmentRequest: null,
       enrollments: []
     });
     const list = await request(app).get('/api/classes').expect(200);
@@ -182,6 +183,7 @@ describe('Enrollment endpoints', () => {
     expect(response.body).toEqual({
       student: { name: 'Ana Lima', cpf: '123.456.789-01', email: 'ana@cin.ufpe.br' },
       evaluations: [],
+      selfAssessments: [],
       averageBeforeFinalExam: null,
       averageAfterFinalExam: null,
       failedByAbsence: false

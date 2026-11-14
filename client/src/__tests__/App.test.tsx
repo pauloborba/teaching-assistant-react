@@ -25,12 +25,13 @@ describe('App', () => {
     getAllClasses.mockResolvedValue([softwareEngineering, databases]);
   });
 
-  test('shows the header, the three tabs and the Students tab by default', async () => {
+  test('shows the header, the tabs and the Students tab by default', async () => {
     render(<App />);
     expect(screen.getByRole('heading', { name: 'Teaching Assistant React' })).toBeInTheDocument();
     expect(screen.getByTestId('students-tab')).toHaveClass('active');
     expect(screen.getByTestId('evaluations-tab')).not.toHaveClass('active');
     expect(screen.getByTestId('classes-tab')).toBeInTheDocument();
+    expect(screen.getByTestId('self-assessment-tab')).toHaveTextContent('My self-assessment');
     expect(await screen.findByTestId('student-row-123.456.789-01')).toBeInTheDocument();
     expect(screen.getByTestId('student-row-987.654.321-00')).toBeInTheDocument();
     expect(screen.getByTestId('student-form')).toBeInTheDocument();

@@ -126,6 +126,7 @@ describe('Enrollment', () => {
     expect(enrollment.toJSON()).toEqual({
       student: { name: 'Ana Lima', cpf: '123.456.789-01', email: 'ana@cin.ufpe.br' },
       evaluations: [],
+      selfAssessments: [],
       averageBeforeFinalExam: 7.5,
       averageAfterFinalExam: 8,
       failedByAbsence: true
@@ -194,6 +195,7 @@ describe('Class', () => {
       semester: 1,
       year: 2025,
       averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
+      selfAssessmentRequest: null,
       enrollments: [new Enrollment(ana()).toJSON()]
     });
   });

@@ -4,7 +4,7 @@ This project uses Cucumber for behavior-driven development (BDD) testing with Ty
 
 ## 📋 Prerequisites
 
-1. **Backend Server**: The server must be running on `http://localhost:3005`
+1. **Backend Server**: The server must be running on `http://localhost:3005`, started in acceptance test mode with `npm run dev:acceptance` (separate data file, and the test route that fixes today's date)
 2. **Frontend Client**: The React app must be running on `http://localhost:3004`
 3. **Node.js**: Version 16 or higher
 4. **Chrome/Chromium**: For Puppeteer browser automation
@@ -132,7 +132,7 @@ Open `reports/cucumber_report.html` in a browser for detailed test results.
 ```
 Error: Server is not available
 ```
-**Solution**: Start the backend server: `npm run dev` (from server directory)
+**Solution**: Start the backend server: `npm run dev:acceptance` (from server directory)
 
 ### Client Not Running
 ```

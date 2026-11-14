@@ -16,8 +16,10 @@ import { AverageCalculationSpecification } from '../models/AverageCalculationSpe
  *   "students": [{ "name", "cpf" (11 digits), "email" }],
  *   "classes": [{
  *     "topic", "semester", "year", "averageCalculationSpecification",
+ *     "selfAssessmentRequest": { "deadline", "sentDate" } (yyyy-mm-dd) or null,
  *     "enrollments": [{
  *       "studentCPF" (11 digits), "evaluations": [{ "goal", "grade" }],
+ *       "selfAssessments": [{ "goal", "grade" }],
  *       "averageBeforeFinalExam", "averageAfterFinalExam" (numbers or null), "failedByAbsence" (boolean)
  *     }]
  *
@@ -25,7 +27,9 @@ import { AverageCalculationSpecification } from '../models/AverageCalculationSpe
  * especificacaoDoCalculoDaMedia, mediaPreFinal, mediaPosFinal and
  * reprovadoPorFalta are accepted as the previous names of, respectively,
  * averageCalculationSpecification, averageBeforeFinalExam,
- * averageAfterFinalExam and failedByAbsence.
+ * averageAfterFinalExam and failedByAbsence. Files written before the
+ * self-assessment existed have no selfAssessmentRequest nor selfAssessments:
+ * the class is then read without request and the enrollments without grades.
  *   }]
  * }
  *
@@ -49,9 +53,11 @@ export class JsonFileRepository implements AppStateRepository {
           semester: classObj.getSemester(),
           year: classObj.getYear(),
           averageCalculationSpecification: classObj.getAverageCalculationSpecification().toJSON(),
+          selfAssessmentRequest: classObj.getSelfAssessmentRequest()?.toJSON() ?? null,
           enrollments: classObj.getEnrollments().map(enrollment => ({
             studentCPF: enrollment.getStudent().getCPF(),
             evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+            selfAssessments: enrollment.getSelfAssessments().map(evaluation => evaluation.toJSON()),
             averageBeforeFinalExam: enrollment.getAverageBeforeFinalExam(),
             averageAfterFinalExam: enrollment.getAverageAfterFinalExam(),
             failedByAbsence: enrollment.getFailedByAbsence()
@@ -115,12 +121,26 @@ export class JsonFileRepository implements AppStateRepository {
             classData.averageCalculationSpecification ?? classData.especificacaoDoCalculoDaMedia
           )
         );
+        this.loadSelfAssessmentRequest(classData, classObj);
         classes.addClass(classObj);
         this.loadEnrollments(classData, classObj, students);
       } catch (error) {
         console.error(`Error adding class ${classData.topic}:`, error);
       }
     });
+  }
+
+  /** A request with invalid dates is reported and dropped; the class is still loaded. */
+  private loadSelfAssessmentRequest(classData: any, classObj: Class): void {
+    if (!classData.selfAssessmentRequest) {
+      return;
+    }
+    const { deadline, sentDate } = classData.selfAssessmentRequest;
+    try {
+      classObj.requestSelfAssessment(deadline, sentDate);
+    } catch (error) {
+      console.error(`Error loading the self-assessment request of class ${classData.topic}:`, error);
+    }
   }
 
   private loadEnrollments(classData: any, classObj: Class, students: StudentSet): void {
@@ -138,6 +158,12 @@ export class JsonFileRepository implements AppStateRepository {
         enrollmentData.evaluations.forEach((evalData: any) => {
           const evaluation = Evaluation.fromJSON(evalData);
           enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
+        });
+      }
+      if (Array.isArray(enrollmentData.selfAssessments)) {
+        enrollmentData.selfAssessments.forEach((evalData: any) => {
+          const evaluation = Evaluation.fromJSON(evalData);
+          enrollment.setSelfAssessment(evaluation.getGoal(), evaluation.getGrade());
         });
       }
       // Averages and attendance status, when present in the file. The names

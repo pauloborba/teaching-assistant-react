@@ -33,6 +33,8 @@ describe('JsonFileRepository', () => {
     enrollment.addOrUpdateEvaluation('Design', 'MA');
     enrollment.setAverageBeforeFinalExam(8.5);
     enrollment.setFailedByAbsence(true);
+    se.requestSelfAssessment('2026-10-20', '2026-10-08');
+    enrollment.setSelfAssessment('Design', 'MPA');
     return { students, classes };
   };
 
@@ -57,9 +59,11 @@ describe('JsonFileRepository', () => {
         semester: 1,
         year: 2025,
         averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
+        selfAssessmentRequest: { deadline: '2026-10-20', sentDate: '2026-10-08' },
         enrollments: [{
           studentCPF: '12345678901',
           evaluations: [{ goal: 'Design', grade: 'MA' }],
+          selfAssessments: [{ goal: 'Design', grade: 'MPA' }],
           averageBeforeFinalExam: 8.5,
           averageAfterFinalExam: null,
           failedByAbsence: true
@@ -83,6 +87,9 @@ describe('JsonFileRepository', () => {
     expect(enrollment.getAverageBeforeFinalExam()).toBe(8.5);
     expect(enrollment.getAverageAfterFinalExam()).toBeNull();
     expect(enrollment.getFailedByAbsence()).toBe(true);
+    expect(enrollment.toJSON().selfAssessments).toEqual([{ goal: 'Design', grade: 'MPA' }]);
+    expect(classes.findClassById('Software Engineering-2025-1')!.getSelfAssessmentRequest()?.toJSON())
+      .toEqual({ deadline: '2026-10-20', sentDate: '2026-10-08' });
   });
 
   test('load reads averages and absence status when the file has them', () => {
@@ -102,6 +109,31 @@ describe('JsonFileRepository', () => {
     expect(enrollment.getAverageBeforeFinalExam()).toBe(7);
     expect(enrollment.getAverageAfterFinalExam()).toBe(8);
     expect(enrollment.getFailedByAbsence()).toBe(true);
+    // Files written before the self-assessment existed have neither field
+    expect(classes.findClassById('SE-2025-1')!.getSelfAssessmentRequest()).toBeNull();
+    expect(enrollment.getSelfAssessments()).toEqual([]);
+  });
+
+  test('load drops a self-assessment request with invalid dates, keeping the class and its grades', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify({
+      students: [{ name: 'Ana Lima', cpf: '12345678901', email: 'ana@cin.ufpe.br' }],
+      classes: [{
+        topic: 'SE', semester: 1, year: 2025,
+        averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
+        selfAssessmentRequest: { deadline: '20/10/2026', sentDate: '2026-10-08' },
+        enrollments: [{ studentCPF: '12345678901', evaluations: [], selfAssessments: [{ goal: 'Tests', grade: 'MA' }] }]
+      }]
+    }));
+    const students = new StudentSet();
+    const classes = new Classes();
+    repository.load(students, classes);
+    const classObj = classes.findClassById('SE-2025-1')!;
+    expect(classObj.getSelfAssessmentRequest()).toBeNull();
+    expect(classObj.getEnrollments()[0].toJSON().selfAssessments).toEqual([{ goal: 'Tests', grade: 'MA' }]);
+    expect(consoleError).toHaveBeenCalledWith('Error loading the self-assessment request of class SE:', expect.any(Error));
+    consoleError.mockRestore();
   });
 
   test('load skips invalid records and enrollments of unknown students', () => {

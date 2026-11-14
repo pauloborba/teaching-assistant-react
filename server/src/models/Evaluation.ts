@@ -52,3 +52,9 @@ export const EVALUATION_GOALS = [
   'Tests',
   'Refactoring'
 ] as const;
+export type Goal = typeof EVALUATION_GOALS[number];
+
+/** Type guard: tells whether an arbitrary value is one of the goals evaluated in every class. */
+export function isGoal(value: unknown): value is Goal {
+  return (EVALUATION_GOALS as readonly unknown[]).includes(value);
+}

@@ -47,6 +47,15 @@ body {
 }
 
 /* Error Message */
+.confirmation-message {
+  background-color: #f0fff4;
+  color: #276749;
+  border: 1px solid #9ae6b4;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
 .error-message {
   background-color: #fee;
   color: #c53030;
