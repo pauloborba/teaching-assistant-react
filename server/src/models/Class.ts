@@ -7,11 +7,19 @@ import { isGoal, isGrade } from './Evaluation';
 import { formatDate } from './Dates';
 import { cleanCPF } from './CPF';
 
+/** The discrepancy threshold of a class until the professor changes it. */
+export const DEFAULT_DISCREPANCY_THRESHOLD = 2;
+
 /**
  * A class (offering of a course) given in a semester of a year, identified by
  * 'topic-year-semester', with the enrolled students, the specification of how
  * their averages are computed and, once the professor makes it, the request
  * for the students' self-assessment. A student is enrolled at most once.
+ *
+ * The discrepancy threshold is the largest discrepancy between the
+ * self-assessment and the professor's grades that the class tolerates: a
+ * student whose discrepancy is greater than it is discrepant. It is a
+ * non-negative integer.
  */
 export class Class {
   private topic: string;
@@ -20,6 +28,7 @@ export class Class {
   private readonly averageCalculationSpecification: AverageCalculationSpecification;
   private enrollments: Enrollment[];
   private selfAssessmentRequest: SelfAssessmentRequest | null = null;
+  private discrepancyThreshold: number = DEFAULT_DISCREPANCY_THRESHOLD;
 
   constructor(topic: string, semester: number, year: number, averageCalculationSpecification: AverageCalculationSpecification, enrollments: Enrollment[] = []) {
     this.topic = topic;
@@ -162,6 +171,18 @@ export class Class {
     return enrollment;
   }
 
+  getDiscrepancyThreshold(): number {
+    return this.discrepancyThreshold;
+  }
+
+  /** Changes the discrepancy threshold; anything but a non-negative integer is rejected and the threshold kept. */
+  setDiscrepancyThreshold(threshold: unknown): void {
+    if (typeof threshold !== 'number' || !Number.isInteger(threshold) || threshold < 0) {
+      throw new DomainError('The threshold must be a non-negative integer');
+    }
+    this.discrepancyThreshold = threshold;
+  }
+
   // Get all enrolled students
   getEnrolledStudents(): Student[] {
     return this.enrollments.map(enrollment => enrollment.getStudent());
@@ -176,12 +197,13 @@ export class Class {
       year: this.year,
       averageCalculationSpecification: this.averageCalculationSpecification.toJSON(),
       selfAssessmentRequest: this.selfAssessmentRequest ? this.selfAssessmentRequest.toJSON() : null,
+      discrepancyThreshold: this.discrepancyThreshold,
       enrollments: this.enrollments.map(enrollment => enrollment.toJSON())
     };
   }
 
   // Create Class from JSON object
-  static fromJSON(data: { topic: string; semester: number; year: number; averageCalculationSpecification: any, enrollments: any[], selfAssessmentRequest?: any }, allStudents: Student[]): Class {
+  static fromJSON(data: { topic: string; semester: number; year: number; averageCalculationSpecification: any, enrollments: any[], selfAssessmentRequest?: any, discrepancyThreshold?: number }, allStudents: Student[]): Class {
     const enrollments = data.enrollments
       ? data.enrollments.map((enrollmentData: any) => {
           // toJSON writes the CPF formatted, students keep it clean
@@ -199,6 +221,10 @@ export class Class {
     const classObj = new Class(data.topic, data.semester, data.year, averageCalculationSpecification, enrollments);
     if (data.selfAssessmentRequest) {
       classObj.selfAssessmentRequest = SelfAssessmentRequest.fromJSON(data.selfAssessmentRequest);
+    }
+    // Absent from JSON written before the discrepancy threshold existed
+    if (data.discrepancyThreshold !== undefined) {
+      classObj.setDiscrepancyThreshold(data.discrepancyThreshold);
     }
     return classObj;
   }

@@ -196,6 +196,7 @@ describe('Class', () => {
       year: 2025,
       averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
       selfAssessmentRequest: null,
+      discrepancyThreshold: 2,
       enrollments: [new Enrollment(ana()).toJSON()]
     });
   });

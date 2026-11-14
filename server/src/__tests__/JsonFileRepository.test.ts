@@ -5,7 +5,7 @@ import { JsonFileRepository } from '../persistence/JsonFileRepository';
 import { StudentSet } from '../models/StudentSet';
 import { Classes } from '../models/Classes';
 import { Student } from '../models/Student';
-import { Class } from '../models/Class';
+import { Class, DEFAULT_DISCREPANCY_THRESHOLD } from '../models/Class';
 import { DEFAULT_AVERAGE_CALCULATION_SPECIFICATION } from '../models/AverageCalculationSpecification';
 
 describe('JsonFileRepository', () => {
@@ -35,6 +35,7 @@ describe('JsonFileRepository', () => {
     enrollment.setFailedByAbsence(true);
     se.requestSelfAssessment('2026-10-20', '2026-10-08');
     enrollment.setSelfAssessment('Design', 'MPA');
+    se.setDiscrepancyThreshold(3);
     return { students, classes };
   };
 
@@ -60,6 +61,7 @@ describe('JsonFileRepository', () => {
         year: 2025,
         averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
         selfAssessmentRequest: { deadline: '2026-10-20', sentDate: '2026-10-08' },
+        discrepancyThreshold: 3,
         enrollments: [{
           studentCPF: '12345678901',
           evaluations: [{ goal: 'Design', grade: 'MA' }],
@@ -90,6 +92,42 @@ describe('JsonFileRepository', () => {
     expect(enrollment.toJSON().selfAssessments).toEqual([{ goal: 'Design', grade: 'MPA' }]);
     expect(classes.findClassById('Software Engineering-2025-1')!.getSelfAssessmentRequest()?.toJSON())
       .toEqual({ deadline: '2026-10-20', sentDate: '2026-10-08' });
+    expect(classes.findClassById('Software Engineering-2025-1')!.getDiscrepancyThreshold()).toBe(3);
+  });
+
+  test('load gives the default discrepancy threshold to a class whose file has none', () => {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify({
+      students: [],
+      classes: [{
+        topic: 'SE', semester: 1, year: 2025,
+        averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
+        enrollments: []
+      }]
+    }));
+    const classes = new Classes();
+    repository.load(new StudentSet(), classes);
+    expect(classes.findClassById('SE-2025-1')!.getDiscrepancyThreshold()).toBe(DEFAULT_DISCREPANCY_THRESHOLD);
+    expect(DEFAULT_DISCREPANCY_THRESHOLD).toBe(2);
+  });
+
+  test('load drops an invalid discrepancy threshold, keeping the class with the default one', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify({
+      students: [],
+      classes: [
+        { topic: 'A', semester: 1, year: 2025, discrepancyThreshold: -1, enrollments: [] },
+        { topic: 'B', semester: 1, year: 2025, discrepancyThreshold: '3', enrollments: [] },
+        { topic: 'C', semester: 1, year: 2025, discrepancyThreshold: 0, enrollments: [] }
+      ]
+    }));
+    const classes = new Classes();
+    repository.load(new StudentSet(), classes);
+    expect(classes.getAllClasses().map(c => c.getDiscrepancyThreshold())).toEqual([2, 2, 0]);
+    expect(consoleError).toHaveBeenCalledTimes(2);
+    expect(consoleError).toHaveBeenCalledWith('Error loading the discrepancy threshold of class A:', expect.any(Error));
+    consoleError.mockRestore();
   });
 
   test('load reads averages and absence status when the file has them', () => {
