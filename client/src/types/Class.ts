@@ -9,6 +9,8 @@ export interface Class {
   averageCalculationSpecification: AverageCalculationSpecification;
   /** The professor's request for the self-assessment (ISO dates), null while not made */
   selfAssessmentRequest?: SelfAssessmentRequest | null;
+  /** Largest discrepancy between the self-assessment and the professor's grades that the class tolerates */
+  discrepancyThreshold?: number;
   enrollments: Enrollment[];
 }
 

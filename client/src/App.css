@@ -1238,3 +1238,41 @@ tbody tr:last-child td {
   padding: 20px;
   text-align: center;
 }
+
+/* Discrepancies page */
+.discrepancy-threshold-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.discrepancy-threshold-control label {
+  font-weight: 700;
+}
+
+.discrepancy-threshold-control input {
+  width: 6rem;
+  padding: 0.5rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+}
+
+.discrepancy-summary {
+  font-weight: 600;
+  margin: 1rem 0;
+}
+
+.info-message {
+  padding: 1rem;
+  border: 1px solid #bee3f8;
+  border-radius: 8px;
+  background-color: #ebf8ff;
+  color: #2a4365;
+  margin-bottom: 1.5rem;
+}
+
+.discrepancies-section h4 {
+  margin-top: 2rem;
+}

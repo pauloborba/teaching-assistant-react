@@ -32,6 +32,7 @@ describe('App', () => {
     expect(screen.getByTestId('evaluations-tab')).not.toHaveClass('active');
     expect(screen.getByTestId('classes-tab')).toBeInTheDocument();
     expect(screen.getByTestId('self-assessment-tab')).toHaveTextContent('My self-assessment');
+    expect(screen.getByTestId('discrepancies-tab')).toHaveTextContent('Discrepancies');
     expect(await screen.findByTestId('student-row-123.456.789-01')).toBeInTheDocument();
     expect(screen.getByTestId('student-row-987.654.321-00')).toBeInTheDocument();
     expect(screen.getByTestId('student-form')).toBeInTheDocument();
@@ -71,6 +72,17 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Existing Classes (2)' })).toBeInTheDocument();
     await user.click(screen.getByTestId('evaluations-tab'));
     expect(screen.getByRole('heading', { name: 'Evaluations' })).toBeInTheDocument();
+    expect(screen.queryByTestId('student-form')).not.toBeInTheDocument();
+  });
+
+  test('switches to the Discrepancies tab', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByTestId('student-row-123.456.789-01');
+    await user.click(screen.getByTestId('discrepancies-tab'));
+    expect(screen.getByTestId('discrepancies-tab')).toHaveClass('active');
+    expect(screen.getByRole('heading', { name: 'Discrepancies' })).toBeInTheDocument();
+    expect(screen.getByTestId('discrepancies-class-select')).toBeInTheDocument();
     expect(screen.queryByTestId('student-form')).not.toBeInTheDocument();
   });
 
