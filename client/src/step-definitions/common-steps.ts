@@ -16,6 +16,11 @@ Then('I see the error message {string}', async function (message: string) {
   expect(await textOf('error-message')).toBe(message);
 });
 
+// A message that is neither a confirmation nor an error, e.g. that there is nothing to list
+Then('I see the message {string}', async function (message: string) {
+  expect(await textOf('info-message')).toBe(message);
+});
+
 Then('the request is accepted', async function () {
   const response = requireLastResponse();
   expect(response.status).toBeGreaterThanOrEqual(200);

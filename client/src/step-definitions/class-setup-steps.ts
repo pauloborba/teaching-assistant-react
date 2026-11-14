@@ -19,6 +19,12 @@ Given('the class {string} has only the following students:', async function (cla
   }
 });
 
+Given('the system has no class {string}', async function (className: string) {
+  await api('DELETE', classPath(className));
+  const classes = await apiOk('GET', '/api/classes');
+  expect(classes.body.find((c: any) => c.id === classRef(className).id)).toBeUndefined();
+});
+
 Given('the student {string} is not enrolled in the class {string}', async function (studentName: string, className: string) {
   await ensureStudent(studentName);
   expect(await enrollmentOf(className, studentName)).toBeUndefined();

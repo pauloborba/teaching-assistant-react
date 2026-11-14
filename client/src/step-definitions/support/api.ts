@@ -10,7 +10,8 @@ import { After } from '@cucumber/cucumber';
  * and exposes the test route that sets the date the server takes as today.
  */
 
-export const serverUrl = 'http://localhost:3005';
+/** Where the server started for the acceptance tests listens; SERVER_URL changes it when port 3005 is taken. */
+export const serverUrl = process.env.SERVER_URL || 'http://localhost:3005';
 
 export interface ApiResponse {
   status: number;
@@ -104,12 +105,54 @@ export function isoDateShiftedBy(scenarioDate: string, days: number): string {
 const createdClasses = new Set<string>();
 const createdStudents = new Set<string>();
 
+/** The discrepancy threshold each class of the scenario was given, by class name. */
+const thresholds = new Map<string, number>();
+
+/**
+ * Gives the class a discrepancy threshold, and remembers it for the rest of
+ * the scenario: a scenario states the threshold before the students of the
+ * class, and the step that sets the students up creates the class again.
+ */
+export async function setThreshold(className: string, threshold: number): Promise<void> {
+  await apiOk('PUT', `${classPath(className)}/discrepancy-threshold`, { threshold });
+  thresholds.set(className, threshold);
+}
+
 /** Creates the class, replacing any class with the same name left by a previous run. */
 export async function createFreshClass(name: string): Promise<void> {
   const { topic, year, semester } = classRef(name);
   await api('DELETE', classPath(name));
   await apiOk('POST', '/api/classes', { topic, year, semester });
   createdClasses.add(name);
+  const threshold = thresholds.get(name);
+  if (threshold !== undefined) {
+    await apiOk('PUT', `${classPath(name)}/discrepancy-threshold`, { threshold });
+  }
+}
+
+/** Creates the class unless it already exists. */
+export async function ensureClass(name: string): Promise<void> {
+  const { topic, year, semester, id } = classRef(name);
+  const classes = await apiOk('GET', '/api/classes');
+  if (!classes.body.some((c: any) => c.id === id)) {
+    await apiOk('POST', '/api/classes', { topic, year, semester });
+  }
+  createdClasses.add(name);
+}
+
+/**
+ * Lets the students of the class register their self-assessment grades: fixes
+ * today's date and, when the class has no self-assessment request, makes one
+ * whose deadline is still ahead. For scenarios that only need the grades to
+ * exist, not the request or the date.
+ */
+export async function openSelfAssessment(className: string): Promise<void> {
+  await apiOk('PUT', '/api/test/clock', { today: '2026-01-15' });
+  const classes = await apiOk('GET', '/api/classes');
+  const classData = classes.body.find((c: any) => c.id === classRef(className).id);
+  if (!classData.selfAssessmentRequest) {
+    await apiOk('POST', `${classPath(className)}/self-assessment-request`, { deadline: '2026-12-31' });
+  }
 }
 
 /** Registers the student, unless it is already registered. */
@@ -150,6 +193,7 @@ After(async function () {
   }
   createdClasses.clear();
   createdStudents.clear();
+  thresholds.clear();
   lastResponse = undefined;
   // Back to the real date, in case the scenario fixed one
   await api('PUT', '/api/test/clock', { today: null });

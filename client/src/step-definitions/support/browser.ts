@@ -9,7 +9,8 @@ import { Browser, Page, launch } from 'puppeteer';
  * Set HEADLESS=true to run without showing the browser (e.g. in CI).
  */
 
-export const clientUrl = 'http://localhost:3004';
+/** Where the client listens; CLIENT_URL changes it when port 3004 is taken. */
+export const clientUrl = process.env.CLIENT_URL || 'http://localhost:3004';
 
 let browser: Browser | undefined;
 let currentPage: Page | undefined;
