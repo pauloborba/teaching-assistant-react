@@ -7,15 +7,17 @@ import StudentsTab from './components/StudentsTab';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
 import SelfAssessment from './components/SelfAssessment';
+import Discrepancies from './components/Discrepancies';
 import './App.css';
 
-type TabType = 'students' | 'evaluations' | 'classes' | 'self-assessment';
+type TabType = 'students' | 'evaluations' | 'classes' | 'self-assessment' | 'discrepancies';
 
 const TABS: { type: TabType; label: string }[] = [
   { type: 'students', label: 'Students' },
   { type: 'evaluations', label: 'Evaluations' },
   { type: 'classes', label: 'Classes' },
-  { type: 'self-assessment', label: 'My self-assessment' }
+  { type: 'self-assessment', label: 'My self-assessment' },
+  { type: 'discrepancies', label: 'Discrepancies' }
 ];
 
 /**
@@ -143,6 +145,8 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'self-assessment' && <SelfAssessment />}
+
+          {activeTab === 'discrepancies' && <Discrepancies />}
         </div>
       </main>
     </div>

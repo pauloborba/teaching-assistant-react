@@ -49,6 +49,7 @@ describe('Class endpoints', () => {
         }
       },
       selfAssessmentRequest: null,
+      discrepancyThreshold: 2,
       enrollments: []
     });
     const list = await request(app).get('/api/classes').expect(200);

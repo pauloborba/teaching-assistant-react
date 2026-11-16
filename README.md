@@ -44,7 +44,10 @@ This starts both parts at once:
 
 Open http://localhost:3004 and use the three tabs: **Students** (register, edit
 and remove students, filtering by class), **Classes** (create classes and enroll
-students) and **Evaluations** (grade each learning goal with MANA, MPA or MA).
+students) and **Evaluations** (grade each learning goal with MANA, MPA or MA). **My
+self-assessment** lets a student grade themselves while the professor's request is
+open, and **Discrepancies** shows the students whose self-assessment differs too
+much from the professor's grades, and the threshold that decides it.
 
 To start only one of them, run `npm run server` or `npm run client`. In VS Code,
 "Run and Debug" → "Launch Full Stack" starts both with the debugger attached.
@@ -91,7 +94,10 @@ In acceptance test mode the server keeps its data in
 `server/data/acceptance-data.json` (never in `app-data.json`), and exposes
 `PUT /api/test/clock`, which the scenarios use to fix the date the server takes
 as today. Set `HEADLESS=true` to run the GUI scenarios without showing the
-browser.
+browser. The scenarios expect the server at `http://localhost:3005` and the
+client at `http://localhost:3004`; if those ports are taken, start them
+elsewhere and set `SERVER_URL` and `CLIENT_URL` (and `REACT_APP_API_URL` for the
+client) to where they are.
 
 `client/CUCUMBER_TESTING.md` and `server/JEST_TESTING.md` describe how to write
 new tests of each kind.
@@ -157,6 +163,7 @@ teaching-assistant-react/
 │       │   ├── Classes.tsx         ClassForm.tsx
 │       │   ├── ClassList.tsx       EnrollmentModal.tsx
 │       │   ├── Evaluations.tsx     ImportGrade.tsx
+│       │   ├── SelfAssessment.tsx  Discrepancies.tsx
 │       ├── services/            # access to the server API
 │       │   ├── apiClient.ts        (URL, JSON and error handling, shared)
 │       │   ├── StudentService.ts   ClassService.ts  EnrollmentService.ts
@@ -219,6 +226,19 @@ always returned formatted as `000.000.000-00`. A class is identified by
 | `GET`    | `/api/classes/:id/enrollments`                        | Enrollments of a class             |
 | `GET`    | `/api/classes/:id/enrollments/:cpf/evaluation`        | Averages of one student            |
 | `PUT`    | `/api/classes/:id/enrollments/:cpf/evaluation`        | Grades a goal (`goal`, `grade`); an empty grade removes the evaluation |
+
+### Discrepancies
+
+A student is *discrepant* when the sum, over the goals that have both a
+self-assessment grade and a professor grade, of the levels between the two
+grades (MANA < MPA < MA) is greater than the discrepancy threshold of the class
+(2 until the professor changes it). Students with no goal graded by both are
+reported apart, with what is missing, and do not count in the percentage.
+
+| Method   | Path                                   | Description                                                                 |
+| -------- | -------------------------------------- | --------------------------------------------------------------------------- |
+| `GET`    | `/api/classes/:id/discrepancies`       | Students with their discrepancy (greatest first), those whose discrepancy could not be computed, and the percentage of discrepant students. Changes nothing |
+| `PUT`    | `/api/classes/:id/discrepancy-threshold` | Changes the threshold (`threshold`, a non-negative integer)               |
 
 A request that breaks a rule is answered with `400` (or `404` when something is
 not found) and a body `{"error": "..."}` explaining it. An unexpected failure is

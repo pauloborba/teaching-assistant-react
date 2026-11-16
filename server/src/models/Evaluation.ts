@@ -8,6 +8,11 @@ export function isGrade(value: unknown): value is Grade {
   return (GRADES as readonly unknown[]).includes(value);
 }
 
+/** The position of a grade in the scale, from 0 (the worst grade) up; grades are compared by it. */
+export function gradeLevel(grade: Grade): number {
+  return GRADES.indexOf(grade);
+}
+
 /** The grade a student got for one learning goal of a class. */
 export class Evaluation {
   private goal: string;

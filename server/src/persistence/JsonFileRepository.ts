@@ -17,6 +17,7 @@ import { AverageCalculationSpecification } from '../models/AverageCalculationSpe
  *   "classes": [{
  *     "topic", "semester", "year", "averageCalculationSpecification",
  *     "selfAssessmentRequest": { "deadline", "sentDate" } (yyyy-mm-dd) or null,
+ *     "discrepancyThreshold" (non-negative integer),
  *     "enrollments": [{
  *       "studentCPF" (11 digits), "evaluations": [{ "goal", "grade" }],
  *       "selfAssessments": [{ "goal", "grade" }],
@@ -30,6 +31,8 @@ import { AverageCalculationSpecification } from '../models/AverageCalculationSpe
  * averageAfterFinalExam and failedByAbsence. Files written before the
  * self-assessment existed have no selfAssessmentRequest nor selfAssessments:
  * the class is then read without request and the enrollments without grades.
+ * Files written before the discrepancies existed have no discrepancyThreshold:
+ * the class is then read with the default threshold.
  *   }]
  * }
  *
@@ -54,6 +57,7 @@ export class JsonFileRepository implements AppStateRepository {
           year: classObj.getYear(),
           averageCalculationSpecification: classObj.getAverageCalculationSpecification().toJSON(),
           selfAssessmentRequest: classObj.getSelfAssessmentRequest()?.toJSON() ?? null,
+          discrepancyThreshold: classObj.getDiscrepancyThreshold(),
           enrollments: classObj.getEnrollments().map(enrollment => ({
             studentCPF: enrollment.getStudent().getCPF(),
             evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
@@ -122,6 +126,7 @@ export class JsonFileRepository implements AppStateRepository {
           )
         );
         this.loadSelfAssessmentRequest(classData, classObj);
+        this.loadDiscrepancyThreshold(classData, classObj);
         classes.addClass(classObj);
         this.loadEnrollments(classData, classObj, students);
       } catch (error) {
@@ -140,6 +145,18 @@ export class JsonFileRepository implements AppStateRepository {
       classObj.requestSelfAssessment(deadline, sentDate);
     } catch (error) {
       console.error(`Error loading the self-assessment request of class ${classData.topic}:`, error);
+    }
+  }
+
+  /** An invalid threshold is reported and dropped; the class keeps the default one. */
+  private loadDiscrepancyThreshold(classData: any, classObj: Class): void {
+    if (classData.discrepancyThreshold === undefined) {
+      return;
+    }
+    try {
+      classObj.setDiscrepancyThreshold(classData.discrepancyThreshold);
+    } catch (error) {
+      console.error(`Error loading the discrepancy threshold of class ${classData.topic}:`, error);
     }
   }
 
