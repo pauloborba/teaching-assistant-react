@@ -82,8 +82,24 @@ export const emailOf = (name: string) =>
 export const enrollmentPath = (className: string, studentName: string) =>
   `${classPath(className)}/enrollments/${cpfOf(studentName)}`;
 
-export const selfAssessmentPath = (className: string, studentName: string, goal: string) =>
-  `${enrollmentPath(className, studentName)}/self-assessment/${encodeURIComponent(goal)}`;
+export const selfAssessmentPath = (className: string, studentName: string) =>
+  `${enrollmentPath(className, studentName)}/self-assessment`;
+
+/** Grades by goal, as a scenario table with the columns goal and grade lists them; empty cells are left out. */
+export function gradesOf(rows: { goal: string; grade: string }[]): Record<string, string> {
+  return Object.fromEntries(rows.filter(row => row.grade !== '').map(row => [row.goal, row.grade]));
+}
+
+/** The self-assessment the server keeps for the student, by goal. */
+export async function storedSelfAssessment(className: string, studentName: string): Promise<Record<string, string>> {
+  const enrollment = await enrollmentOf(className, studentName);
+  return Object.fromEntries((enrollment?.selfAssessments ?? []).map((e: any) => [e.goal, e.grade]));
+}
+
+/** Submits, as the student would, the given self-assessment, replacing the stored one. */
+export async function submitSelfAssessment(className: string, studentName: string, grades: Record<string, string>): Promise<void> {
+  await apiOk('PUT', selfAssessmentPath(className, studentName), { grades });
+}
 
 /** Dates are written dd/mm/yyyy in the scenarios and yyyy-mm-dd in the API. */
 export function isoDate(scenarioDate: string): string {
@@ -138,21 +154,6 @@ export async function ensureClass(name: string): Promise<void> {
     await apiOk('POST', '/api/classes', { topic, year, semester });
   }
   createdClasses.add(name);
-}
-
-/**
- * Lets the students of the class register their self-assessment grades: fixes
- * today's date and, when the class has no self-assessment request, makes one
- * whose deadline is still ahead. For scenarios that only need the grades to
- * exist, not the request or the date.
- */
-export async function openSelfAssessment(className: string): Promise<void> {
-  await apiOk('PUT', '/api/test/clock', { today: '2026-01-15' });
-  const classes = await apiOk('GET', '/api/classes');
-  const classData = classes.body.find((c: any) => c.id === classRef(className).id);
-  if (!classData.selfAssessmentRequest) {
-    await apiOk('POST', `${classPath(className)}/self-assessment-request`, { deadline: '2026-12-31' });
-  }
 }
 
 /** Registers the student, unless it is already registered. */
