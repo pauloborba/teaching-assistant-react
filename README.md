@@ -42,13 +42,17 @@ This starts both parts at once:
 | Client | http://localhost:3004   | React interface, opens in a browser |
 | Server | http://localhost:3005   | REST API used by the client         |
 
-Open http://localhost:3004 and use the three tabs: **Students** (register, edit
+Open http://localhost:3004 and use the four tabs: **Students** (register, edit
 and remove students, filtering by class), **Classes** (create classes and enroll
-students) and **Evaluations** (grade each learning goal with MANA, MPA or MA, and
-see below each student the self-assessment they submitted). **My
-self-assessment** lets a student submit the grades they give themselves, at any
-time, and **Discrepancies** shows the students whose self-assessment differs too
-much from the professor's grades, and the threshold that decides it.
+students), **Evaluations** (grade each learning goal with MANA, MPA or MA, and
+see below each student the self-assessment they submitted) and **My
+self-assessment** (a student submits the grades they give themselves, at any
+time).
+
+Above the table of grades, **Evaluations** shows the discrepancies of the class:
+the students whose self-assessment differs too much from the professor's grades,
+and the threshold that decides it, which can be changed there. They are updated
+as the professor changes the grades.
 
 To start only one of them, run `npm run server` or `npm run client`. In VS Code,
 "Run and Debug" → "Launch Full Stack" starts both with the debugger attached.
@@ -164,7 +168,7 @@ teaching-assistant-react/
 │       │   ├── Classes.tsx         ClassForm.tsx
 │       │   ├── ClassList.tsx       EnrollmentModal.tsx
 │       │   ├── Evaluations.tsx     ImportGrade.tsx
-│       │   ├── SelfAssessment.tsx  Discrepancies.tsx
+│       │   ├── SelfAssessment.tsx  DiscrepancyPanel.tsx
 │       ├── services/            # access to the server API
 │       │   ├── apiClient.ts        (URL, JSON and error handling, shared)
 │       │   ├── StudentService.ts   ClassService.ts  EnrollmentService.ts
@@ -233,13 +237,14 @@ always returned formatted as `000.000.000-00`. A class is identified by
 A student is *discrepant* when the sum, over the goals that have both a
 self-assessment grade and a professor grade, of the levels between the two
 grades (MANA < MPA < MA) is greater than the discrepancy threshold of the class
-(2 until the professor changes it). Students with no goal graded by both are
-reported apart, with what is missing, and do not count in the percentage.
+(an integer from 0 to 2, which is 2 until the professor changes it). Students
+with no goal graded by both are reported apart, with what is missing, and do not
+count in the percentage.
 
 | Method   | Path                                   | Description                                                                 |
 | -------- | -------------------------------------- | --------------------------------------------------------------------------- |
 | `GET`    | `/api/classes/:id/discrepancies`       | Students with their discrepancy (greatest first), those whose discrepancy could not be computed, and the percentage of discrepant students. Changes nothing |
-| `PUT`    | `/api/classes/:id/discrepancy-threshold` | Changes the threshold (`threshold`, a non-negative integer)               |
+| `PUT`    | `/api/classes/:id/discrepancy-threshold` | Changes the threshold (`threshold`, an integer from 0 to 2)               |
 
 A request that breaks a rule is answered with `400` (or `404` when something is
 not found) and a body `{"error": "..."}` explaining it. An unexpected failure is

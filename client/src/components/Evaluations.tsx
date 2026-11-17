@@ -5,6 +5,7 @@ import { classService } from '../services/ClassService';
 import { enrollmentService } from '../services/EnrollmentService';
 
 import { ImportGradeComponent } from './ImportGrade';
+import DiscrepancyPanel from './DiscrepancyPanel';
 
 interface EvaluationsProps {
   onError: (errorMessage: string) => void;
@@ -18,12 +19,15 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   });
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  // How many times the classes were loaded: each time, the grades may have changed
+  const [loadCount, setLoadCount] = useState(0);
 
   const loadClasses = useCallback(async () => {
     try {
       setIsLoading(true);
       const classesData = await classService.getAllClasses();
       setClasses(classesData);
+      setLoadCount(count => count + 1);
     } catch (error) {
       onError(`Failed to load classes: ${(error as Error).message}`);
     } finally {
@@ -71,7 +75,8 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     }
   };
 
-  if (isLoading) {
+  // Only the first load replaces the page: loading again after a grade changes must not unmount what it shows
+  if (isLoading && classes.length === 0) {
     return (
       <div className="evaluation-section">
         <h3>Evaluations</h3>
@@ -127,7 +132,10 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
             <ImportGradeComponent classID={selectedClassId} />
           </div>
           <h4>{selectedClass.topic} ({selectedClass.year}/{selectedClass.semester})</h4>
-          
+
+          {/* The discrepancies depend on the grades: they are asked again whenever the classes are loaded again */}
+          <DiscrepancyPanel classId={selectedClass.id} refreshKey={loadCount} />
+
           <div className="evaluation-matrix" data-testid="evaluation-matrix">
             <table className="evaluation-table">
               <thead>

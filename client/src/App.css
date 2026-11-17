@@ -1273,8 +1273,23 @@ tbody tr:last-child td {
   margin-bottom: 1.5rem;
 }
 
-.discrepancies-section h4 {
-  margin-top: 2rem;
+/* Discrepancies of the class, above its table of grades */
+.discrepancy-panel {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+}
+
+.discrepancy-panel h5 {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1rem;
+  color: #374151;
+}
+
+.discrepancy-panel > h5:first-child {
+  margin-top: 0;
 }
 
 /* Self-assessment a student submitted, shown read only below the student in Evaluations */
