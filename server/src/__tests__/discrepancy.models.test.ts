@@ -1,7 +1,7 @@
 import { Student } from '../models/Student';
 import { Class, DEFAULT_DISCREPANCY_THRESHOLD } from '../models/Class';
 import { DomainError } from '../models/DomainError';
-import { Grade, gradeLevel } from '../models/Evaluation';
+import { Evaluation, Grade, gradeLevel } from '../models/Evaluation';
 import { DEFAULT_AVERAGE_CALCULATION_SPECIFICATION } from '../models/AverageCalculationSpecification';
 import { DiscrepancyAnalyzer } from '../services/DiscrepancyAnalyzer';
 
@@ -22,7 +22,7 @@ function enroll(classObj: Class, name: string, professor: Grades = {}, self: Gra
   const local = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]+/g, '.');
   const enrollment = classObj.addEnrollment(new Student(name, cpf, `${local}@cin.ufpe.br`));
   Object.entries(professor).forEach(([goal, grade]) => enrollment.addOrUpdateEvaluation(goal, grade));
-  Object.entries(self).forEach(([goal, grade]) => enrollment.setSelfAssessment(goal, grade));
+  enrollment.submitSelfAssessment(Object.entries(self).map(([goal, grade]) => new Evaluation(goal, grade)));
 }
 
 describe('gradeLevel', () => {

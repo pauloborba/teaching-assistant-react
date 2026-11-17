@@ -2,8 +2,9 @@ import { Given, DataTable } from '@cucumber/cucumber';
 import expect from 'expect';
 import {
   api, apiOk, classPath, classRef, cpfOf, createFreshClass, enrollmentOf, enrollmentPath, ensureStudent, isoDate,
-  isoDateShiftedBy, selfAssessmentPath
+  isoDateShiftedBy, storedSelfAssessment, submitSelfAssessment
 } from './support/api';
+import { EVALUATION_GOALS as GOALS } from '../types/Evaluation';
 
 /**
  * Steps that establish, through the server API, the state a scenario starts
@@ -49,17 +50,28 @@ Given('today is after the deadline {string}', async function (deadline: string) 
   await apiOk('PUT', '/api/test/clock', { today: isoDateShiftedBy(deadline, 1) });
 });
 
+// The classes of a scenario are created anew, so this checks the state rather than changing it
 Given('the student {string} has no self-assessment grade in the class {string}', async function (studentName: string, className: string) {
-  const enrollment = await enrollmentOf(className, studentName);
-  for (const { goal } of enrollment.selfAssessments) {
-    await apiOk('DELETE', selfAssessmentPath(className, studentName, goal));
-  }
-  expect((await enrollmentOf(className, studentName)).selfAssessments).toEqual([]);
+  expect(await storedSelfAssessment(className, studentName)).toEqual({});
 });
 
 Given('the student {string} has the self-assessment grade {string} for the goal {string} in the class {string}',
   async function (studentName: string, grade: string, goal: string, className: string) {
-    await apiOk('PUT', selfAssessmentPath(className, studentName, goal), { grade });
+    const grades = await storedSelfAssessment(className, studentName);
+    await submitSelfAssessment(className, studentName, { ...grades, [goal]: grade });
+  });
+
+/** A self-assessment with a grade for each of the given goals. */
+const gradingAll = (goals: readonly string[]) => Object.fromEntries(goals.map(goal => [goal, 'MA']));
+
+Given('the student {string} has self-assessment grades for all the goals of the class {string}',
+  async function (studentName: string, className: string) {
+    await submitSelfAssessment(className, studentName, gradingAll(GOALS));
+  });
+
+Given('the student {string} has self-assessment grades for all the goals of the class {string} except {string}',
+  async function (studentName: string, className: string, missingGoal: string) {
+    await submitSelfAssessment(className, studentName, gradingAll(GOALS.filter(goal => goal !== missingGoal)));
   });
 
 Given('the student {string} has the professor grade {string} for the goal {string} in the class {string}',

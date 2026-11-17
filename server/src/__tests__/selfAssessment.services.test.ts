@@ -65,27 +65,26 @@ describe('Services (self-assessment)', () => {
     expect(classes.findClassById(CLASS_ID)!.getSelfAssessmentRequest()).toBeNull();
   });
 
-  test('stores and removes self-assessment grades, accepting formatted CPFs', () => {
-    services.requestSelfAssessment(CLASS_ID, '2026-10-20');
-    clock.set('2026-10-15');
-    const enrollment = services.setSelfAssessment('123.456.789-01', CLASS_ID, 'Tests', 'MA');
+  test('stores a submitted self-assessment, accepting formatted CPFs', () => {
+    const enrollment = services.submitSelfAssessment('123.456.789-01', CLASS_ID, { Tests: 'MA' });
     expect(enrollment.toJSON().selfAssessments).toEqual([{ goal: 'Tests', grade: 'MA' }]);
-    expect(services.removeSelfAssessment('12345678901', CLASS_ID, 'Tests').toJSON().selfAssessments).toEqual([]);
+    expect(services.submitSelfAssessment('12345678901', CLASS_ID, { Design: 'MPA' }).toJSON().selfAssessments)
+      .toEqual([{ goal: 'Design', grade: 'MPA' }]);
   });
 
-  test('decides whether the deadline passed by the date of the clock', () => {
+  test('accepts a submission whatever the date, with or without a request', () => {
+    services.submitSelfAssessment('12345678901', CLASS_ID, { Tests: 'MA' });
     services.requestSelfAssessment(CLASS_ID, '2026-10-20');
     clock.set('2026-10-21');
-    expect(() => services.setSelfAssessment('12345678901', CLASS_ID, 'Tests', 'MA'))
-      .toThrow('The self-assessment deadline 20/10/2026 has passed');
+    expect(services.submitSelfAssessment('12345678901', CLASS_ID, { Tests: 'MPA' }).toJSON().selfAssessments)
+      .toEqual([{ goal: 'Tests', grade: 'MPA' }]);
   });
 
   test('reports an unknown class as not found', () => {
     for (const operation of [
       () => services.requestSelfAssessment('Nope-2026-2', '2026-10-20'),
       () => services.cancelSelfAssessmentRequest('Nope-2026-2'),
-      () => services.setSelfAssessment('12345678901', 'Nope-2026-2', 'Tests', 'MA'),
-      () => services.removeSelfAssessment('12345678901', 'Nope-2026-2', 'Tests')
+      () => services.submitSelfAssessment('12345678901', 'Nope-2026-2', { Tests: 'MA' })
     ]) {
       expect(operation).toThrow(new NotFoundError('Class not found'));
     }

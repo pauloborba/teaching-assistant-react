@@ -1,6 +1,8 @@
 import { Given, When, Then, DataTable } from '@cucumber/cucumber';
 import expect from 'expect';
-import { api, classRef, cpfOf, enrollmentOf, rememberResponse, selfAssessmentPath } from './support/api';
+import {
+  api, classRef, cpfOf, enrollmentOf, gradesOf, rememberResponse, selfAssessmentPath, storedSelfAssessment
+} from './support/api';
 import { openTab, page } from './support/browser';
 
 /**
@@ -9,7 +11,7 @@ import { openTab, page } from './support/browser';
  */
 
 // ---------------------------------------------------------------------------
-// GUI steps
+// GUI steps: the "My self-assessment" page
 // ---------------------------------------------------------------------------
 
 /** The tab that shows each page named in the scenarios. */
@@ -41,13 +43,19 @@ When('I assign the self-assessment grade {string} to the goal {string}', async f
   await page().select(gradeSelect(goal), grade);
 });
 
+When('I assign the self-assessment grades:', async function (table: DataTable) {
+  for (const { goal, grade } of table.hashes()) {
+    await page().select(gradeSelect(goal), grade);
+  }
+});
+
 When('I remove the self-assessment grade of the goal {string}', async function (goal: string) {
   await page().select(gradeSelect(goal), '');
 });
 
-When('I save the self-assessment', async function () {
-  await page().click('[data-testid="save-self-assessment"]');
-  // Saving ends with either a confirmation or an error message
+When('I submit the self-assessment', async function () {
+  await page().click('[data-testid="submit-self-assessment"]');
+  // Submitting ends with either a confirmation or an error message
   await page().waitForSelector('[data-testid="confirmation-message"], [data-testid="error-message"]', { timeout: 10000 });
 });
 
@@ -66,18 +74,45 @@ Then('I see no self-assessment grade for the goal {string}', async function (goa
 });
 
 // ---------------------------------------------------------------------------
+// GUI steps: the "Evaluations" page, where the self-assessment is shown
+// ---------------------------------------------------------------------------
+
+Then('I see the professor grade {string} of the student {string} for the goal {string}',
+  async function (grade: string, studentName: string, goal: string) {
+    const select = `[data-testid="evaluation-row-${cpfOf(studentName)}"] [data-testid="evaluation-grade-${goal}"]`;
+    await page().waitForSelector(select, { timeout: 10000 });
+    expect(await page().$eval(select, el => (el as HTMLSelectElement).value)).toBe(grade);
+  });
+
+Then('I see the self-assessment row of the student {string}:', async function (studentName: string, table: DataTable) {
+  const row = `[data-testid="self-assessment-row-${cpfOf(studentName)}"]`;
+  await page().waitForSelector(row, { timeout: 10000 });
+  for (const { goal, grade } of table.hashes()) {
+    const shown = await page().$eval(`${row} [data-testid="self-assessment-${goal}"]`, el => el.textContent?.trim() ?? '');
+    // The row shows "-" for a goal without grade
+    expect({ goal, grade: shown === '-' ? '' : shown }).toEqual({ goal, grade });
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Service steps
 // ---------------------------------------------------------------------------
 
-When('I request to store the self-assessment grade {string} of the student {string} for the goal {string} in the class {string}',
-  async function (grade: string, studentName: string, goal: string, className: string) {
-    rememberResponse(await api('PUT', selfAssessmentPath(className, studentName, goal), { grade }));
+When('I submit the self-assessment of the student {string} in the class {string}:',
+  async function (studentName: string, className: string, table: DataTable) {
+    const grades = gradesOf(table.hashes() as { goal: string; grade: string }[]);
+    rememberResponse(await api('PUT', selfAssessmentPath(className, studentName), { grades }));
+  });
+
+Then('the system stores the self-assessment of the student {string} in the class {string}:',
+  async function (studentName: string, className: string, table: DataTable) {
+    const expected = gradesOf(table.hashes() as { goal: string; grade: string }[]);
+    expect(await storedSelfAssessment(className, studentName)).toEqual(expected);
   });
 
 Then('the system stores the self-assessment grade {string} of the student {string} for the goal {string} in the class {string}',
   async function (grade: string, studentName: string, goal: string, className: string) {
-    const enrollment = await enrollmentOf(className, studentName);
-    expect(enrollment.selfAssessments).toContainEqual({ goal, grade });
+    expect((await storedSelfAssessment(className, studentName))[goal]).toBe(grade);
   });
 
 Then('the system stores the professor grade {string} of the student {string} for the goal {string} in the class {string}',
@@ -88,6 +123,5 @@ Then('the system stores the professor grade {string} of the student {string} for
 
 Then('the system stores no self-assessment grade of the student {string} in the class {string}',
   async function (studentName: string, className: string) {
-    const enrollment = await enrollmentOf(className, studentName);
-    expect(enrollment?.selfAssessments ?? []).toEqual([]);
+    expect(await storedSelfAssessment(className, studentName)).toEqual({});
   });

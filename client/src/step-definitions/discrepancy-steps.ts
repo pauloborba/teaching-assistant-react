@@ -1,8 +1,8 @@
 import { Given, When, Then, DataTable } from '@cucumber/cucumber';
 import expect from 'expect';
 import {
-  api, apiOk, classPath, classRef, enrollmentOf, enrollmentPath, ensureClass, openSelfAssessment, rememberResponse,
-  requireLastResponse, selfAssessmentPath, setThreshold
+  api, apiOk, classPath, classRef, enrollmentOf, enrollmentPath, ensureClass, rememberResponse,
+  requireLastResponse, setThreshold, submitSelfAssessment
 } from './support/api';
 import { page, textOf } from './support/browser';
 
@@ -61,15 +61,17 @@ Given('the discrepancy threshold of the class {string} is {string}', async funct
 
 Given('the class {string} has the following grades:', async function (className: string, table: DataTable) {
   const cells = gradeCells(table).filter(cell => cell.grade !== '');
-  if (cells.some(cell => cell.author === 'self-assessment')) {
-    await openSelfAssessment(className);
-  }
+  const selfAssessments = new Map<string, Record<string, string>>();
   for (const { student, author, goal, grade } of cells) {
     if (author === 'professor') {
       await apiOk('PUT', `${enrollmentPath(className, student)}/evaluation`, { goal, grade });
     } else {
-      await apiOk('PUT', selfAssessmentPath(className, student, goal), { grade });
+      selfAssessments.set(student, { ...selfAssessments.get(student), [goal]: grade });
     }
+  }
+  // Each student submits the whole self-assessment at once
+  for (const [student, grades] of Array.from(selfAssessments)) {
+    await submitSelfAssessment(className, student, grades);
   }
 });
 

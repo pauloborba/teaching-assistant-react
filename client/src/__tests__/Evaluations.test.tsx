@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import Evaluations from '../components/Evaluations';
 import { classService } from '../services/ClassService';
 import { enrollmentService } from '../services/EnrollmentService';
-import { softwareEngineering, databases } from '../test-support/fixtures';
+import { ana, bruno, softwareEngineering, databases } from '../test-support/fixtures';
 
 jest.mock('../services/ClassService', () => ({ classService: { getAllClasses: jest.fn() } }));
 jest.mock('../services/EnrollmentService', () => ({ enrollmentService: { updateEvaluation: jest.fn() } }));
@@ -56,6 +56,37 @@ describe('Evaluations', () => {
     await waitFor(() => expect(enrollmentService.updateEvaluation).toHaveBeenCalledWith('Software Engineering-2025-1', '123.456.789-01', 'Tests', 'MA'));
     await waitFor(() => expect(classService.getAllClasses).toHaveBeenCalledTimes(2));
     expect(onError).not.toHaveBeenCalled();
+  });
+
+  test('shows below each student, read only, the self-assessment they submitted', async () => {
+    const user = userEvent.setup();
+    (classService.getAllClasses as jest.Mock).mockResolvedValue([{
+      ...softwareEngineering,
+      enrollments: [
+        { student: ana, evaluations: [{ goal: 'Design', grade: 'MPA' }], selfAssessments: [{ goal: 'Design', grade: 'MA' }, { goal: 'Tests', grade: 'MANA' }] },
+        { student: bruno, evaluations: [], selfAssessments: [] }
+      ]
+    }]);
+    render(<Evaluations onError={jest.fn()} />);
+    await user.selectOptions(await screen.findByLabelText('Select Class:'), 'Software Engineering-2025-1');
+    const rows = screen.getAllByRole('row').slice(1).map(row => row.getAttribute('data-testid'));
+    expect(rows).toEqual([
+      `evaluation-row-${ana.cpf}`, `self-assessment-row-${ana.cpf}`,
+      `evaluation-row-${bruno.cpf}`, `self-assessment-row-${bruno.cpf}`
+    ]);
+    const anas = screen.getByTestId(`self-assessment-row-${ana.cpf}`);
+    expect(within(anas).getAllByRole('cell').map(cell => cell.textContent)).toEqual(['Self-assessment', '-', '-', '-', 'MA', 'MANA', '-']);
+    expect(within(anas).queryByRole('combobox')).not.toBeInTheDocument();
+    const brunos = screen.getByTestId(`self-assessment-row-${bruno.cpf}`);
+    expect(within(brunos).getAllByRole('cell').map(cell => cell.textContent)).toEqual(['Self-assessment', '-', '-', '-', '-', '-', '-']);
+  });
+
+  test('a student without any self-assessment field (older data) gets an empty self-assessment row', async () => {
+    const user = userEvent.setup();
+    render(<Evaluations onError={jest.fn()} />);
+    await user.selectOptions(await screen.findByLabelText('Select Class:'), 'Software Engineering-2025-1');
+    const anas = screen.getByTestId(`self-assessment-row-${ana.cpf}`);
+    expect(within(anas).getAllByRole('cell').slice(1).map(cell => cell.textContent)).toEqual(['-', '-', '-', '-', '-', '-']);
   });
 
   test('reports a failed grade update', async () => {

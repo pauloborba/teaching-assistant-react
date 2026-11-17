@@ -44,9 +44,10 @@ This starts both parts at once:
 
 Open http://localhost:3004 and use the three tabs: **Students** (register, edit
 and remove students, filtering by class), **Classes** (create classes and enroll
-students) and **Evaluations** (grade each learning goal with MANA, MPA or MA). **My
-self-assessment** lets a student grade themselves while the professor's request is
-open, and **Discrepancies** shows the students whose self-assessment differs too
+students) and **Evaluations** (grade each learning goal with MANA, MPA or MA, and
+see below each student the self-assessment they submitted). **My
+self-assessment** lets a student submit the grades they give themselves, at any
+time, and **Discrepancies** shows the students whose self-assessment differs too
 much from the professor's grades, and the threshold that decides it.
 
 To start only one of them, run `npm run server` or `npm run client`. In VS Code,

@@ -18,7 +18,8 @@ interface ClassPage {
 }
 
 const PAGES: Record<string, ClassPage> = {
-  Discrepancies: { tab: 'discrepancies-tab', classSelect: 'discrepancies-class-select', loaded: 'discrepancy-summary' }
+  Discrepancies: { tab: 'discrepancies-tab', classSelect: 'discrepancies-class-select', loaded: 'discrepancy-summary' },
+  Evaluations: { tab: 'evaluations-tab', classSelect: 'evaluations-class-select', loaded: 'evaluation-matrix' }
 };
 
 async function openClassPage(pageName: string, className: string): Promise<void> {

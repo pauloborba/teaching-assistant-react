@@ -1276,3 +1276,14 @@ tbody tr:last-child td {
 .discrepancies-section h4 {
   margin-top: 2rem;
 }
+
+/* Self-assessment a student submitted, shown read only below the student in Evaluations */
+.self-assessment-row td {
+  color: #4a5568;
+  font-style: italic;
+  background-color: #f7fafc;
+}
+
+.self-assessment-row .self-assessment-label {
+  padding-left: 1.5rem;
+}

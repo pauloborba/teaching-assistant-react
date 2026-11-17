@@ -16,8 +16,10 @@ const formatDate = (isoDate: string) => isoDate.split('-').reverse().join('/');
 
 /**
  * The "My self-assessment" page: a student of a class registers, updates and
- * removes the grade they assign to themselves for each goal, and saves them.
- * There is no login, so the student is chosen among the enrolled ones.
+ * removes the grade they assign to themselves for each goal, and submits the
+ * whole self-assessment at once, at any time. The professor sees it in the
+ * Evaluations page. There is no login, so the student is chosen among the
+ * enrolled ones.
  */
 const SelfAssessment: React.FC = () => {
   const [classes, setClasses] = useState<Class[]>([]);
@@ -65,19 +67,13 @@ const SelfAssessment: React.FC = () => {
     setMessage(null);
   };
 
-  const save = async () => {
-    const stored = storedGrades(classes);
-    const changedGoals = EVALUATION_GOALS.filter(goal => draft[goal] !== stored[goal]);
+  const submit = async () => {
+    // Only the graded goals: a goal left without grade loses its grade
+    const grades = Object.fromEntries(EVALUATION_GOALS.filter(goal => draft[goal]).map(goal => [goal, draft[goal]]));
     setSaving(true);
-    let outcome: Message = { kind: 'confirmation', text: 'Self-assessment saved' };
+    let outcome: Message = { kind: 'confirmation', text: 'Self-assessment submitted' };
     try {
-      for (const goal of changedGoals) {
-        if (draft[goal]) {
-          await selfAssessmentService.setGrade(classId, studentCPF, goal, draft[goal]);
-        } else {
-          await selfAssessmentService.removeGrade(classId, studentCPF, goal);
-        }
-      }
+      await selfAssessmentService.submit(classId, studentCPF, grades);
     } catch (error) {
       outcome = { kind: 'error', text: (error as Error).message };
     }
@@ -129,7 +125,7 @@ const SelfAssessment: React.FC = () => {
         <p className="self-assessment-deadline">
           {selectedClass.selfAssessmentRequest
             ? `Deadline: ${formatDate(selectedClass.selfAssessmentRequest.deadline)}`
-            : 'The self-assessment of this class was not requested'}
+            : 'The self-assessment of this class was not requested yet; you can submit it anyway'}
         </p>
       )}
 
@@ -175,8 +171,8 @@ const SelfAssessment: React.FC = () => {
             </tbody>
           </table>
           <div className="form-buttons">
-            <button data-testid="save-self-assessment" onClick={save} disabled={saving}>
-              Save self-assessment
+            <button data-testid="submit-self-assessment" onClick={submit} disabled={saving}>
+              Submit self-assessment
             </button>
           </div>
         </>

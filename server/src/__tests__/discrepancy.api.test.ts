@@ -21,7 +21,7 @@ const THRESHOLD_PATH = `${CLASS_PATH}/discrepancy-threshold`;
 let app: Express;
 let saves: number;
 
-/** A fresh application with ESS (2026/2), whose self-assessment is open until 20/10/2026. */
+/** A fresh application with ESS (2026/2). */
 async function setUp() {
   saves = 0;
   app = createApp({
@@ -31,7 +31,6 @@ async function setUp() {
     clock: new SettableClock({ today: () => '2026-10-08' })
   });
   await request(app).post('/api/classes').send({ topic: 'ESS', semester: 2, year: 2026 }).expect(201);
-  await request(app).post(`${CLASS_PATH}/self-assessment-request`).send({ deadline: '2026-10-20' }).expect(201);
 }
 
 async function enroll(student: typeof carlos, professor: Record<string, string>, self: Record<string, string>) {
@@ -40,8 +39,8 @@ async function enroll(student: typeof carlos, professor: Record<string, string>,
   for (const [goal, grade] of Object.entries(professor)) {
     await request(app).put(`${CLASS_PATH}/enrollments/${student.cpf}/evaluation`).send({ goal, grade }).expect(200);
   }
-  for (const [goal, grade] of Object.entries(self)) {
-    await request(app).put(`${CLASS_PATH}/enrollments/${student.cpf}/self-assessment/${goal}`).send({ grade }).expect(200);
+  if (Object.keys(self).length > 0) {
+    await request(app).put(`${CLASS_PATH}/enrollments/${student.cpf}/self-assessment`).send({ grades: self }).expect(200);
   }
 }
 

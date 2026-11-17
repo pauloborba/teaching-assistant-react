@@ -10,29 +10,22 @@ describe('SelfAssessmentService', () => {
 
   const respond = (status: number, body: unknown) =>
     fetchMock.mockResolvedValue({ ok: status < 400, status, json: async () => body });
-  const gradeUrl = 'http://localhost:3005/api/classes/ESS-2026-2/enrollments/123.456.789-01/self-assessment/Configuration%20Management';
+  const selfAssessmentUrl = 'http://localhost:3005/api/classes/ESS-2026-2/enrollments/123.456.789-01/self-assessment';
 
-  test('setGrade PUTs the grade of a goal', async () => {
+  test('submit PUTs the whole self-assessment, by goal', async () => {
     respond(200, { selfAssessments: [{ goal: 'Configuration Management', grade: 'MA' }] });
-    await expect(selfAssessmentService.setGrade('ESS-2026-2', '123.456.789-01', 'Configuration Management', 'MA'))
+    await expect(selfAssessmentService.submit('ESS-2026-2', '123.456.789-01', { 'Configuration Management': 'MA' }))
       .resolves.toEqual({ selfAssessments: [{ goal: 'Configuration Management', grade: 'MA' }] });
-    expect(fetchMock).toHaveBeenCalledWith(gradeUrl, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ grade: 'MA' })
+    expect(fetchMock).toHaveBeenCalledWith(selfAssessmentUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ grades: { 'Configuration Management': 'MA' } })
     });
   });
 
-  test('removeGrade DELETEs the grade of a goal', async () => {
-    respond(200, { selfAssessments: [] });
-    await expect(selfAssessmentService.removeGrade('ESS-2026-2', '123.456.789-01', 'Configuration Management'))
-      .resolves.toEqual({ selfAssessments: [] });
-    expect(fetchMock).toHaveBeenCalledWith(gradeUrl, { method: 'DELETE' });
-  });
-
-  test('both reject with the message the server sends', async () => {
-    respond(400, { error: 'The self-assessment deadline 20/10/2026 has passed' });
-    await expect(selfAssessmentService.setGrade('ESS-2026-2', '123.456.789-01', 'Tests', 'MA'))
-      .rejects.toThrow('The self-assessment deadline 20/10/2026 has passed');
-    await expect(selfAssessmentService.removeGrade('ESS-2026-2', '123.456.789-01', 'Tests'))
-      .rejects.toThrow('The self-assessment deadline 20/10/2026 has passed');
+  test('submit rejects with the message the server sends', async () => {
+    respond(400, { error: 'Assign a grade to at least one goal' });
+    await expect(selfAssessmentService.submit('ESS-2026-2', '123.456.789-01', {}))
+      .rejects.toThrow('Assign a grade to at least one goal');
   });
 });

@@ -6,6 +6,7 @@ import { StudentSet } from '../models/StudentSet';
 import { Classes } from '../models/Classes';
 import { Student } from '../models/Student';
 import { Class, DEFAULT_DISCREPANCY_THRESHOLD } from '../models/Class';
+import { Evaluation } from '../models/Evaluation';
 import { DEFAULT_AVERAGE_CALCULATION_SPECIFICATION } from '../models/AverageCalculationSpecification';
 
 describe('JsonFileRepository', () => {
@@ -34,7 +35,7 @@ describe('JsonFileRepository', () => {
     enrollment.setAverageBeforeFinalExam(8.5);
     enrollment.setFailedByAbsence(true);
     se.requestSelfAssessment('2026-10-20', '2026-10-08');
-    enrollment.setSelfAssessment('Design', 'MPA');
+    enrollment.submitSelfAssessment([new Evaluation('Design', 'MPA')]);
     se.setDiscrepancyThreshold(3);
     return { students, classes };
   };
