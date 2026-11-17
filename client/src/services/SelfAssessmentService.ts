@@ -1,17 +1,14 @@
 import { Enrollment } from '../types/Enrollment';
-import { request, sendJson } from './apiClient';
+import { sendJson } from './apiClient';
 import { classPath } from './ClassService';
 
-const gradePath = (classId: string, studentCPF: string, goal: string) =>
-  `${classPath(classId)}/enrollments/${studentCPF}/self-assessment/${encodeURIComponent(goal)}`;
-
-/** Access to the grades students assign to themselves (self-assessment). */
+/** Access to the self-assessment students submit. */
 export const selfAssessmentService = {
-  /** Stores the grade the student assigns to themselves for a goal. */
-  setGrade: (classId: string, studentCPF: string, goal: string, grade: string): Promise<Enrollment> =>
-    sendJson('PUT', gradePath(classId, studentCPF, goal), { grade }, 'Failed to save the self-assessment'),
-
-  /** Removes the grade the student assigned to themselves for a goal. */
-  removeGrade: (classId: string, studentCPF: string, goal: string): Promise<Enrollment> =>
-    request(gradePath(classId, studentCPF, goal), 'Failed to save the self-assessment', { method: 'DELETE' })
+  /**
+   * Submits the whole self-assessment of a student: the grade of each graded
+   * goal. It replaces the previous submission.
+   */
+  submit: (classId: string, studentCPF: string, grades: Record<string, string>): Promise<Enrollment> =>
+    sendJson('PUT', `${classPath(classId)}/enrollments/${studentCPF}/self-assessment`, { grades },
+      'Failed to submit the self-assessment')
 };

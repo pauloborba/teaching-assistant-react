@@ -9,7 +9,7 @@ import { ana, bruno, softwareEngineering } from '../test-support/fixtures';
 
 jest.mock('../services/ClassService', () => ({ classService: { getAllClasses: jest.fn() } }));
 jest.mock('../services/SelfAssessmentService', () => ({
-  selfAssessmentService: { setGrade: jest.fn(), removeGrade: jest.fn() }
+  selfAssessmentService: { submit: jest.fn() }
 }));
 
 /**
@@ -31,8 +31,7 @@ const ess = (selfAssessments: Evaluation[] = [{ goal: 'Requirements', grade: 'MP
 });
 
 const getAllClasses = classService.getAllClasses as jest.Mock;
-const setGrade = selfAssessmentService.setGrade as jest.Mock;
-const removeGrade = selfAssessmentService.removeGrade as jest.Mock;
+const submit = selfAssessmentService.submit as jest.Mock;
 const gradeOf = (goal: string) => (screen.getByTestId(`self-assessment-grade-${goal}`) as HTMLSelectElement).value;
 
 /** Renders the page with Ana's self-assessment of ESS (2026/2) open. */
@@ -70,35 +69,52 @@ describe('SelfAssessment', () => {
     }
   });
 
-  test('says when the self-assessment was not requested', async () => {
+  test('says when the self-assessment was not requested, and still lets the student submit it', async () => {
     getAllClasses.mockResolvedValue([{ ...ess(), selfAssessmentRequest: null }]);
     await openAnasSelfAssessment();
-    expect(screen.getByText('The self-assessment of this class was not requested')).toBeInTheDocument();
+    expect(screen.getByText('The self-assessment of this class was not requested yet; you can submit it anyway'))
+      .toBeInTheDocument();
+    expect(screen.getByTestId('submit-self-assessment')).toBeEnabled();
   });
 
-  test('saving sends only the changed goals, then confirms and shows the stored grades', async () => {
+  test('submitting sends the graded goals at once, then confirms and shows the stored grades', async () => {
     const user = await openAnasSelfAssessment();
-    setGrade.mockResolvedValue({});
-    removeGrade.mockResolvedValue({});
+    submit.mockResolvedValue({});
     getAllClasses.mockResolvedValue([ess([{ goal: 'Tests', grade: 'MA' }])]);
     await user.selectOptions(screen.getByTestId('self-assessment-grade-Tests'), 'MA');
     await user.selectOptions(screen.getByTestId('self-assessment-grade-Requirements'), '');
-    await user.click(screen.getByTestId('save-self-assessment'));
-    expect(await screen.findByTestId('confirmation-message')).toHaveTextContent('Self-assessment saved');
-    expect(setGrade).toHaveBeenCalledTimes(1);
-    expect(setGrade).toHaveBeenCalledWith('ESS-2026-2', ana.cpf, 'Tests', 'MA');
-    expect(removeGrade).toHaveBeenCalledTimes(1);
-    expect(removeGrade).toHaveBeenCalledWith('ESS-2026-2', ana.cpf, 'Requirements');
+    await user.click(screen.getByTestId('submit-self-assessment'));
+    expect(await screen.findByTestId('confirmation-message')).toHaveTextContent('Self-assessment submitted');
+    expect(submit).toHaveBeenCalledTimes(1);
+    expect(submit).toHaveBeenCalledWith('ESS-2026-2', ana.cpf, { Tests: 'MA' });
     await waitFor(() => expect(gradeOf('Tests')).toBe('MA'));
     expect(gradeOf('Requirements')).toBe('');
   });
 
+  test('submitting unchanged grades sends them all again', async () => {
+    const user = await openAnasSelfAssessment();
+    submit.mockResolvedValue({});
+    await user.click(screen.getByTestId('submit-self-assessment'));
+    await screen.findByTestId('confirmation-message');
+    expect(submit).toHaveBeenCalledWith('ESS-2026-2', ana.cpf, { Requirements: 'MPA' });
+  });
+
+  test('an empty self-assessment is sent too, and the server message is shown', async () => {
+    const user = await openAnasSelfAssessment();
+    submit.mockRejectedValue(new Error('Assign a grade to at least one goal'));
+    await user.selectOptions(screen.getByTestId('self-assessment-grade-Requirements'), '');
+    await user.click(screen.getByTestId('submit-self-assessment'));
+    expect(await screen.findByTestId('error-message')).toHaveTextContent('Assign a grade to at least one goal');
+    expect(submit).toHaveBeenCalledWith('ESS-2026-2', ana.cpf, {});
+    await waitFor(() => expect(gradeOf('Requirements')).toBe('MPA'));
+  });
+
   test('when the server refuses, shows its message and the grades it keeps', async () => {
     const user = await openAnasSelfAssessment();
-    setGrade.mockRejectedValue(new Error('The self-assessment deadline 20/10/2026 has passed'));
+    submit.mockRejectedValue(new Error('Student not enrolled in this class'));
     await user.selectOptions(screen.getByTestId('self-assessment-grade-Requirements'), 'MA');
-    await user.click(screen.getByTestId('save-self-assessment'));
-    expect(await screen.findByTestId('error-message')).toHaveTextContent('The self-assessment deadline 20/10/2026 has passed');
+    await user.click(screen.getByTestId('submit-self-assessment'));
+    expect(await screen.findByTestId('error-message')).toHaveTextContent('Student not enrolled in this class');
     expect(screen.queryByTestId('confirmation-message')).not.toBeInTheDocument();
     await waitFor(() => expect(gradeOf('Requirements')).toBe('MPA'));
   });
@@ -112,7 +128,7 @@ describe('SelfAssessment', () => {
     await user.selectOptions(screen.getByTestId('self-assessment-student-select'), ana.cpf);
     expect(gradeOf('Requirements')).toBe('MPA');
     expect(gradeOf('Tests')).toBe('');
-    expect(setGrade).not.toHaveBeenCalled();
+    expect(submit).not.toHaveBeenCalled();
   });
 
   test('says when the classes cannot be loaded', async () => {
@@ -125,9 +141,9 @@ describe('SelfAssessment', () => {
 
   test('changing a grade clears the previous message', async () => {
     const user = await openAnasSelfAssessment();
-    setGrade.mockResolvedValue({});
+    submit.mockResolvedValue({});
     await user.selectOptions(screen.getByTestId('self-assessment-grade-Tests'), 'MA');
-    await user.click(screen.getByTestId('save-self-assessment'));
+    await user.click(screen.getByTestId('submit-self-assessment'));
     await screen.findByTestId('confirmation-message');
     await user.selectOptions(screen.getByTestId('self-assessment-grade-Design'), 'MPA');
     expect(screen.queryByTestId('confirmation-message')).not.toBeInTheDocument();

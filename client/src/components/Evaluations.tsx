@@ -91,6 +91,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
         <label htmlFor="classSelect">Select Class:</label>
         <select
           id="classSelect"
+          data-testid="evaluations-class-select"
           value={selectedClassId}
           onChange={(e) => handleClassSelection(e.target.value)}
           className="class-select"
@@ -127,7 +128,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
           </div>
           <h4>{selectedClass.topic} ({selectedClass.year}/{selectedClass.semester})</h4>
           
-          <div className="evaluation-matrix">
+          <div className="evaluation-matrix" data-testid="evaluation-matrix">
             <table className="evaluation-table">
               <thead>
                 <tr>
@@ -146,9 +147,14 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                     acc[evaluation.goal] = evaluation.grade;
                     return acc;
                   }, {} as {[goal: string]: string});
+                  // The self-assessment the student submitted (absent from older data)
+                  const selfAssessment = Object.fromEntries(
+                    (enrollment.selfAssessments ?? []).map(evaluation => [evaluation.goal, evaluation.grade])
+                  );
 
                   return (
-                    <tr key={student.cpf} className="student-row">
+                    <React.Fragment key={student.cpf}>
+                    <tr className="student-row" data-testid={`evaluation-row-${student.cpf}`}>
                       <td className="student-name-cell">{student.name}</td>
                       {EVALUATION_GOALS.map(goal => {
                         const currentGrade = studentEvaluations[goal] || '';
@@ -156,6 +162,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                         return (
                           <td key={goal} className="evaluation-cell">
                             <select
+                              data-testid={`evaluation-grade-${goal}`}
                               value={currentGrade}
                               onChange={(e) => handleEvaluationChange(student.cpf, goal, e.target.value)}
                               className={`evaluation-select ${currentGrade ? `grade-${currentGrade.toLowerCase()}` : ''}`}
@@ -169,6 +176,15 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                         );
                       })}
                     </tr>
+                    <tr className="self-assessment-row" data-testid={`self-assessment-row-${student.cpf}`}>
+                      <td className="self-assessment-label">Self-assessment</td>
+                      {EVALUATION_GOALS.map(goal => (
+                        <td key={goal} className="evaluation-cell" data-testid={`self-assessment-${goal}`}>
+                          {selfAssessment[goal] ?? '-'}
+                        </td>
+                      ))}
+                    </tr>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
