@@ -31,6 +31,11 @@ export class Services {
     return classObj.getDiscrepancyThreshold();
   }
 
+  /** Replaces the self-assessment of a student with the submitted grades, given by goal. */
+  submitSelfAssessment(studentCPF: string, classId: string, grades: unknown): Enrollment {
+    return this.findClass(classId).submitSelfAssessment(cleanCPF(studentCPF), grades);
+  }
+
   /** Requests the self-assessment of a class, with the given deadline (ISO date). */
   requestSelfAssessment(classId: string, deadline: string): SelfAssessmentRequest {
     return this.findClass(classId).requestSelfAssessment(deadline, this.clock.today());
@@ -39,16 +44,6 @@ export class Services {
   /** Withdraws the self-assessment request of a class, if it has one. */
   cancelSelfAssessmentRequest(classId: string): void {
     this.findClass(classId).cancelSelfAssessmentRequest();
-  }
-
-  /** Stores the grade a student assigns to themselves for a goal. */
-  setSelfAssessment(studentCPF: string, classId: string, goal: string, grade: unknown): Enrollment {
-    return this.findClass(classId).setSelfAssessment(cleanCPF(studentCPF), goal, grade, this.clock.today());
-  }
-
-  /** Removes the grade a student assigned to themselves for a goal. */
-  removeSelfAssessment(studentCPF: string, classId: string, goal: string): Enrollment {
-    return this.findClass(classId).removeSelfAssessment(cleanCPF(studentCPF), goal, this.clock.today());
   }
 
   private findClass(classId: string): Class {

@@ -15,8 +15,7 @@ import { newTestApp } from './support/newTestApp';
 const bruno = { name: 'Bruno Tavares', cpf: '123.456.789-01', email: 'bruno@cin.ufpe.br' };
 const CLASS_PATH = '/api/classes/ESS-2026-2';
 const REQUEST_PATH = `${CLASS_PATH}/self-assessment-request`;
-const gradePath = (goal: string, cpf = bruno.cpf) =>
-  `${CLASS_PATH}/enrollments/${cpf}/self-assessment/${encodeURIComponent(goal)}`;
+const selfAssessmentPath = (cpf: string) => `${CLASS_PATH}/enrollments/${cpf}/self-assessment`;
 
 let app: Express;
 let clock: SettableClock;
@@ -67,44 +66,58 @@ describe('Self-assessment request endpoints', () => {
   });
 });
 
-describe('Self-assessment grade endpoints', () => {
-  beforeEach(async () => {
-    await setUp();
-    await request(app).post(REQUEST_PATH).send({ deadline: '2026-10-20' }).expect(201);
-  });
+describe('Self-assessment submission endpoint', () => {
+  beforeEach(() => setUp());
 
-  test('PUT stores a grade and returns the enrollment with it', async () => {
-    const response = await request(app).put(gradePath('Configuration Management')).send({ grade: 'MPA' }).expect(200);
-    expect(response.body.selfAssessments).toEqual([{ goal: 'Configuration Management', grade: 'MPA' }]);
+  const submit = (grades: unknown, cpf = bruno.cpf) =>
+    request(app).put(selfAssessmentPath(cpf)).send({ grades });
+
+  test('PUT stores the submitted self-assessment, without any request, and returns the enrollment', async () => {
+    const response = await submit({ 'Configuration Management': 'MPA', Tests: 'MA' }).expect(200);
+    expect(response.body.selfAssessments).toEqual([
+      { goal: 'Configuration Management', grade: 'MPA' },
+      { goal: 'Tests', grade: 'MA' }
+    ]);
     expect(response.body.evaluations).toEqual([]);
     const enrollments = await request(app).get(`${CLASS_PATH}/enrollments`).expect(200);
-    expect(enrollments.body[0].selfAssessments).toEqual([{ goal: 'Configuration Management', grade: 'MPA' }]);
+    expect(enrollments.body[0].selfAssessments).toEqual(response.body.selfAssessments);
   });
 
-  test('DELETE removes a grade', async () => {
-    await request(app).put(gradePath('Tests')).send({ grade: 'MA' }).expect(200);
-    const response = await request(app).delete(gradePath('Tests')).expect(200);
-    expect(response.body.selfAssessments).toEqual([]);
+  test('a new submission replaces the previous one', async () => {
+    await submit({ Requirements: 'MPA', Tests: 'MANA' }).expect(200);
+    const response = await submit({ Tests: 'MA' }).expect(200);
+    expect(response.body.selfAssessments).toEqual([{ goal: 'Tests', grade: 'MA' }]);
   });
 
-  test('rule violations are 400s and unknown class or student are 404s', async () => {
+  test('PUT is accepted after the deadline of the request', async () => {
+    await request(app).post(REQUEST_PATH).send({ deadline: '2026-10-20' }).expect(201);
+    clock.set('2026-10-21');
+    await submit({ Tests: 'MA' }).expect(200);
+  });
+
+  test('rule violations are 400s that change nothing, and unknown class or student are 404s', async () => {
+    await submit({ Requirements: 'MPA' }).expect(200);
     const cases: [request.Test, number, string][] = [
-      [request(app).put(gradePath('Tests')).send({ grade: 'XYZ' }), 400, 'Invalid grade. Must be MANA, MPA, or MA'],
-      [request(app).put(gradePath('Tests')).send({}), 400, 'Invalid grade. Must be MANA, MPA, or MA'],
-      [request(app).put(gradePath('Databases')).send({ grade: 'MA' }), 400, 'Databases is not a goal of the class'],
-      [request(app).put(gradePath('Tests', '987.654.321-00')).send({ grade: 'MA' }), 404, 'Student not enrolled in this class'],
-      [request(app).put(`/api/classes/Nope-2026-2/enrollments/${bruno.cpf}/self-assessment/Tests`).send({ grade: 'MA' }), 404, 'Class not found']
+      [submit({}), 400, 'Assign a grade to at least one goal'],
+      [submit({ Requirements: '' }), 400, 'Assign a grade to at least one goal'],
+      [request(app).put(selfAssessmentPath(bruno.cpf)).send({}), 400, 'Grades must map each goal to its grade'],
+      [submit(['MA']), 400, 'Grades must map each goal to its grade'],
+      [submit({ Tests: 'MA', Design: 'XYZ' }), 400, 'Invalid grade. Must be MANA, MPA, or MA'],
+      [submit({ Databases: 'MA' }), 400, 'Databases is not a goal of the class'],
+      [submit({ Tests: 'MA' }, '987.654.321-00'), 404, 'Student not enrolled in this class'],
+      [request(app).put(`/api/classes/Nope-2026-2/enrollments/${bruno.cpf}/self-assessment`).send({ grades: { Tests: 'MA' } }), 404, 'Class not found']
     ];
     for (const [sent, status, error] of cases) {
       const response = await sent.expect(status);
       expect(response.body).toEqual({ error });
     }
+    const enrollments = await request(app).get(`${CLASS_PATH}/enrollments`).expect(200);
+    expect(enrollments.body[0].selfAssessments).toEqual([{ goal: 'Requirements', grade: 'MPA' }]);
   });
 
-  test('PUT is rejected after the deadline', async () => {
-    clock.set('2026-10-21');
-    const response = await request(app).put(gradePath('Tests')).send({ grade: 'MA' }).expect(400);
-    expect(response.body.error).toBe('The self-assessment deadline 20/10/2026 has passed');
+  test('the per-goal endpoints no longer exist', async () => {
+    await request(app).put(`${selfAssessmentPath(bruno.cpf)}/Tests`).send({ grade: 'MA' }).expect(404);
+    await request(app).delete(`${selfAssessmentPath(bruno.cpf)}/Tests`).expect(404);
   });
 });
 

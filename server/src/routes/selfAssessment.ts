@@ -4,8 +4,8 @@ import { isIsoDate } from '../models/Dates';
 import { badRequest } from './HttpError';
 
 /**
- * Routes for the self-assessment: the professor's request, and the grades
- * each student assigns to themselves. Mounted at /api/classes.
+ * Routes for the self-assessment: the professor's request, and the
+ * self-assessment each student submits. Mounted at /api/classes.
  *
  * @param services the domain operations
  * @param onStateChanged called after every successful modification
@@ -31,18 +31,11 @@ export function selfAssessmentRoutes(services: Services, onStateChanged: () => v
     res.status(204).send();
   });
 
-  // PUT /api/classes/:classId/enrollments/:studentCPF/self-assessment/:goal - Set a self-assessment grade
-  router.put('/:classId/enrollments/:studentCPF/self-assessment/:goal', (req, res) => {
-    const { classId, studentCPF, goal } = req.params;
-    const enrollment = services.setSelfAssessment(studentCPF, classId, goal, req.body.grade);
-    onStateChanged();
-    res.json(enrollment.toJSON());
-  });
-
-  // DELETE /api/classes/:classId/enrollments/:studentCPF/self-assessment/:goal - Remove a self-assessment grade
-  router.delete('/:classId/enrollments/:studentCPF/self-assessment/:goal', (req, res) => {
-    const { classId, studentCPF, goal } = req.params;
-    const enrollment = services.removeSelfAssessment(studentCPF, classId, goal);
+  // PUT /api/classes/:classId/enrollments/:studentCPF/self-assessment - Submit the self-assessment of a student
+  // Body: { grades: { <goal>: 'MANA' | 'MPA' | 'MA' | '' } }; it replaces the previous submission
+  router.put('/:classId/enrollments/:studentCPF/self-assessment', (req, res) => {
+    const { classId, studentCPF } = req.params;
+    const enrollment = services.submitSelfAssessment(studentCPF, classId, req.body.grades);
     onStateChanged();
     res.json(enrollment.toJSON());
   });

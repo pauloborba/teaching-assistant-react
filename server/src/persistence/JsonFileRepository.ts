@@ -178,10 +178,7 @@ export class JsonFileRepository implements AppStateRepository {
         });
       }
       if (Array.isArray(enrollmentData.selfAssessments)) {
-        enrollmentData.selfAssessments.forEach((evalData: any) => {
-          const evaluation = Evaluation.fromJSON(evalData);
-          enrollment.setSelfAssessment(evaluation.getGoal(), evaluation.getGrade());
-        });
+        enrollment.submitSelfAssessment(enrollmentData.selfAssessments.map((evalData: any) => Evaluation.fromJSON(evalData)));
       }
       // Averages and attendance status, when present in the file. The names
       // on the right of each ?? are the ones used by previous versions.

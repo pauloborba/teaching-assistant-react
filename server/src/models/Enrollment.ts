@@ -97,29 +97,14 @@ export class Enrollment {
     return false;
   }
 
+  /** Replaces the whole self-assessment with the given grades, one per goal. */
+  submitSelfAssessment(selfAssessments: Evaluation[]): void {
+    this.selfAssessments = [...selfAssessments];
+  }
+
   /** The grades the student assigned to themselves, at most one per goal. */
   getSelfAssessments(): Evaluation[] {
     return [...this.selfAssessments];
-  }
-
-  /** Registers or updates the grade the student assigns to themselves for a goal. */
-  setSelfAssessment(goal: string, grade: Grade): void {
-    const existing = this.selfAssessments.find(evaluation => evaluation.getGoal() === goal);
-    if (existing) {
-      existing.setGrade(grade);
-    } else {
-      this.selfAssessments.push(new Evaluation(goal, grade));
-    }
-  }
-
-  /** Removes the grade the student assigned to themselves for a goal; tells whether there was one. */
-  removeSelfAssessment(goal: string): boolean {
-    const index = this.selfAssessments.findIndex(evaluation => evaluation.getGoal() === goal);
-    if (index < 0) {
-      return false;
-    }
-    this.selfAssessments.splice(index, 1);
-    return true;
   }
 
   // Get evaluation for a specific goal

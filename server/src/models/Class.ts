@@ -3,8 +3,7 @@ import { Enrollment } from './Enrollment';
 import { AverageCalculationSpecification } from './AverageCalculationSpecification';
 import { DomainError, NotFoundError } from './DomainError';
 import { SelfAssessmentRequest } from './SelfAssessmentRequest';
-import { isGoal, isGrade } from './Evaluation';
-import { formatDate } from './Dates';
+import { EVALUATION_GOALS, Evaluation, Grade, isGoal, isGrade } from './Evaluation';
 import { cleanCPF } from './CPF';
 
 /** The discrepancy threshold of a class until the professor changes it. */
@@ -109,6 +108,43 @@ export class Class {
     );
   }
 
+  /**
+   * Replaces the self-assessment of an enrolled student with the submitted
+   * grades, given by goal; a goal given '' or null has no grade. The
+   * submission is all or nothing: when any of it is invalid, nothing changes.
+   * It is accepted at any time, with or without a self-assessment request.
+   */
+  submitSelfAssessment(studentCPF: string, grades: unknown): Enrollment {
+    const enrollment = this.findEnrollmentByStudentCPF(studentCPF);
+    if (!enrollment) {
+      throw new NotFoundError('Student not enrolled in this class');
+    }
+    if (typeof grades !== 'object' || grades === null || Array.isArray(grades)) {
+      throw new DomainError('Grades must map each goal to its grade');
+    }
+    const graded = new Map<string, Grade>();
+    for (const [goal, grade] of Object.entries(grades)) {
+      if (!isGoal(goal)) {
+        throw new DomainError(`${goal} is not a goal of the class`);
+      }
+      if (grade === '' || grade === null) {
+        continue; // a goal without grade
+      }
+      if (!isGrade(grade)) {
+        throw new DomainError('Invalid grade. Must be MANA, MPA, or MA');
+      }
+      graded.set(goal, grade);
+    }
+    if (graded.size === 0) {
+      throw new DomainError('Assign a grade to at least one goal');
+    }
+    // Kept in the order of the goals, whatever the order they were sent in
+    enrollment.submitSelfAssessment(EVALUATION_GOALS
+      .filter(goal => graded.has(goal))
+      .map(goal => new Evaluation(goal, graded.get(goal)!)));
+    return enrollment;
+  }
+
   /** The self-assessment request of the class, or null while the professor has not made one. */
   getSelfAssessmentRequest(): SelfAssessmentRequest | null {
     return this.selfAssessmentRequest;
@@ -125,50 +161,6 @@ export class Class {
     const hadRequest = this.selfAssessmentRequest !== null;
     this.selfAssessmentRequest = null;
     return hadRequest;
-  }
-
-  /** The self-assessment can be changed while there is a request whose deadline has not passed. */
-  isSelfAssessmentOpen(today: string): boolean {
-    return this.selfAssessmentRequest !== null && this.selfAssessmentRequest.isOpenOn(today);
-  }
-
-  /** Stores the grade an enrolled student assigns to themselves for a goal of the class. */
-  setSelfAssessment(studentCPF: string, goal: string, grade: unknown, today: string): Enrollment {
-    const enrollment = this.selfAssessmentEnrollment(studentCPF, goal, today);
-    if (!isGrade(grade)) {
-      throw new DomainError('Invalid grade. Must be MANA, MPA, or MA');
-    }
-    enrollment.setSelfAssessment(goal, grade);
-    return enrollment;
-  }
-
-  /** Removes the grade an enrolled student assigned to themselves for a goal of the class. */
-  removeSelfAssessment(studentCPF: string, goal: string, today: string): Enrollment {
-    const enrollment = this.selfAssessmentEnrollment(studentCPF, goal, today);
-    enrollment.removeSelfAssessment(goal);
-    return enrollment;
-  }
-
-  /**
-   * The enrollment whose self-assessment is about to change, once checked
-   * that the student is enrolled, the goal is evaluated in the class, and
-   * the self-assessment is open today.
-   */
-  private selfAssessmentEnrollment(studentCPF: string, goal: string, today: string): Enrollment {
-    const enrollment = this.findEnrollmentByStudentCPF(studentCPF);
-    if (!enrollment) {
-      throw new NotFoundError('Student not enrolled in this class');
-    }
-    if (!isGoal(goal)) {
-      throw new DomainError(`${goal} is not a goal of the class`);
-    }
-    if (!this.selfAssessmentRequest) {
-      throw new DomainError('The self-assessment of the class was not requested');
-    }
-    if (!this.selfAssessmentRequest.isOpenOn(today)) {
-      throw new DomainError(`The self-assessment deadline ${formatDate(this.selfAssessmentRequest.deadline)} has passed`);
-    }
-    return enrollment;
   }
 
   getDiscrepancyThreshold(): number {
