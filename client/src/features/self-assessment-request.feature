@@ -8,6 +8,10 @@ Feature: Self-assessment request
   for each of the six goals of the class: "Requirements", "Configuration Management",
   "Project Management", "Design", "Tests" and "Refactoring".
 
+  The request and the reminders only notify the students who have not completed
+  the self-assessment. They never restrict it: a student can submit it before the
+  request, and after its deadline.
+
   Background:
     Given the class "ESS (2026/2)" has only the following students:
       | student         | email                |
@@ -20,6 +24,9 @@ Feature: Self-assessment request
   @gui
   Scenario: request the self-assessment of a class
     Given the class "ESS (2026/2)" has no self-assessment request
+    And the student "Ian Monteiro" has no self-assessment grade in the class "ESS (2026/2)"
+    And the student "Henrique Xavier" has no self-assessment grade in the class "ESS (2026/2)"
+    And the student "Matheus Menezes" has no self-assessment grade in the class "ESS (2026/2)"
     And today is before the deadline "20/10/2026"
     And I am at the "Self-assessment requests" page of the class "ESS (2026/2)"
     When I request the self-assessment with deadline "20/10/2026"
@@ -30,6 +37,22 @@ Feature: Self-assessment request
       | Ian Monteiro    | Pending |               |
       | Henrique Xavier | Pending |               |
       | Matheus Menezes | Pending |               |
+
+  @gui
+  Scenario: the request is not sent to the students who already completed the self-assessment
+    Given the class "ESS (2026/2)" has no self-assessment request
+    And the student "Ian Monteiro" has self-assessment grades for all the goals of the class "ESS (2026/2)"
+    And the student "Henrique Xavier" has self-assessment grades for all the goals of the class "ESS (2026/2)" except "Design"
+    And the student "Matheus Menezes" has no self-assessment grade in the class "ESS (2026/2)"
+    And today is before the deadline "20/10/2026"
+    And I am at the "Self-assessment requests" page of the class "ESS (2026/2)"
+    When I request the self-assessment with deadline "20/10/2026"
+    Then I see the confirmation message "Self-assessment requested from 2 students"
+    And I see the self-assessment status:
+      | student         | status    | last reminder |
+      | Ian Monteiro    | Completed |               |
+      | Henrique Xavier | Pending   |               |
+      | Matheus Menezes | Pending   |               |
 
   @gui
   Scenario: send a reminder only to the students with pending self-assessment
@@ -83,17 +106,31 @@ Feature: Self-assessment request
   # Service scenarios
 
   @server
-  Scenario: the request is sent by email to every enrolled student
+  Scenario: the request is sent by email only to the students who have not completed the self-assessment
     Given the class "ESS (2026/2)" has no self-assessment request
+    And the student "Ian Monteiro" has self-assessment grades for all the goals of the class "ESS (2026/2)"
+    And the student "Henrique Xavier" has self-assessment grades for all the goals of the class "ESS (2026/2)" except "Design"
+    And the student "Matheus Menezes" has no self-assessment grade in the class "ESS (2026/2)"
     And today is before the deadline "20/10/2026"
     When I request the self-assessment of the class "ESS (2026/2)" with deadline "20/10/2026"
     Then the request is accepted
     And the system stores a self-assessment request of the class "ESS (2026/2)" with deadline "20/10/2026"
     And the system sends the email "Self-assessment request" with deadline "20/10/2026" only to:
       | email                |
-      | ian@cin.ufpe.br      |
       | henrique@cin.ufpe.br |
       | matheus@cin.ufpe.br  |
+
+  @server
+  Scenario: the request sends no email when every student has completed the self-assessment
+    Given the class "ESS (2026/2)" has no self-assessment request
+    And the student "Ian Monteiro" has self-assessment grades for all the goals of the class "ESS (2026/2)"
+    And the student "Henrique Xavier" has self-assessment grades for all the goals of the class "ESS (2026/2)"
+    And the student "Matheus Menezes" has self-assessment grades for all the goals of the class "ESS (2026/2)"
+    And today is before the deadline "20/10/2026"
+    When I request the self-assessment of the class "ESS (2026/2)" with deadline "20/10/2026"
+    Then the request is accepted
+    And the system stores a self-assessment request of the class "ESS (2026/2)" with deadline "20/10/2026"
+    And the system sends no email
 
   @server
   Scenario: the reminder is sent only to the students with pending self-assessment

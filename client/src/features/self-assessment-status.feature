@@ -8,6 +8,8 @@ Feature: Self-assessment status
   of the six goals of the class: "Requirements", "Configuration Management",
   "Project Management", "Design", "Tests" and "Refactoring". Otherwise the status is
   "Pending", and the page shows how many of the six goals already have a grade.
+  The status does not depend on the request: a student can complete the
+  self-assessment before the professor requests it.
 
   Background:
     Given the class "ESS (2026/2)" has only the following students:
@@ -60,15 +62,20 @@ Feature: Self-assessment status
     And I see "0" of "3" students with the self-assessment completed
 
   @gui
-  Scenario: no status for a class without self-assessment request
+  Scenario: the status of a class without self-assessment request
     Given the class "ESS (2027/1)" has only the following students:
       | student       |
       | Ana Ribeiro   |
       | Bruno Tavares |
     And the class "ESS (2027/1)" has no self-assessment request
+    And the student "Ana Ribeiro" has self-assessment grades for all the goals of the class "ESS (2027/1)"
+    And the student "Bruno Tavares" has no self-assessment grade in the class "ESS (2027/1)"
     When I open the "Self-assessment requests" page of the class "ESS (2027/1)"
     Then I see the message "The self-assessment of the class was not requested yet"
-    And I see no self-assessment status
+    And I see the self-assessment status:
+      | student       | status    | goals graded |
+      | Ana Ribeiro   | Completed | 6 of 6       |
+      | Bruno Tavares | Pending   | 0 of 6       |
 
   # Service scenarios
 
