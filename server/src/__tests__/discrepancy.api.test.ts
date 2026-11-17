@@ -104,9 +104,11 @@ describe('PUT /api/classes/:classId/discrepancy-threshold', () => {
     expect((await request(app).get(DISCREPANCIES_PATH)).body.discrepantCount).toBe(1);
   });
 
-  test('accepts zero', async () => {
+  test('accepts the two ends of the range, 0 and 2', async () => {
     await request(app).put(THRESHOLD_PATH).send({ threshold: 0 }).expect(200);
     expect((await request(app).get('/api/classes')).body[0].discrepancyThreshold).toBe(0);
+    await request(app).put(THRESHOLD_PATH).send({ threshold: 2 }).expect(200);
+    expect((await request(app).get('/api/classes')).body[0].discrepancyThreshold).toBe(2);
   });
 
   test('asks for the state to be saved only when the threshold changes', async () => {
@@ -114,18 +116,31 @@ describe('PUT /api/classes/:classId/discrepancy-threshold', () => {
     await request(app).put(THRESHOLD_PATH).send({ threshold: -1 }).expect(400);
     await new Promise(resolve => setImmediate(resolve));
     expect(saves).toBe(savesBefore);
-    await request(app).put(THRESHOLD_PATH).send({ threshold: 3 }).expect(200);
+    await request(app).put(THRESHOLD_PATH).send({ threshold: 1 }).expect(200);
     await new Promise(resolve => setImmediate(resolve));
     expect(saves).toBe(savesBefore + 1);
   });
 
   test('rejects a threshold that is not a non-negative integer, keeping the one the class has', async () => {
-    await request(app).put(THRESHOLD_PATH).send({ threshold: 3 }).expect(200);
+    await request(app).put(THRESHOLD_PATH).send({ threshold: 1 }).expect(200);
     for (const body of [{ threshold: -1 }, { threshold: 1.5 }, { threshold: '2' }, { threshold: null }, {}]) {
       const response = await request(app).put(THRESHOLD_PATH).send(body).expect(400);
       expect(response.body).toEqual({ error: 'The threshold must be a non-negative integer' });
     }
-    expect((await request(app).get('/api/classes')).body[0].discrepancyThreshold).toBe(3);
+    expect((await request(app).get('/api/classes')).body[0].discrepancyThreshold).toBe(1);
+  });
+
+  test('rejects a threshold above 2, keeping the one the class has, and saves nothing', async () => {
+    await request(app).put(THRESHOLD_PATH).send({ threshold: 1 }).expect(200);
+    await new Promise(resolve => setImmediate(resolve));
+    const savesBefore = saves;
+    for (const threshold of [3, 12, 100]) {
+      const response = await request(app).put(THRESHOLD_PATH).send({ threshold }).expect(400);
+      expect(response.body).toEqual({ error: 'The threshold must be at most 2' });
+    }
+    await new Promise(resolve => setImmediate(resolve));
+    expect(saves).toBe(savesBefore);
+    expect((await request(app).get('/api/classes')).body[0].discrepancyThreshold).toBe(1);
   });
 
   test('reports an unknown class as not found', async () => {

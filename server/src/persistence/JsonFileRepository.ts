@@ -17,7 +17,7 @@ import { AverageCalculationSpecification } from '../models/AverageCalculationSpe
  *   "classes": [{
  *     "topic", "semester", "year", "averageCalculationSpecification",
  *     "selfAssessmentRequest": { "deadline", "sentDate" } (yyyy-mm-dd) or null,
- *     "discrepancyThreshold" (non-negative integer),
+ *     "discrepancyThreshold" (integer from 0 to 2),
  *     "enrollments": [{
  *       "studentCPF" (11 digits), "evaluations": [{ "goal", "grade" }],
  *       "selfAssessments": [{ "goal", "grade" }],

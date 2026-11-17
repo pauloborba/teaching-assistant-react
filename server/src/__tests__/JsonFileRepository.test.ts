@@ -36,7 +36,7 @@ describe('JsonFileRepository', () => {
     enrollment.setFailedByAbsence(true);
     se.requestSelfAssessment('2026-10-20', '2026-10-08');
     enrollment.submitSelfAssessment([new Evaluation('Design', 'MPA')]);
-    se.setDiscrepancyThreshold(3);
+    se.setDiscrepancyThreshold(1);
     return { students, classes };
   };
 
@@ -62,7 +62,7 @@ describe('JsonFileRepository', () => {
         year: 2025,
         averageCalculationSpecification: DEFAULT_AVERAGE_CALCULATION_SPECIFICATION.toJSON(),
         selfAssessmentRequest: { deadline: '2026-10-20', sentDate: '2026-10-08' },
-        discrepancyThreshold: 3,
+        discrepancyThreshold: 1,
         enrollments: [{
           studentCPF: '12345678901',
           evaluations: [{ goal: 'Design', grade: 'MA' }],
@@ -93,7 +93,7 @@ describe('JsonFileRepository', () => {
     expect(enrollment.toJSON().selfAssessments).toEqual([{ goal: 'Design', grade: 'MPA' }]);
     expect(classes.findClassById('Software Engineering-2025-1')!.getSelfAssessmentRequest()?.toJSON())
       .toEqual({ deadline: '2026-10-20', sentDate: '2026-10-08' });
-    expect(classes.findClassById('Software Engineering-2025-1')!.getDiscrepancyThreshold()).toBe(3);
+    expect(classes.findClassById('Software Engineering-2025-1')!.getDiscrepancyThreshold()).toBe(1);
   });
 
   test('load gives the default discrepancy threshold to a class whose file has none', () => {
@@ -120,14 +120,18 @@ describe('JsonFileRepository', () => {
       classes: [
         { topic: 'A', semester: 1, year: 2025, discrepancyThreshold: -1, enrollments: [] },
         { topic: 'B', semester: 1, year: 2025, discrepancyThreshold: '3', enrollments: [] },
-        { topic: 'C', semester: 1, year: 2025, discrepancyThreshold: 0, enrollments: [] }
+        { topic: 'C', semester: 1, year: 2025, discrepancyThreshold: 0, enrollments: [] },
+        { topic: 'D', semester: 1, year: 2025, discrepancyThreshold: 3, enrollments: [] },
+        { topic: 'E', semester: 1, year: 2025, discrepancyThreshold: 1, enrollments: [] }
       ]
     }));
     const classes = new Classes();
     repository.load(new StudentSet(), classes);
-    expect(classes.getAllClasses().map(c => c.getDiscrepancyThreshold())).toEqual([2, 2, 0]);
-    expect(consoleError).toHaveBeenCalledTimes(2);
+    expect(classes.getAllClasses().map(c => c.getDiscrepancyThreshold())).toEqual([2, 2, 0, 2, 1]);
+    expect(consoleError).toHaveBeenCalledTimes(3);
     expect(consoleError).toHaveBeenCalledWith('Error loading the discrepancy threshold of class A:', expect.any(Error));
+    // A threshold above the maximum, as in a file written by hand, is dropped too
+    expect(consoleError).toHaveBeenCalledWith('Error loading the discrepancy threshold of class D:', expect.any(Error));
     consoleError.mockRestore();
   });
 

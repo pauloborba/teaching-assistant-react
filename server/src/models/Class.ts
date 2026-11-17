@@ -9,6 +9,9 @@ import { cleanCPF } from './CPF';
 /** The discrepancy threshold of a class until the professor changes it. */
 export const DEFAULT_DISCREPANCY_THRESHOLD = 2;
 
+/** The greatest discrepancy threshold a class accepts. */
+export const MAX_DISCREPANCY_THRESHOLD = 2;
+
 /**
  * A class (offering of a course) given in a semester of a year, identified by
  * 'topic-year-semester', with the enrolled students, the specification of how
@@ -17,8 +20,8 @@ export const DEFAULT_DISCREPANCY_THRESHOLD = 2;
  *
  * The discrepancy threshold is the largest discrepancy between the
  * self-assessment and the professor's grades that the class tolerates: a
- * student whose discrepancy is greater than it is discrepant. It is a
- * non-negative integer.
+ * student whose discrepancy is greater than it is discrepant. It is an
+ * integer from 0 to MAX_DISCREPANCY_THRESHOLD.
  */
 export class Class {
   private topic: string;
@@ -167,10 +170,16 @@ export class Class {
     return this.discrepancyThreshold;
   }
 
-  /** Changes the discrepancy threshold; anything but a non-negative integer is rejected and the threshold kept. */
+  /**
+   * Changes the discrepancy threshold; anything but an integer from 0 to
+   * MAX_DISCREPANCY_THRESHOLD is rejected and the threshold kept.
+   */
   setDiscrepancyThreshold(threshold: unknown): void {
     if (typeof threshold !== 'number' || !Number.isInteger(threshold) || threshold < 0) {
       throw new DomainError('The threshold must be a non-negative integer');
+    }
+    if (threshold > MAX_DISCREPANCY_THRESHOLD) {
+      throw new DomainError(`The threshold must be at most ${MAX_DISCREPANCY_THRESHOLD}`);
     }
     this.discrepancyThreshold = threshold;
   }

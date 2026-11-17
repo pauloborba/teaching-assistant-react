@@ -1,7 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Class } from '../types/Class';
+import React, { useEffect, useState } from 'react';
 import { DiscrepancyReport } from '../types/Discrepancy';
-import { classService } from '../services/ClassService';
 import { discrepancyService } from '../services/DiscrepancyService';
 
 interface Message {
@@ -9,46 +7,50 @@ interface Message {
   text: string;
 }
 
+interface DiscrepancyPanelProps {
+  classId: string;
+  /**
+   * Whatever changes when the grades of the class may have changed (e.g. the
+   * class as the page loaded it): the panel asks the server again each time it
+   * does, so that it never shows discrepancies of grades that are gone.
+   */
+  refreshKey?: unknown;
+}
+
 /**
- * The "Discrepancies" page: for a class chosen by the professor, the students
+ * The discrepancies of a class, shown above its table of grades: the students
  * whose self-assessment grades differ too much from the grades the professor
  * assigned (greatest discrepancy first), the students whose discrepancy could
  * not be computed, how many of the others are discrepant, and the discrepancy
  * threshold of the class, which the professor can change.
  */
-const Discrepancies: React.FC = () => {
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [classId, setClassId] = useState('');
+const DiscrepancyPanel: React.FC<DiscrepancyPanelProps> = ({ classId, refreshKey }) => {
   const [report, setReport] = useState<DiscrepancyReport | null>(null);
-  const [threshold, setThreshold] = useState('');
+  // What the professor typed in the threshold field; null while it shows the threshold the server keeps
+  const [draft, setDraft] = useState<string | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    classService.getAllClasses()
-      .then(setClasses)
-      .catch(error => setMessage({ kind: 'error', text: `Failed to load classes: ${(error as Error).message}` }));
-  }, []);
-
-  /** Shows what the server tells about the class. */
-  const show = useCallback((loaded: DiscrepancyReport) => {
-    setReport(loaded);
-    setThreshold(String(loaded.discrepancyThreshold));
-  }, []);
-
-  // Selecting another class shows its discrepancies
+  // Another class has nothing to do with what was shown for the previous one
   useEffect(() => {
     setReport(null);
+    setDraft(null);
+  }, [classId]);
+
+  // The discrepancies depend on the grades, so they are asked again whenever those may have changed
+  useEffect(() => {
+    let outdated = false;
+    setLoading(true);
     setMessage(null);
-    if (!classId) {
-      return;
-    }
-    let selectionChanged = false;
     discrepancyService.getDiscrepancies(classId)
-      .then(loaded => { if (!selectionChanged) show(loaded); })
-      .catch(error => { if (!selectionChanged) setMessage({ kind: 'error', text: (error as Error).message }); });
-    return () => { selectionChanged = true; };
-  }, [classId, show]);
+      .then(loaded => { if (!outdated) setReport(loaded); })
+      .catch(error => { if (!outdated) setMessage({ kind: 'error', text: (error as Error).message }); })
+      .finally(() => { if (!outdated) setLoading(false); });
+    return () => { outdated = true; };
+  }, [classId, refreshKey]);
+
+  const threshold = draft ?? (report ? String(report.discrepancyThreshold) : '');
 
   const changeThreshold = async () => {
     setSaving(true);
@@ -61,7 +63,8 @@ const Discrepancies: React.FC = () => {
     }
     // Either way, show what the server keeps
     try {
-      show(await discrepancyService.getDiscrepancies(classId));
+      setReport(await discrepancyService.getDiscrepancies(classId));
+      setDraft(null);
     } catch (error) {
       outcome = { kind: 'error', text: (error as Error).message };
     }
@@ -72,24 +75,8 @@ const Discrepancies: React.FC = () => {
   const discrepant = report?.students.filter(s => s.discrepant) ?? [];
 
   return (
-    <div className="discrepancies-section">
-      <h3>Discrepancies</h3>
-
-      <div className="class-selection-container">
-        <label htmlFor="discrepanciesClass">Class:</label>
-        <select
-          id="discrepanciesClass"
-          data-testid="discrepancies-class-select"
-          value={classId}
-          onChange={e => setClassId(e.target.value)}
-          className="class-select"
-        >
-          <option value="">-- Select a class --</option>
-          {classes.map(c => (
-            <option key={c.id} value={c.id}>{c.topic} ({c.year}/{c.semester})</option>
-          ))}
-        </select>
-      </div>
+    <div className="discrepancy-panel" data-testid="discrepancy-panel" data-loading={String(loading)}>
+      <h5>Discrepancies</h5>
 
       {message && (
         <div
@@ -110,9 +97,10 @@ const Discrepancies: React.FC = () => {
               data-testid="discrepancy-threshold-input"
               type="number"
               min={0}
+              max={2}
               step={1}
               value={threshold}
-              onChange={e => { setThreshold(e.target.value); setMessage(null); }}
+              onChange={e => { setDraft(e.target.value); setMessage(null); }}
             />
             <button data-testid="save-discrepancy-threshold" onClick={changeThreshold} disabled={saving}>
               Change threshold
@@ -150,7 +138,7 @@ const Discrepancies: React.FC = () => {
 
           {report.uncomputable.length > 0 && (
             <>
-              <h4>Students whose discrepancy could not be computed</h4>
+              <h5>Students whose discrepancy could not be computed</h5>
               <div className="table-container">
                 <table data-testid="uncomputable-students">
                   <thead>
@@ -177,4 +165,4 @@ const Discrepancies: React.FC = () => {
   );
 };
 
-export default Discrepancies;
+export default DiscrepancyPanel;

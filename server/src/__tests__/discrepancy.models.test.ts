@@ -1,5 +1,5 @@
 import { Student } from '../models/Student';
-import { Class, DEFAULT_DISCREPANCY_THRESHOLD } from '../models/Class';
+import { Class, DEFAULT_DISCREPANCY_THRESHOLD, MAX_DISCREPANCY_THRESHOLD } from '../models/Class';
 import { DomainError } from '../models/DomainError';
 import { Evaluation, Grade, gradeLevel } from '../models/Evaluation';
 import { DEFAULT_AVERAGE_CALCULATION_SPECIFICATION } from '../models/AverageCalculationSpecification';
@@ -41,25 +41,35 @@ describe('Class discrepancy threshold', () => {
     expect(classObj.toJSON().discrepancyThreshold).toBe(2);
   });
 
-  test('accepts any non-negative integer, zero included', () => {
-    for (const threshold of [0, 1, 7, 100]) {
+  test('accepts the integers from 0 to the maximum, both included', () => {
+    expect(MAX_DISCREPANCY_THRESHOLD).toBe(2);
+    for (const threshold of [0, 1, 2]) {
       classObj.setDiscrepancyThreshold(threshold);
       expect(classObj.getDiscrepancyThreshold()).toBe(threshold);
     }
   });
 
-  test('rejects anything else, keeping the threshold', () => {
-    classObj.setDiscrepancyThreshold(4);
+  test('rejects what is not a non-negative integer, keeping the threshold', () => {
+    classObj.setDiscrepancyThreshold(1);
     for (const threshold of [-1, 1.5, NaN, Infinity, '2', '', null, undefined, true, [], {}]) {
       expect(() => classObj.setDiscrepancyThreshold(threshold))
         .toThrow(new DomainError('The threshold must be a non-negative integer'));
-      expect(classObj.getDiscrepancyThreshold()).toBe(4);
+      expect(classObj.getDiscrepancyThreshold()).toBe(1);
+    }
+  });
+
+  test('rejects an integer above the maximum, keeping the threshold', () => {
+    classObj.setDiscrepancyThreshold(1);
+    for (const threshold of [3, 12, 100, Number.MAX_SAFE_INTEGER]) {
+      expect(() => classObj.setDiscrepancyThreshold(threshold))
+        .toThrow(new DomainError('The threshold must be at most 2'));
+      expect(classObj.getDiscrepancyThreshold()).toBe(1);
     }
   });
 
   test('is rebuilt from the JSON, with the default one when the JSON has none', () => {
-    classObj.setDiscrepancyThreshold(5);
-    expect(Class.fromJSON(classObj.toJSON() as any, []).getDiscrepancyThreshold()).toBe(5);
+    classObj.setDiscrepancyThreshold(1);
+    expect(Class.fromJSON(classObj.toJSON() as any, []).getDiscrepancyThreshold()).toBe(1);
     const { discrepancyThreshold, ...older } = classObj.toJSON();
     expect(Class.fromJSON(older as any, []).getDiscrepancyThreshold()).toBe(2);
   });
@@ -165,11 +175,11 @@ describe('DiscrepancyAnalyzer', () => {
   });
 
   test('reports the threshold and the data of the student, and changes nothing', () => {
-    classObj.setDiscrepancyThreshold(3);
+    classObj.setDiscrepancyThreshold(1);
     enroll(classObj, 'Ana Ribeiro', { Design: 'MA' }, { Design: 'MANA' });
     const before = JSON.stringify(classObj.toJSON());
     const report = analyzer.analyze(classObj);
-    expect(report.discrepancyThreshold).toBe(3);
+    expect(report.discrepancyThreshold).toBe(1);
     expect(report.students[0].student).toEqual({ name: 'Ana Ribeiro', cpf: expect.stringMatching(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/), email: 'ana.ribeiro@cin.ufpe.br' });
     expect(JSON.stringify(classObj.toJSON())).toBe(before);
   });
