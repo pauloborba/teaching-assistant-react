@@ -93,7 +93,14 @@ namespace Servidor {
   class GradeNotification["Grade Notification"]
   class EmailSender {
     send(String[])
-    send(destinatario, assunto, conteudo)
+    send(destinatario, assunto, conteudo) ResultadoEnvio
+  }
+  class EmailSenderSmtp {
+    send(destinatario, assunto, conteudo) Promise~ResultadoEnvio~
+  }
+  class ResultadoEnvio {
+    boolean aceito
+    String descricaoFalha
   }
   class ConfiguracaoLembretes {
     add(Lembrete)
@@ -174,6 +181,12 @@ GradeNotification o--> "*" Enrolment
 Enrolment *--> "*" Evaluation : auto-evaluations
 Enrolment *--> "*" Evaluation : evaluations
 GradeNotification --> EmailSender
+
+%% ENVIO SMTP: lê a configuração do Gmail ao ser criado e retorna a aceitação de forma assíncrona.
+%% O campo descricaoFalha é opcional e a aceitação SMTP não confirma a entrega.
+%% A ligação do envio SMTP ao processamento de lembretes será definida em outro incremento.
+EmailSender ..> ResultadoEnvio : retorna
+EmailSenderSmtp ..> ResultadoEnvio : retorna
 
 %% EXTENSÕES JÁ VALIDADAS.
 %% A escrita invertida ajusta o layout; Class continua acessando sua configuração.

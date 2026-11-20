@@ -15,3 +15,6 @@ tmp_data/
 client/cypress/screenshots/
 client/cypress/videos/
 client/cypress/downloads/
+
+# Configuração local do SMTP
+/server/.env
