@@ -65,6 +65,10 @@ namespace Servidor {
   }
   class GradesImportService["Grades Import Service"]
   class Classes {
+    emailDasTurmas
+    obterEmailDasTurmas()
+    definirEmailDasTurmas(email)
+    validarEmailDasTurmas(email)
     buscar(turma) Class
     buscarPorPeriodo(ano, semestre) Class[]
   }
@@ -125,7 +129,6 @@ namespace Servidor {
     programarReenvio(dataHora)
   }
   class NotificacaoService["NotificaçãoService"] {
-    emailProfessor
     processar(Lembrete)
     processarAgendados(turma, data, horario)
     processarReenvios(turma)
@@ -216,11 +219,10 @@ NotificacaoService --> EmailSender
 %% A escrita invertida mantém o acesso de NotificacaoService ao histórico.
 HistoricoNotificacoes <-- NotificacaoService
 
-%% DESTINATÁRIO DOS LEMBRETES: emailProfessor é uma configuração de NotificacaoService.
-%% O endereço do único professor fica disponível antes do processamento automático.
-%% processar(Lembrete) usa esse endereço como destinatário ao solicitar envio a EmailSender,
-%% pela relação existente NotificacaoService --> EmailSender; turmas diferentes usam o mesmo destinatário.
-%% Não acrescentar nomeProfessor, entidade Professor, método de cadastro ou nova relação.
+%% E-MAIL DAS TURMAS: Classes.emailDasTurmas guarda o endereço compartilhado.
+%% O cadastro é feito no topo da aba Classes.
+%% Criar turma ou salvar uma configuração com lembretes exige um endereço válido já cadastrado.
+%% processar(Lembrete) consulta o endereço compartilhado em Classes e as pendências da turma do lembrete.
 
 %% CONTRATO DE EMAILSENDER: send(destinatario, assunto, conteudo) solicita o envio da mensagem recebida.
 %% destinatario é o endereço de destino; assunto e conteudo são os textos fornecidos por quem solicita o envio.

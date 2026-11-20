@@ -473,3 +473,28 @@ describe('Server API - Student Endpoints', () => {
     });
   });
 });
+
+describe('API do e-mail das turmas', () => {
+  test('cadastra e atualiza o endereço compartilhado', async () => {
+    const rota = '/api/classes/email';
+
+    // Antes do primeiro cadastro, a tela recebe um endereço vazio.
+    await request(app).get(rota).expect(200, { emailDasTurmas: null });
+
+    // O servidor remove os espaços externos antes de guardar o endereço.
+    await request(app).put(rota).send({ emailDasTurmas: ' contato@example.com ' })
+      .expect(200, { emailDasTurmas: 'contato@example.com' });
+
+    // Uma edição inválida é rejeitada e preserva o endereço cadastrado.
+    await request(app).put(rota).send({ emailDasTurmas: 'endereco-invalido' })
+      .expect(400, { error: 'Informe um e-mail válido para as turmas' });
+    await request(app).get(rota)
+      .expect(200, { emailDasTurmas: 'contato@example.com' });
+
+    // Reabrir a tela após uma edição válida devolve o endereço novo.
+    await request(app).put(rota).send({ emailDasTurmas: 'novo@example.com' })
+      .expect(200, { emailDasTurmas: 'novo@example.com' });
+    await request(app).get(rota)
+      .expect(200, { emailDasTurmas: 'novo@example.com' });
+  });
+});

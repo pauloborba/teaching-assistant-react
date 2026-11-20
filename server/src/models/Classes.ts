@@ -3,9 +3,29 @@ import { Student } from './Student';
 
 export class Classes {
   private classes: Class[] = [];
+  private emailDasTurmas: string | null = null; // Começa vazio até o primeiro cadastro.
 
   constructor() {
     // Classes management is independent of persistence
+  }
+
+  obterEmailDasTurmas(): string | null {
+    return this.emailDasTurmas; // Consulta o endereço compartilhado pelo conjunto de turmas.
+  }
+
+  definirEmailDasTurmas(email: string): void {
+    this.emailDasTurmas = Classes.validarEmailDasTurmas(email); // Só substitui o endereço após validar.
+  }
+
+  static validarEmailDasTurmas(email: unknown): string {
+    const endereco = typeof email === 'string' ? email.trim() : ''; // Remove espaços externos e trata entradas de outros tipos como vazias.
+    const formatoEmail = /^[a-zA-Z0-9]+([._+-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$/;
+
+    if (!formatoEmail.test(endereco)) {
+      throw new Error('Informe um e-mail válido para as turmas'); // Informa o que corrigir antes de tentar salvar novamente.
+    }
+
+    return endereco; // Devolve o valor normalizado para gravação.
   }
 
   // Add a new class
