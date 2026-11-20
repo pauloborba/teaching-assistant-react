@@ -6,6 +6,18 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { mock } from 'node:test';
 import { launch, type Browser, type Page } from 'puppeteer';
+import type { ConfiguracaoLembretes } from '../types/Reminder';
+
+type TurmaDoCenario = {
+  topic: string;
+  ano: string;
+  semestre: string;
+  rota: string;
+  anterior?: ConfiguracaoLembretes;
+};
+
+// Guarda a rota e a configuração original de cada turma do cenário.
+const turmasDoCenario = new Map<string, TurmaDoCenario>();
 
 const tags = '@lembretes-configuracao-gui';
 const fuso = 'America/Sao_Paulo';
@@ -16,12 +28,8 @@ let servidor: Server | undefined;
 let navegador: Browser | undefined;
 let pagina: Page;
 let api: string;
-let rotaLembretes: string;
-let ano: string;
-let semestre: string;
 let turmaSelecionada: string;
 let relogioAtivo = false;
-let configuracaoAnterior: unknown;
 
 // Converte o texto do cenário no formato local aceito pelo campo.
 function dataParaCampo(data: string): string {
@@ -44,14 +52,17 @@ async function requisitar(
   return resposta;
 }
 
-async function clicar(texto: string): Promise<void> {
-  const alvo = await pagina.waitForFunction(nome =>
-    Array.from(document.querySelectorAll('button')).find(botao =>
-      botao.textContent?.trim() === nome && !botao.disabled
-    ), {}, texto);
+async function clicar(texto: string, celulasDaTurma: string[] = []): Promise<void> {
+  const alvo = await pagina.waitForFunction((nome, celulas) =>
+    Array.from(document.querySelectorAll('button')).find(botao => {
+      // Quando há uma turma indicada, compara disciplina, ano e semestre na linha do botão.
+      const linha = botao.closest('tr');
+      return botao.textContent?.trim() === nome && !botao.disabled &&
+        celulas.every((valor, indice) => linha?.cells[indice]?.textContent?.trim() === valor);
+    }), {}, texto, celulasDaTurma);
   const elemento = alvo.asElement();
   assert(elemento);
-  const botao = await elemento.toElement('button'); // Confirma a tag antes de clicar.
+  const botao = await elemento.toElement('button');
   await botao.click();
 }
 
@@ -72,7 +83,47 @@ async function conferirTexto(seletor: string, esperado: string): Promise<void> {
   {}, seletor, esperado);
 }
 
+function obterTurmaDoCenario(nome: string): TurmaDoCenario {
+  const turma = turmasDoCenario.get(nome);
+  assert(turma, `Turma ainda não preparada: ${nome}`);
+  return turma;
+}
+
+async function cadastrarTurmaDoCenario(nome: string): Promise<void> {
+  const identificacao = /^(\d{4})\.([12]) de (.+)$/.exec(nome);
+  assert(identificacao, `Identificação de turma inválida: ${nome}`);
+  const [, ano, semestre, topic] = identificacao;
+
+  const resposta = await requisitar('POST', '/api/classes', 201, {
+    topic, year: Number(ano), semester: Number(semestre)
+  });
+  const { id } = await resposta.json();
+
+  turmasDoCenario.set(nome, {
+    topic, ano, semestre, rota: `/api/classes/${encodeURIComponent(id)}/lembretes`
+  });
+}
+
+async function prepararLembretes(nome: string, datas: string[]): Promise<void> {
+  const turma = obterTurmaDoCenario(nome);
+  const lembretes = datas.map((data, indice) => {
+    const instante = new Date(dataParaCampo(data)).toISOString();
+    return {
+      id: `lembrete-existente-${indice + 1}`,
+      data: instante.slice(0, 10),
+      horario: instante.slice(11, 16)
+    };
+  });
+
+  // Guarda o retorno da API para comparar IDs, horários e estados depois do salvamento pela GUI.
+  const resposta = await requisitar('PUT', turma.rota, 200, {
+    quantidade: lembretes.length, lembretes
+  });
+  turma.anterior = await resposta.json();
+}
+
 Before({ tags, timeout: 30_000 }, async function () {
+  turmasDoCenario.clear();
   pasta = mkdtempSync(join(tmpdir(), 'ta-lembretes-gui-'));
   const anterior = process.cwd();
   const caminhoServidor = require.resolve('../../../server/src/server');
@@ -168,18 +219,8 @@ Given(
   { timeout: 30_000 },
   async (_professor: string, tela: string, turma: string) => {
     assert.equal(tela, 'Turmas');
-    const identificacao = /^(\d{4})\.([12]) de (.+)$/.exec(turma);
-    assert(identificacao, `Identificação de turma inválida: ${turma}`);
-    const [, anoDaTurma, semestreDaTurma, topic] = identificacao;
-
-    ano = anoDaTurma;
-    semestre = semestreDaTurma;
+    await cadastrarTurmaDoCenario(turma);
     turmaSelecionada = turma;
-    const resposta = await requisitar('POST', '/api/classes', 201, {
-      topic, year: Number(ano), semester: Number(semestre)
-    });
-    const { id } = await resposta.json();
-    rotaLembretes = `/api/classes/${encodeURIComponent(id)}/lembretes`;
 
     await pagina.goto('http://localhost:3004/', { waitUntil: 'domcontentloaded' });
     await clicar('Classes');
@@ -187,14 +228,16 @@ Given(
   }
 );
 
+Given('a turma {string} também está cadastrada', cadastrarTurmaDoCenario);
+
 Given('a turma {string} não possui lembretes configurados', async (turma: string) => {
-  assert.equal(turma, turmaSelecionada);
-  const resposta = await requisitar('GET', rotaLembretes, 200);
+  const { rota } = obterTurmaDoCenario(turma);
+  const resposta = await requisitar('GET', rota, 200);
   assert.deepEqual((await resposta.json()).lembretes, []);
 });
 
 Given('o prazo acadêmico da turma {string} é {string}', async (turma: string, data: string) => {
-  assert.equal(turma, turmaSelecionada);
+  const { ano, semestre } = obterTurmaDoCenario(turma);
   const prazoAcademico = new Date(dataParaCampo(data)).toISOString();
   await requisitar('PUT', `/api/periodos-academicos/${ano}/${semestre}`, 200, { prazoAcademico });
 });
@@ -202,7 +245,9 @@ Given('o prazo acadêmico da turma {string} é {string}', async (turma: string, 
 When('{string} acessa a tela {string} da turma {string}',
   async (_professor: string, tela: string, turma: string) => {
     assert.equal(turma, turmaSelecionada);
-    await clicar('Configurar lembretes');
+    const { topic, ano, semestre } = obterTurmaDoCenario(turma);
+    const semestreNaTela = semestre === '1' ? '1st Semester' : '2nd Semester';
+    await clicar('Configurar lembretes', [topic, ano, semestreNaTela]);
     await conferirTexto('#reminder-settings-title', tela);
   });
 
@@ -243,21 +288,13 @@ Then('o prazo acadêmico apresentado é {string}', (prazo: string) =>
 );
 
 Given('a turma {string} possui um lembrete não enviado para {string}',
-  async (turma: string, data: string) => {
-    assert.equal(turma, turmaSelecionada);
-    const instante = new Date(dataParaCampo(data)).toISOString();
+  (turma: string, data: string) => prepararLembretes(turma, [data])
+);
 
-    // Prepara a configuração salva pela mesma API usada pela tela.
-    const resposta = await requisitar('PUT', rotaLembretes, 200, {
-      quantidade: 1,
-      lembretes: [{
-        id: 'lembrete-existente',
-        data: instante.slice(0, 10),
-        horario: instante.slice(11, 16)
-      }]
-    });
-    configuracaoAnterior = await resposta.json();
-  });
+Given('a turma {string} possui dois lembretes não enviados para {string} e {string}',
+  (turma: string, primeiraData: string, segundaData: string) =>
+    prepararLembretes(turma, [primeiraData, segundaData])
+);
 
 When('deixa o terceiro lembrete sem data e horário', async () => {
   // Confere que o campo foi criado e que permanece vazio antes do envio.
@@ -271,7 +308,33 @@ Then('a tela apresenta o erro {string}', (mensagem: string) =>
 );
 
 Then('a configuração gravada permanece igual à anterior', async () => {
-  // Confere também a API para detectar alterações que o resumo da tela poderia ocultar.
-  const resposta = await requisitar('GET', rotaLembretes, 200);
-  assert.deepEqual(await resposta.json(), configuracaoAnterior);
+  const { rota, anterior } = obterTurmaDoCenario(turmaSelecionada);
+  assert(anterior);
+  const resposta = await requisitar('GET', rota, 200);
+  assert.deepEqual(await resposta.json(), anterior);
 });
+
+Then(
+  'somente a data e o horário do primeiro lembrete da turma {string} mudam para {string}, preservando a configuração da turma {string}',
+  async (nomeEditada: string, novaData: string, nomeOutra: string) => {
+    const editada = obterTurmaDoCenario(nomeEditada);
+    const outra = obterTurmaDoCenario(nomeOutra);
+    assert(editada.anterior && outra.anterior);
+
+    const instante = new Date(dataParaCampo(novaData)).toISOString();
+    const [primeiro, ...demais] = editada.anterior.lembretes;
+
+    // Compara toda a configuração de ESS, alterando na expectativa apenas a data e o horário.
+    const respostaEditada = await requisitar('GET', editada.rota, 200);
+    assert.deepEqual(await respostaEditada.json(), {
+      ...editada.anterior,
+      lembretes: [
+        { ...primeiro, data: instante.slice(0, 10), horario: instante.slice(11, 16) },
+        ...demais
+      ]
+    });
+
+    const respostaOutra = await requisitar('GET', outra.rota, 200);
+    assert.deepEqual(await respostaOutra.json(), outra.anterior);
+  }
+);
