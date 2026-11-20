@@ -19,6 +19,7 @@ describe('API de configuração de lembretes', () => {
   };
 
   beforeEach(() => {
+    classes.definirEmailDasTurmas('contato@example.com'); // Prepara uma aplicação com o pré-requisito de cadastro atendido.
     classes.getAllClasses().forEach(turma => classes.removeClass(turma.getClassId()));
     periodosAcademicos.clear();
     const periodo = new PeriodoAcademico(2099, 2, new Date('2099-09-01T02:59:00.000Z'));

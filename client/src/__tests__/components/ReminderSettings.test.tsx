@@ -83,31 +83,55 @@ describe('GUI de configuração de lembretes', () => {
     expect(screen.getByText('25/08/2099 às 09:00')).toBeInTheDocument();
     expect(screen.getByText('29/08/2099 às 14:00')).toBeInTheDocument();
 
+    expect(screen.queryByLabelText('Quantidade de lembretes')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Editar lembretes' })).toBeInTheDocument();
+
     first.unmount();
-    open(); // Reabre sem reaproveitar o estado do componente anterior.
-    await waitFor(() => expect(screen.getByLabelText('Data e horário do lembrete 1')).toHaveValue('2099-08-25T09:00'));
+    open(); // Reabre a turma para conferir que a configuração salva volta em modo de consulta.
+
+    const editButton = await screen.findByRole('button', { name: 'Editar lembretes' });
+    expect(screen.queryByLabelText('Quantidade de lembretes')).not.toBeInTheDocument();
+    fireEvent.click(editButton);
+
+    await waitFor(() => expect(screen.getByLabelText('Data e horário do lembrete 1'))
+      .toHaveValue('2099-08-25T09:00'));
     expect(screen.getByLabelText('Data e horário do lembrete 2')).toHaveValue('2099-08-29T14:00');
   });
 
-  test('mostra a rejeição do servidor e mantém o resumo anterior', async () => { // A edição rejeitada permanece disponível para correção.
+  test('mostra a rejeição do servidor, preserva o resumo e permite cancelar a edição', async () => {
     const iso = new Date('2099-08-25T09:00').toISOString();
     const stored: ConfiguracaoLembretes = {
-      ...empty, lembretes: [{
+      ...empty,
+      lembretes: [{
         id: 'existente', data: iso.slice(0, 10), horario: iso.slice(11, 16),
         estado: 'Não enviado', motivo: null, proximoReenvioEm: null
       }]
     };
+
     fetchMock.mockImplementation((_, options) => Promise.resolve(options?.method === 'PUT'
       ? response(400, { error: 'Data posterior ao prazo acadêmico' }) : response(200, stored)));
+
     open();
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar lembretes' }));
     const input = await screen.findByLabelText('Data e horário do lembrete 1');
     fireEvent.change(input, { target: { value: '2099-09-02T09:00' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar configuração' }));
 
+    // Uma rejeição mantém o rascunho disponível para correção e preserva o resumo salvo.
     expect(await screen.findByRole('alert')).toHaveTextContent('Data posterior ao prazo acadêmico');
     expect(screen.queryByText('Configuração salva com sucesso')).toBeNull();
     expect(screen.getByText('25/08/2099 às 09:00')).toBeInTheDocument();
     expect(input).toHaveValue('2099-09-02T09:00');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar edição' }));
+    expect(screen.queryByLabelText('Data e horário do lembrete 1')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByText('25/08/2099 às 09:00')).toBeInTheDocument();
+
+    // Cancelar descarta o rascunho local. O único PUT foi a tentativa rejeitada.
+    expect(fetchMock.mock.calls.filter(([, options]) => options?.method === 'PUT')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Editar lembretes' }));
+    expect(screen.getByLabelText('Data e horário do lembrete 1')).toHaveValue('2099-08-25T09:00');
   });
 
   test('bloqueia o salvamento quando a turma está sem prazo', async () => { // Orienta o cadastro do período antes da configuração.

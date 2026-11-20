@@ -14,5 +14,12 @@ module.exports = {
     },
     paths: ['src/features/**/*.feature'],
     requireModule: ['ts-node/register']
+  },
+  lembretesGui: {
+    paths: ['../features/Notificacao_falta_cadastrar_alguma_nota.feature'],
+    tags: '@lembretes-configuracao-gui',
+    requireModule: ['ts-node/register/transpile-only'],
+    require: ['src/step-definitions/lembretes-gui-steps.ts'],
+    format: ['progress-bar']
   }
 };

@@ -388,6 +388,28 @@ tbody tr:last-child td {
   border: 1px solid #e5e7eb;
 }
 
+.classes-email-configured {
+  background-color: #f0f9f4;
+  border-color: #cbe5d4;
+}
+
+.classes-email-saved {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.classes-email-saved > div {
+  min-width: 0;
+}
+
+.classes-email-saved p {
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere; /* Permite exibir endereços longos em telas estreitas. */
+}
+
 .class-form {
   display: flex;
   flex-direction: column;
@@ -468,6 +490,14 @@ tbody tr:last-child td {
 .class-form .form-buttons {
   display: flex;
   gap: 0.5rem;
+}
+
+.reminder-saved-card {
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  background-color: #f0f9f4;
+  border: 1px solid #cbe5d4;
+  border-radius: 8px;
 }
 
 .classes-list {

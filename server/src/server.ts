@@ -332,6 +332,12 @@ app.put('/api/classes/:id/lembretes', (req: Request, res: Response) => {
     const instanteAtual = new Date(); // Usa o relógio do servidor para toda a operação.
     candidata.atualizar(quantidade, propostas, instanteAtual, prazo); // Valida a cópia sem alterar a configuração atual.
 
+    if (quantidade > 0 && classes.obterEmailDasTurmas() === null) {
+      return res.status(400).json({
+        error: 'Cadastre um e-mail para as turmas na aba Classes'
+      });
+    }
+
     const configuracoesParaSalvar = new Map([[turma.getClassId(), candidata]]);
     if (!isTestMode && !saveDataToFile(periodosAcademicos, configuracoesParaSalvar)) {
       return res.status(500).json({ error: 'Não foi possível salvar os lembretes' });
@@ -501,6 +507,12 @@ app.post('/api/classes', (req: Request, res: Response) => {
 
     if (prazoAcademico !== undefined) {
       return res.status(400).json({ error: 'Defina o prazo acadêmico na configuração do período' });
+    }
+
+    if (classes.obterEmailDasTurmas() === null) {
+      return res.status(400).json({
+        error: 'Cadastre um e-mail para as turmas na aba Classes'
+      });
     }
 
     const periodo = obterOuCriarPeriodoAcademico(Number(year), Number(semester));

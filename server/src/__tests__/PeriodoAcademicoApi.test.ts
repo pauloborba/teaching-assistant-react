@@ -16,6 +16,7 @@ describe('API de períodos acadêmicos', () => {
   const prazoNovo = '2099-08-28T23:59:00.000Z';
 
   beforeEach(() => {
+    classes.definirEmailDasTurmas('contato@example.com'); // Prepara uma aplicação com o pré-requisito de cadastro atendido.
     periodosAcademicos.clear(); // Cada teste começa sem os períodos criados pelos anteriores.
     classes.getAllClasses().forEach(turma => classes.removeClass(turma.getClassId())); // Isola as configurações consultadas pela rota.
   });

@@ -15,7 +15,7 @@ Feature: Notificações de pendências no lançamento de notas
   So that I can complete grade registration before the academic deadline
 
 
-   ///////////////////////////////////////////GUI/////////////////////////////////////////////////////////
+   # Cenários de GUI
 
    
    @gui # //ok DDD (regra central)
@@ -73,12 +73,14 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
+   @lembretes-configuracao-gui
    @gui # //ok DDD (regra central)
    # DDD: atualizar valida o conjunto final, a quantidade e os agendamentos antes de alterar a configuração.
    Scenario: Configuração da quantidade, datas e horários dos lembretes
-      Given o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
+      Given a data atual é "19/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
       And a turma "2026.2 de ESS" não possui lembretes configurados
-      And a data atual é "19/08/2026 às 08:00"
       And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
       When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
       And informa "2" como quantidade de lembretes
@@ -95,59 +97,75 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
+   @lembretes-configuracao-gui
    @gui # //ok DDD (regra central)
-   # DDD: reagendar preserva identidade e demais lembretes; configurações ficam associadas às respectivas turmas.
+   # DDD: reagendar preserva a identidade do lembrete e a configuração das demais turmas.
    Scenario: Alteração de lembrete futuro sem afetar outra turma
-      Given o professor "Paulo Borba" está na tela "Configuração de lembretes" da turma "2026.2 de ESS"
-      And "Paulo Borba" é responsável pelas turmas "2026.2 de ESS" e "2026.2 de Introdução a Programação"
-      And a data atual é "20/08/2026 às 08:00"
-      And o prazo acadêmico das duas turmas é "31/08/2026 às 23:59"
-      And a turma "2026.2 de ESS" possui apenas "2" lembretes não enviados, programados para "25/08/2026 às 09:00" e "29/08/2026 às 09:00"
-      And a turma "2026.2 de Introdução a Programação" possui apenas "1" lembrete não enviado, programado para "27/08/2026 às 09:00"
-      When "Paulo Borba" altera o primeiro lembrete da turma "2026.2 de ESS" de "25/08/2026 às 09:00" para "26/08/2026 às 10:00"
+      Given a data atual é "20/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
+      And a turma "2026.2 de Introdução a Programação" também está cadastrada
+      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
+      And a turma "2026.2 de ESS" possui dois lembretes não enviados para "25/08/2026 às 09:00" e "29/08/2026 às 09:00"
+      And a turma "2026.2 de Introdução a Programação" possui um lembrete não enviado para "27/08/2026 às 09:00"
+      When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
+      And define o primeiro lembrete para "26/08/2026 às 10:00"
       And salva a configuração
       Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
-      And a tela apresenta a mensagem "Configuração salva com sucesso"
-      And a turma "2026.2 de ESS" apresenta apenas "2" lembretes não enviados, programados para "26/08/2026 às 10:00" e "29/08/2026 às 09:00"
-      And o lembrete de "25/08/2026 às 09:00" não é mais apresentado
-      And a turma "2026.2 de Introdução a Programação" apresenta apenas "1" lembrete não enviado, programado para "27/08/2026 às 09:00"
-      And o prazo acadêmico apresentado permanece "31/08/2026 às 23:59"
+      And a tela apresenta a confirmação "Configuração salva com sucesso"
+      And a quantidade de lembretes configurados é "2"
+      And o primeiro lembrete está programado para "26/08/2026 às 10:00"
+      And o segundo lembrete está programado para "29/08/2026 às 09:00"
+      And o prazo acadêmico apresentado é "31/08/2026 às 23:59"
+      And somente a data e o horário do primeiro lembrete da turma "2026.2 de ESS" mudam para "26/08/2026 às 10:00", preservando a configuração da turma "2026.2 de Introdução a Programação"
 
 
 
+   @lembretes-configuracao-gui
    @gui # //ok DDD (regra central)
    # DDD: Quantidade e conjunto final devem corresponder; rejeição preserva a configuração anterior.
    Scenario: Rejeição de quantidade de datas incompatível
-      Given o professor "Paulo Borba" está na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada, pela qual é responsável
-      And a data atual é "20/08/2026 às 08:00"
-      And o prazo acadêmico apresentado para a turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And a configuração salva da turma "2026.2 de ESS" possui apenas "1" lembrete não enviado, programado para "21/08/2026 às 09:00"
-      When "Paulo Borba" altera a quantidade de lembretes para "3"
-      And informa "25/08/2026 às 09:00" para o primeiro lembrete
-      And informa "29/08/2026 às 09:00" para o segundo lembrete
+      Given a data atual é "20/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
+      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
+      And a turma "2026.2 de ESS" possui um lembrete não enviado para "21/08/2026 às 09:00"
+      When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
+      And informa "3" como quantidade de lembretes
+      And define o primeiro lembrete para "25/08/2026 às 09:00"
+      And define o segundo lembrete para "29/08/2026 às 14:00"
       And deixa o terceiro lembrete sem data e horário
-      And tenta salvar a configuração
-      Then "Paulo Borba" permanece na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada
-      And a tela apresenta a mensagem "Selecione exatamente 3 datas e horários"
-      And a configuração salva permanece com apenas "1" lembrete não enviado, programado para "21/08/2026 às 09:00"
-      And o prazo acadêmico apresentado permanece "31/08/2026 às 23:59"
+      And salva a configuração
+      Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And a tela apresenta o erro "Selecione exatamente 3 datas e horários"
+      And a quantidade de lembretes configurados é "1"
+      And o primeiro lembrete está programado para "21/08/2026 às 09:00"
+      And o prazo acadêmico apresentado é "31/08/2026 às 23:59"
+      And a configuração gravada permanece igual à anterior
 
 
 
+   @lembretes-configuracao-gui
    @gui # //ok DDD (regra central)
    # DDD: Novos agendamentos ou alterações após o prazo recebido são rejeitados sem alteração parcial.
    Scenario: Rejeição de lembrete após o prazo acadêmico
-      Given o professor "Paulo Borba" está na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada, pela qual é responsável
-      And a data atual é "20/08/2026 às 08:00"
-      And o prazo acadêmico apresentado para a turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And a configuração salva da turma "2026.2 de ESS" possui apenas "1" lembrete não enviado, programado para "25/08/2026 às 09:00"
-      When "Paulo Borba" altera a data e o horário do lembrete para "02/09/2026 às 09:00"
-      And tenta salvar a configuração
-      Then "Paulo Borba" permanece na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada
-      And a tela apresenta a mensagem "Data posterior ao prazo acadêmico"
-      And a configuração salva permanece com apenas "1" lembrete não enviado, programado para "25/08/2026 às 09:00"
-      And nenhum lembrete é agendado para "02/09/2026 às 09:00"
-      And o prazo acadêmico apresentado permanece "31/08/2026 às 23:59"
+      Given a data atual é "20/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
+      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
+      And a turma "2026.2 de ESS" possui um lembrete não enviado para "25/08/2026 às 09:00"
+      When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
+      And define o primeiro lembrete para "02/09/2026 às 09:00"
+      And salva a configuração
+      Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And a tela apresenta o erro "Data posterior ao prazo acadêmico"
+      And a quantidade de lembretes configurados é "1"
+      And o primeiro lembrete está programado para "25/08/2026 às 09:00"
+      And o prazo acadêmico apresentado é "31/08/2026 às 23:59"
+      And a configuração gravada permanece igual à anterior
 
 
 
@@ -204,25 +222,30 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
+   @lembretes-configuracao-gui
    @gui # //ok DDD (regra central)
    # DDD: A configuração rejeita novos agendamentos anteriores a instanteAtual, preservando o conjunto anterior.
    Scenario: Rejeição de criação de lembrete em data anterior à atual
-      Given o professor "Paulo Borba" está na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada, pela qual é responsável
-      And a data atual é "20/08/2026 às 08:00"
-      And o prazo acadêmico apresentado para a turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And a configuração salva da turma "2026.2 de ESS" possui apenas "1" lembrete não enviado, programado para "25/08/2026 às 09:00"
-      When "Paulo Borba" aumenta a quantidade de lembretes para "2"
-      And configura o novo lembrete para "19/08/2026 às 09:00"
-      And tenta salvar a configuração
-      Then "Paulo Borba" permanece na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada
-      And a tela apresenta a mensagem "Não é possível agendar lembretes em datas anteriores à data atual"
-      And a configuração salva permanece com apenas "1" lembrete não enviado, programado para "25/08/2026 às 09:00"
-      And nenhum lembrete é agendado para "19/08/2026 às 09:00"
-      And o prazo acadêmico apresentado permanece "31/08/2026 às 23:59"
+      Given a data atual é "20/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
+      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
+      And a turma "2026.2 de ESS" possui um lembrete não enviado para "25/08/2026 às 09:00"
+      When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
+      And informa "2" como quantidade de lembretes
+      And define o segundo lembrete para "19/08/2026 às 09:00"
+      And salva a configuração
+      Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And a tela apresenta o erro "Não é possível agendar lembretes em datas anteriores à data atual"
+      And a quantidade de lembretes configurados é "1"
+      And o primeiro lembrete está programado para "25/08/2026 às 09:00"
+      And o prazo acadêmico apresentado é "31/08/2026 às 23:59"
+      And a configuração gravada permanece igual à anterior
 
 
 
-   ///////////////////////////////////////////SERVICE/////////////////////////////////////////////////////////
+   # Cenários de serviço
 
 
    @service # //parcial DDD
