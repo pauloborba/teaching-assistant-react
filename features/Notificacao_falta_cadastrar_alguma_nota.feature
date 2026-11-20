@@ -15,7 +15,7 @@ Feature: Notificações de pendências no lançamento de notas
   So that I can complete grade registration before the academic deadline
 
 
-   ///////////////////////////////////////////GUI/////////////////////////////////////////////////////////
+   # Cenários de GUI
 
    
    @gui # //ok DDD (regra central)
@@ -73,12 +73,14 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
+   @lembretes-configuracao-gui
    @gui # //ok DDD (regra central)
    # DDD: atualizar valida o conjunto final, a quantidade e os agendamentos antes de alterar a configuração.
    Scenario: Configuração da quantidade, datas e horários dos lembretes
-      Given o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
+      Given a data atual é "19/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
       And a turma "2026.2 de ESS" não possui lembretes configurados
-      And a data atual é "19/08/2026 às 08:00"
       And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
       When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
       And informa "2" como quantidade de lembretes
@@ -222,7 +224,7 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
-   ///////////////////////////////////////////SERVICE/////////////////////////////////////////////////////////
+   # Cenários de serviço
 
 
    @service # //parcial DDD
