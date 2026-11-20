@@ -57,6 +57,7 @@ const saveDataToFile = (
 ): boolean => { // Grava a proposta antes de alterar períodos ou lembretes em memória.
   try {
     const data = {
+      emailDasTurmas: classes.obterEmailDasTurmas(), // Grava um único endereço no mesmo JSON das turmas e dos alunos.
       periodosAcademicos: Array.from(periodosParaSalvar.values()).map(periodo => ({
         ano: periodo.getAno(),
         semestre: periodo.getSemestre(),
@@ -99,6 +100,9 @@ const loadDataFromFile = (): void => {
     if (fs.existsSync(dataFile)) {
       const fileContent = fs.readFileSync(dataFile, 'utf-8');
       const data = JSON.parse(fileContent);
+      if (data.emailDasTurmas != null) {
+        classes.definirEmailDasTurmas(data.emailDasTurmas); // Recupera o contato quando ele existe no arquivo.
+      }
       const configuracoesSalvas: ConfiguracaoLembretes[] = Array.isArray(data.classes)
         ? data.classes.map((turma: { configuracaoLembretes?: unknown }) =>
           ConfiguracaoLembretes.fromJSON(turma.configuracaoLembretes))
@@ -459,6 +463,20 @@ app.get('/api/students/:cpf', (req: Request, res: Response) => {
     res.json(student.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.get('/api/classes/email', (_req: Request, res: Response) => {
+  res.json({ emailDasTurmas: classes.obterEmailDasTurmas() }); // Preenche o campo quando a aba abre.
+});
+
+app.put('/api/classes/email', (req: Request, res: Response) => {
+  try {
+    classes.definirEmailDasTurmas(req.body?.emailDasTurmas); // Valida antes de alterar o valor em memória.
+    triggerSave(); // Agenda a gravação pelo mesmo fluxo do cadastro de turmas.
+    res.json({ emailDasTurmas: classes.obterEmailDasTurmas() });
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message }); // Informa o erro de validação na tela.
   }
 });
 
