@@ -21,6 +21,7 @@ let ano: string;
 let semestre: string;
 let turmaSelecionada: string;
 let relogioAtivo = false;
+let configuracaoAnterior: unknown;
 
 // Converte o texto do cenário no formato local aceito pelo campo.
 function dataParaCampo(data: string): string {
@@ -238,3 +239,37 @@ Then(/^o (primeiro|segundo) lembrete está programado para "([^"]+)"$/, (ordem: 
 Then('o prazo acadêmico apresentado é {string}', (prazo: string) =>
   conferirTexto(`${telaLembretes} > p:nth-of-type(2) > strong`, prazo)
 );
+
+Given('a turma {string} possui um lembrete não enviado para {string}',
+  async (turma: string, data: string) => {
+    assert.equal(turma, turmaSelecionada);
+    const instante = new Date(dataParaCampo(data)).toISOString();
+
+    // Prepara a configuração salva pela mesma API usada pela tela.
+    const resposta = await requisitar('PUT', rotaLembretes, 200, {
+      quantidade: 1,
+      lembretes: [{
+        id: 'lembrete-existente',
+        data: instante.slice(0, 10),
+        horario: instante.slice(11, 16)
+      }]
+    });
+    configuracaoAnterior = await resposta.json();
+  });
+
+When('deixa o terceiro lembrete sem data e horário', async () => {
+  // Confere que o campo foi criado e que permanece vazio antes do envio.
+  await pagina.waitForFunction(() =>
+    document.querySelector<HTMLInputElement>('#reminder-date-2')?.value === ''
+  );
+});
+
+Then('a tela apresenta o erro {string}', (mensagem: string) =>
+  conferirTexto(`${telaLembretes} [role="alert"]`, mensagem)
+);
+
+Then('a configuração gravada permanece igual à anterior', async () => {
+  // Confere também a API para detectar alterações que o resumo da tela poderia ocultar.
+  const resposta = await requisitar('GET', rotaLembretes, 200);
+  assert.deepEqual(await resposta.json(), configuracaoAnterior);
+});
