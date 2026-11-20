@@ -127,6 +127,7 @@ Feature: Notificações de pendências no lançamento de notas
       And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
       And a turma "2026.2 de ESS" possui um lembrete não enviado para "21/08/2026 às 09:00"
       When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
       And informa "3" como quantidade de lembretes
       And define o primeiro lembrete para "25/08/2026 às 09:00"
       And define o segundo lembrete para "29/08/2026 às 14:00"
@@ -151,6 +152,7 @@ Feature: Notificações de pendências no lançamento de notas
       And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
       And a turma "2026.2 de ESS" possui um lembrete não enviado para "25/08/2026 às 09:00"
       When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
       And define o primeiro lembrete para "02/09/2026 às 09:00"
       And salva a configuração
       Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
@@ -225,6 +227,7 @@ Feature: Notificações de pendências no lançamento de notas
       And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
       And a turma "2026.2 de ESS" possui um lembrete não enviado para "25/08/2026 às 09:00"
       When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
       And informa "2" como quantidade de lembretes
       And define o segundo lembrete para "19/08/2026 às 09:00"
       And salva a configuração

@@ -492,6 +492,14 @@ tbody tr:last-child td {
   gap: 0.5rem;
 }
 
+.reminder-saved-card {
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  background-color: #f0f9f4;
+  border: 1px solid #cbe5d4;
+  border-radius: 8px;
+}
+
 .classes-list {
   margin-top: 2rem;
 }

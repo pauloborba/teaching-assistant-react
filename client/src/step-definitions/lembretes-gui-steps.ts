@@ -206,6 +206,8 @@ When('{string} acessa a tela {string} da turma {string}',
     await conferirTexto('#reminder-settings-title', tela);
   });
 
+When('inicia a edição dos lembretes', () => clicar('Editar lembretes'));
+
 When('informa {string} como quantidade de lembretes', (quantidade: string) =>
   preencher('#reminder-count', quantidade)
 );

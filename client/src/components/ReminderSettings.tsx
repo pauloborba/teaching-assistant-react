@@ -37,6 +37,7 @@ const ReminderSettings: React.FC<ReminderSettingsProps> = ({ classInfo, onBack }
   const [saved, setSaved] = useState<ConfiguracaoLembretes | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState('');
 
@@ -44,6 +45,7 @@ const ReminderSettings: React.FC<ReminderSettingsProps> = ({ classInfo, onBack }
     let active = true; // Impede que uma consulta antiga atualize outra turma.
     setIsLoading(true);
     setSaved(null);
+    setIsEditing(false); // A turma recém-aberta começa no modo de consulta.
     setReminderCount('');
     setDrafts([]);
     setSaveError('');
@@ -70,6 +72,16 @@ const ReminderSettings: React.FC<ReminderSettingsProps> = ({ classInfo, onBack }
   const clearFeedback = () => {
     setSaveError('');
     setSaveSuccess('');
+  };
+
+  const cancelEdit = () => {
+    if (!saved) return;
+
+    // Descarta o rascunho e recupera os valores da última configuração confirmada.
+    setReminderCount(String(saved.lembretes.length));
+    setDrafts(saved.lembretes.map(toDraft));
+    clearFeedback();
+    setIsEditing(false);
   };
 
   const handleCountChange = (value: string) => {
@@ -119,6 +131,7 @@ const ReminderSettings: React.FC<ReminderSettingsProps> = ({ classInfo, onBack }
       setSaved(configuration);
       setReminderCount(String(configuration.lembretes.length));
       setDrafts(configuration.lembretes.map(toDraft));
+      setIsEditing(false); // Volta ao resumo somente após o servidor aceitar a configuração.
       setSaveSuccess('Configuração salva com sucesso');
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : 'Não foi possível salvar os lembretes');
@@ -129,6 +142,7 @@ const ReminderSettings: React.FC<ReminderSettingsProps> = ({ classInfo, onBack }
 
   const count = Number(reminderCount);
   const visibleCount = Number.isSafeInteger(count) && count >= 0 ? count : 0;
+  const showSavedOnly = (saved?.lembretes.length ?? 0) > 0 && !isEditing;
 
   return (
     <section aria-labelledby="reminder-settings-title">
@@ -144,30 +158,37 @@ const ReminderSettings: React.FC<ReminderSettingsProps> = ({ classInfo, onBack }
         <p role="alert">Cadastre o prazo acadêmico deste ano e semestre e reabra a configuração de lembretes.</p>
       )}
 
-      <form onSubmit={handleSave}>
-        <fieldset disabled={isLoading || isSaving || !saved?.prazoAcademico}>
-          <legend>Quantidade, datas e horários</legend>
-          <div className="form-group">
-            <label htmlFor="reminder-count">Quantidade de lembretes</label>
-            <input id="reminder-count" type="number" min={0} step={1} value={reminderCount}
-              onChange={event => handleCountChange(event.target.value)} />
-          </div>
-          {drafts.slice(0, visibleCount).map((draft, index) => (
-            <div className="form-group" key={draft.id}>
-              <label htmlFor={`reminder-date-${index}`}>Data e horário do lembrete {index + 1}</label>
-              <input id={`reminder-date-${index}`} type="datetime-local" value={draft.dateTime}
-                disabled={draft.estado !== 'Não enviado' && draft.estado !== 'Agendado'}
-                onChange={event => handleDateChange(index, event.target.value)} />
+      {!showSavedOnly && (
+        <form onSubmit={handleSave}>
+          <fieldset disabled={isLoading || isSaving || !saved?.prazoAcademico}>
+            <legend>Quantidade, datas e horários</legend>
+            <div className="form-group">
+              <label htmlFor="reminder-count">Quantidade de lembretes</label>
+              <input id="reminder-count" type="number" min={0} step={1} value={reminderCount}
+                onChange={event => handleCountChange(event.target.value)} />
             </div>
-          ))}
-          <button type="submit">{isSaving ? 'Salvando…' : 'Salvar configuração'}</button>
-        </fieldset>{/* Bloqueia alterações durante consulta ou gravação; estados protegidos também têm seus campos bloqueados. */}
-      </form>
+            {drafts.slice(0, visibleCount).map((draft, index) => (
+              <div className="form-group" key={draft.id}>
+                <label htmlFor={`reminder-date-${index}`}>Data e horário do lembrete {index + 1}</label>
+                <input id={`reminder-date-${index}`} type="datetime-local" value={draft.dateTime}
+                  disabled={draft.estado !== 'Não enviado' && draft.estado !== 'Agendado'}
+                  onChange={event => handleDateChange(index, event.target.value)} />
+              </div>
+            ))}
+            <div className="form-buttons">
+              <button type="submit">{isSaving ? 'Salvando…' : 'Salvar configuração'}</button>
+              {isEditing && (
+                <button type="button" onClick={cancelEdit}>Cancelar edição</button>
+              )}
+            </div>
+          </fieldset>{/* Bloqueia alterações durante consulta ou gravação; estados protegidos também têm seus campos bloqueados. */}
+        </form>
+      )}
 
       {saveError && <p role="alert">{saveError}</p>}
       {saveSuccess && <p role="status">{saveSuccess}</p>}
       {saved && (
-        <section aria-labelledby="saved-reminders-title">
+        <section aria-labelledby="saved-reminders-title" className={showSavedOnly ? 'reminder-saved-card' : undefined}>
           <h3 id="saved-reminders-title">Configuração salva</h3>
           <p>Quantidade de lembretes: {saved.lembretes.length}</p>
           <ol>
@@ -175,6 +196,14 @@ const ReminderSettings: React.FC<ReminderSettingsProps> = ({ classInfo, onBack }
               <li key={lembrete.id}>{formatInstant(`${lembrete.data}T${lembrete.horario}:00.000Z`)}</li>
             ))}
           </ol>
+          {showSavedOnly && (
+            <button type="button" disabled={!saved.prazoAcademico} onClick={() => {
+              clearFeedback();
+              setIsEditing(true); // Abre o formulário preenchido com a configuração salva.
+            }}>
+              Editar lembretes
+            </button>
+          )}
         </section>
       )}
       <button type="button" disabled={isSaving} onClick={onBack}>Voltar para turmas</button>
