@@ -32,6 +32,10 @@ const Classes: React.FC<ClassesProps> = ({
   const [reminderClass, setReminderClass] = useState<Class | null>(null); // Guarda a turma selecionada; setReminderClass atualiza a seleção; null mantém a listagem visível.
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [classesEmail, setClassesEmail] = useState(''); // Valor que aparece no campo.
+  const [savedClassesEmail, setSavedClassesEmail] = useState<string | null>(null);
+  const [isEditingClassesEmail, setIsEditingClassesEmail] = useState(false);
+
+  const showSavedClassesEmail = savedClassesEmail !== null && !isEditingClassesEmail;
   const [isLoadingClassesEmail, setIsLoadingClassesEmail] = useState(true);
   const [isSavingClassesEmail, setIsSavingClassesEmail] = useState(false);
   const [classesEmailFeedback, setClassesEmailFeedback] = useState<{
@@ -64,7 +68,10 @@ const Classes: React.FC<ClassesProps> = ({
 
     ClassService.getClassesEmail()
       .then(email => {
-        if (active) setClassesEmail(email ?? ''); // Preenche o campo enquanto a aba estiver ativa.
+        if (active) {
+          setSavedClassesEmail(email); // Guarda o endereço que a API devolveu.
+          setClassesEmail(email ?? ''); // Preenche o formulário quando ele for aberto.
+        }
       })
       .catch((error: unknown) => {
         if (active) {
@@ -93,6 +100,8 @@ const Classes: React.FC<ClassesProps> = ({
     try {
       const email = await ClassService.saveClassesEmail(classesEmail);
       setClassesEmail(email); // Mantém no campo o endereço aceito pelo servidor.
+      setSavedClassesEmail(email); // Atualiza o endereço exibido no quadro de consulta.
+      setIsEditingClassesEmail(false); // Volta ao quadro após o servidor aceitar o endereço.
       setClassesEmailFeedback({ type: 'success', message: 'E-mail salvo' });
     } catch (error) {
       setClassesEmailFeedback({
@@ -274,32 +283,65 @@ const Classes: React.FC<ClassesProps> = ({
     <div className="classes-container">
       <h2>Class Management</h2>
 
-      <form className="class-form-container" onSubmit={handleSaveClassesEmail}>
-        <div className="form-group">
-          <label htmlFor="classes-email">E-mail para as turmas</label>
-          <input
-            id="classes-email"
-            type="email"
-            required
-            value={classesEmail}
-            disabled={isLoadingClassesEmail || isSavingClassesEmail}
-            onChange={event => {
-              setClassesEmail(event.target.value);
-              setClassesEmailFeedback(null); // O aviso anterior deixa de corresponder ao valor em edição.
-            }}
-          />
-        </div>
+      <section
+        className={`class-form-container${showSavedClassesEmail ? ' classes-email-configured' : ''}`}
+        aria-label="Cadastro de e-mail das turmas"
+      >
+        {showSavedClassesEmail ? (
+          <div className="classes-email-saved">
+            <div>
+              <strong>E-mail para as turmas</strong>
+              <p>{savedClassesEmail}</p>
+            </div>
 
-        <button type="submit" disabled={isLoadingClassesEmail || isSavingClassesEmail}>
-          {isLoadingClassesEmail ? 'Carregando…' : isSavingClassesEmail ? 'Salvando…' : 'Salvar e-mail'}
-        </button>
+            <button type="button" onClick={() => {
+              setIsEditingClassesEmail(true);
+              setClassesEmailFeedback(null);
+            }}>
+              Alterar e-mail
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSaveClassesEmail}>
+            <div className="form-group">
+              <label htmlFor="classes-email">E-mail para as turmas</label>
+              <input
+                id="classes-email"
+                type="email"
+                required
+                value={classesEmail}
+                disabled={isLoadingClassesEmail || isSavingClassesEmail}
+                onChange={event => {
+                  setClassesEmail(event.target.value);
+                  setClassesEmailFeedback(null); // Remove o aviso do valor anterior.
+                }}
+              />
+            </div>
+
+            <div className="form-buttons">
+              <button type="submit" disabled={isLoadingClassesEmail || isSavingClassesEmail}>
+                {isLoadingClassesEmail ? 'Carregando…' : isSavingClassesEmail ? 'Salvando…' : 'Salvar e-mail'}
+              </button>
+
+              {savedClassesEmail !== null && (
+                <button type="button" disabled={isSavingClassesEmail} onClick={() => {
+                  setClassesEmail(savedClassesEmail); // Descarta o rascunho e recupera o endereço salvo.
+                  setIsEditingClassesEmail(false);
+                  setClassesEmailFeedback(null);
+                }}>
+                  Cancelar
+                </button>
+              )}
+            </div>
+          </form>
+        )}
 
         {classesEmailFeedback && (
           <p role={classesEmailFeedback.type === 'error' ? 'alert' : 'status'}>
             {classesEmailFeedback.message}
           </p>
         )}
-      </form>
+      </section>
       
       {/* Class Form */}
       <div className="class-form-container">
