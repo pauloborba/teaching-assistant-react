@@ -34,6 +34,13 @@ export class EmailSenderSimulado implements EmailSender {
 // O serviço recebe um endereço simples por chamada, sem lista ou nome de exibição.
 const ENDERECO_EMAIL = /^[^\s@<>,;:"()]+@[^\s@<>,;:"()]+$/u;
 
+/**
+ * Envia mensagens em texto simples pelo Gmail SMTP.
+ *
+ * Carregue GMAIL_USER e GMAIL_APP_PASSWORD no ambiente do backend
+ * antes de instanciar a classe. O construtor lança um erro se faltar
+ * uma dessas variáveis. Reutilize a instância para enviar mensagens.
+ */
 export class EmailSenderSmtp {
   private readonly remetente: string;
   private readonly transporte: Transporter<SMTPSentMessageInfo, SMTPTransportOptions>;
@@ -58,6 +65,15 @@ export class EmailSenderSmtp {
     });
   }
 
+  /**
+   * Solicita o envio de uma mensagem já preparada pelo chamador.
+   * @param destinatario Um único endereço de e-mail.
+   * @param assunto Assunto da mensagem.
+   * @param conteudo Corpo da mensagem em texto simples.
+   * @returns Aceitação pelo SMTP ou falha com a respectiva descrição.
+   * A aceitação indica que o Gmail recebeu a solicitação de envio.
+   * A entrega é verificada na caixa do destinatário.
+   */
   async send(destinatario: string, assunto: string, conteudo: string): Promise<ResultadoEnvio> {
     const endereco = destinatario.trim();
     if (!ENDERECO_EMAIL.test(endereco)) {
