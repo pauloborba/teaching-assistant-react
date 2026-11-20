@@ -31,6 +31,13 @@ const Classes: React.FC<ClassesProps> = ({
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [reminderClass, setReminderClass] = useState<Class | null>(null); // Guarda a turma selecionada; setReminderClass atualiza a seleção; null mantém a listagem visível.
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [classesEmail, setClassesEmail] = useState(''); // Valor que aparece no campo.
+  const [isLoadingClassesEmail, setIsLoadingClassesEmail] = useState(true);
+  const [isSavingClassesEmail, setIsSavingClassesEmail] = useState(false);
+  const [classesEmailFeedback, setClassesEmailFeedback] = useState<{
+    type: 'error' | 'success';
+    message: string;
+  } | null>(null); // Mostra a confirmação ou a falha ao lado do campo.
   
   // Student enrollment state
   const [allStudents, setAllStudents] = useState<Student[]>([]);
@@ -51,6 +58,51 @@ const Classes: React.FC<ClassesProps> = ({
   useEffect(() => {
     loadAllStudents();
   }, [loadAllStudents]);
+
+  const loadClassesEmail = useCallback(() => {
+    let active = true; // Cada chamada acompanha a própria consulta.
+
+    ClassService.getClassesEmail()
+      .then(email => {
+        if (active) setClassesEmail(email ?? ''); // Preenche o campo enquanto a aba estiver ativa.
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setClassesEmailFeedback({
+            type: 'error',
+            message: error instanceof Error ? error.message : 'Não foi possível consultar o e-mail das turmas'
+          });
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoadingClassesEmail(false); // Libera o campo ao terminar a consulta.
+      });
+
+    return () => { active = false; }; // Descarta respostas que chegarem depois de sair da aba.
+  }, []);
+
+  useEffect(() => loadClassesEmail(), [loadClassesEmail]);
+
+  const handleSaveClassesEmail = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); // Salva pela API, sem recarregar a página.
+    if (isLoadingClassesEmail || isSavingClassesEmail) return;
+
+    setClassesEmailFeedback(null);
+    setIsSavingClassesEmail(true);
+
+    try {
+      const email = await ClassService.saveClassesEmail(classesEmail);
+      setClassesEmail(email); // Mantém no campo o endereço aceito pelo servidor.
+      setClassesEmailFeedback({ type: 'success', message: 'E-mail salvo' });
+    } catch (error) {
+      setClassesEmailFeedback({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Não foi possível salvar o e-mail das turmas'
+      });
+    } finally {
+      setIsSavingClassesEmail(false);
+    }
+  };
 
   // Handle enrollment form submission
   const handleBulkEnrollStudents = async () => {
@@ -221,6 +273,33 @@ const Classes: React.FC<ClassesProps> = ({
   return (
     <div className="classes-container">
       <h2>Class Management</h2>
+
+      <form className="class-form-container" onSubmit={handleSaveClassesEmail}>
+        <div className="form-group">
+          <label htmlFor="classes-email">E-mail para as turmas</label>
+          <input
+            id="classes-email"
+            type="email"
+            required
+            value={classesEmail}
+            disabled={isLoadingClassesEmail || isSavingClassesEmail}
+            onChange={event => {
+              setClassesEmail(event.target.value);
+              setClassesEmailFeedback(null); // O aviso anterior deixa de corresponder ao valor em edição.
+            }}
+          />
+        </div>
+
+        <button type="submit" disabled={isLoadingClassesEmail || isSavingClassesEmail}>
+          {isLoadingClassesEmail ? 'Carregando…' : isSavingClassesEmail ? 'Salvando…' : 'Salvar e-mail'}
+        </button>
+
+        {classesEmailFeedback && (
+          <p role={classesEmailFeedback.type === 'error' ? 'alert' : 'status'}>
+            {classesEmailFeedback.message}
+          </p>
+        )}
+      </form>
       
       {/* Class Form */}
       <div className="class-form-container">

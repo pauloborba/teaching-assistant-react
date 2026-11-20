@@ -20,6 +20,31 @@ class ClassService {
     }
   }
 
+  static async getClassesEmail(): Promise<string | null> {
+    const response = await fetch(`${API_BASE_URL}/api/classes/email`);
+    if (!response.ok) {
+      throw new Error('Não foi possível consultar o e-mail das turmas');
+    }
+
+    const data: { emailDasTurmas: string | null } = await response.json();
+    return data.emailDasTurmas; // null indica que o endereço ainda está vazio.
+  }
+
+  static async saveClassesEmail(emailDasTurmas: string): Promise<string> {
+    const response = await fetch(`${API_BASE_URL}/api/classes/email`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emailDasTurmas }) // Envia só o endereço que está sendo editado.
+    });
+
+    const data: { emailDasTurmas: string; error?: string } = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Não foi possível salvar o e-mail das turmas');
+    }
+
+    return data.emailDasTurmas; // Usa o valor confirmado pelo servidor.
+  }
+
   static async addClass(classData: Omit<Class, 'id' | 'enrollments'>): Promise<Class> {
     try {
       const response = await fetch(`${API_BASE_URL}/api/classes`, {
