@@ -1,5 +1,8 @@
 import request from 'supertest';
 import { app, studentSet, classes } from '../server';
+import { Class } from '../models/Class';
+import { PeriodoAcademico } from '../models/PeriodoAcademico';
+import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from '../models/EspecificacaoDoCalculoDaMedia';
 
 describe('Server API - Student Endpoints', () => {
   // Clean up data before each test to ensure isolation
@@ -481,9 +484,34 @@ describe('API do e-mail das turmas', () => {
     // Antes do primeiro cadastro, a tela recebe um endereço vazio.
     await request(app).get(rota).expect(200, { emailDasTurmas: null });
 
+    const novaTurma = { topic: 'IP', year: 2099, semester: 2 };
+    const erroSemEmail = { error: 'Cadastre um e-mail para as turmas na aba Classes' };
+
+    await request(app).post('/api/classes').send(novaTurma).expect(400, erroSemEmail);
+    expect(classes.findClassById('IP-2099-2')).toBeUndefined();
+
+    // Representa uma turma criada antes da obrigatoriedade do e-mail.
+    const periodo = new PeriodoAcademico(2099, 2, new Date('2099-08-31T23:59:00.000Z'));
+    classes.addClass(new Class('ESS', periodo, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
+
+    const rotaLembretes = '/api/classes/ESS-2099-2/lembretes';
+    const lembretes = [{ id: 'aviso', data: '2099-08-25', horario: '09:00' }];
+
+    await request(app).put(rotaLembretes)
+      .send({ quantidade: 0, lembretes: [] }).expect(200);
+    await request(app).put(rotaLembretes)
+      .send({ quantidade: 1, lembretes }).expect(400, erroSemEmail);
+
+    const consulta = await request(app).get(rotaLembretes).expect(200);
+    expect(consulta.body.lembretes).toEqual([]); // A rejeição preserva a configuração anterior.
+
     // O servidor remove os espaços externos antes de guardar o endereço.
     await request(app).put(rota).send({ emailDasTurmas: ' contato@example.com ' })
       .expect(200, { emailDasTurmas: 'contato@example.com' });
+
+    await request(app).post('/api/classes').send(novaTurma).expect(201);
+    await request(app).put(rotaLembretes)
+      .send({ quantidade: 1, lembretes }).expect(200);
 
     // Uma edição inválida é rejeitada e preserva o endereço cadastrado.
     await request(app).put(rota).send({ emailDasTurmas: 'endereco-invalido' })
