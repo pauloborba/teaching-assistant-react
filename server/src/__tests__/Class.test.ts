@@ -180,9 +180,9 @@ describe('Identificação de notas pendentes da turma', () => {
 
     // Then: Design de Maria está lançado, e Tests está pendente para ambos.
     expect(pendencias).toEqual([
-      { nomeAluno: 'João da Silva', meta: 'Design' },
-      { nomeAluno: 'João da Silva', meta: 'Tests' },
-      { nomeAluno: 'Maria Souza', meta: 'Tests' }
+      { alunoCpf: '12345678901', nomeAluno: 'João da Silva', meta: 'Design' },
+      { alunoCpf: '12345678901', nomeAluno: 'João da Silva', meta: 'Tests' },
+      { alunoCpf: '98765432101', nomeAluno: 'Maria Souza', meta: 'Tests' }
     ]);
     expect(turma.toJSON()).toEqual(dadosAntesDaConsulta);
   });

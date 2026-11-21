@@ -128,6 +128,7 @@ namespace Servidor {
     programarReenvio(dataHora)
   }
   class NotificacaoService["NotificaçãoService"] {
+    montarEmailNotasPendentes(turma, destinatario, prazoAcademico)
     processar(Lembrete)
     processarAgendados(turma, data, horario)
     processarReenvios(turma)
@@ -340,7 +341,8 @@ HistoricoNotificacoes <-- NotificacaoService
 %% Class.identificarPendencias() percorre as matrículas da turma e as metas exibidas na aba Avaliações.
 %% A lista de metas é EVALUATION_GOALS. Assim, uma meta ainda sem nota para toda a turma também é consultada.
 %% Enrollment.getEvaluationForGoal(meta) consulta o registro da nota na matrícula.
-%% A ausência de registro gera uma pendência com nomeAluno e meta. MANA, MPA e MA são notas lançadas.
+%% A ausência de registro gera uma pendência com alunoCpf, nomeAluno e meta. MANA, MPA e MA são notas lançadas.
+%% NotificacaoService.montarEmailNotasPendentes agrupa as metas pelo CPF e inclui na mensagem apenas os nomes, as metas, a turma e o prazo em horário de Brasília.
 %% A consulta preserva as notas, as matrículas e os lembretes.
 %% NotificacaoService consulta as pendências após verificar o estado do lembrete e o prazo acadêmico.
 %% Os cancelamentos e o cálculo dos intervalos do cenário estão descritos abaixo; processarReenvios seleciona os horários de reenvio já alcançados.

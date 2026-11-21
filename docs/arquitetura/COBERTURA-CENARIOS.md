@@ -379,8 +379,9 @@ classificações nem demonstra execução de testes.
 
 `Class.identificarPendencias()` consulta as metas da aba Avaliações em cada
 matrícula com `Enrollment.getEvaluationForGoal(meta)`. A ausência de registro
-gera uma pendência com o nome do aluno e a meta. MANA, MPA e MA contam como
-notas lançadas.
+gera uma pendência com o CPF, o nome do aluno e a meta. O CPF permite agrupar
+as metas de alunos homônimos e fica fora da mensagem. MANA, MPA e MA contam
+como notas lançadas.
 
 No cenário, João está sem nota em Design e Tests. Maria tem MANA em Design e
 está sem nota em Tests. A consulta devolve essas três pendências e preserva as

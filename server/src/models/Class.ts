@@ -80,14 +80,14 @@ export class Class {
     return this.periodoAcademico.prazoEncerrado(instanteAtual); // Reutiliza a regra do período, sem duplicar a comparação.
   }
 
-  identificarPendencias(): { nomeAluno: string; meta: string }[] {
+  identificarPendencias(): { alunoCpf: string; nomeAluno: string; meta: string }[] {
     return this.enrollments.flatMap(matricula => {
-      const nomeAluno = matricula.getStudent().name;
+      const aluno = matricula.getStudent();
 
       // Percorre as metas esperadas, inclusive as que ainda não têm registro em nenhuma matrícula.
       return EVALUATION_GOALS
         .filter(meta => matricula.getEvaluationForGoal(meta) === undefined)
-        .map(meta => ({ nomeAluno, meta }));
+        .map(meta => ({ alunoCpf: aluno.getCPF(), nomeAluno: aluno.name, meta }));
     });
   }
 
