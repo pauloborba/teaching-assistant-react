@@ -6,6 +6,11 @@ type PendenciaRegistrada = {
   meta: string;
 };
 
+const pendenciaValida = (valor: unknown): valor is PendenciaRegistrada =>
+  typeof valor === 'object' && valor !== null &&
+  'nomeAluno' in valor && typeof valor.nomeAluno === 'string' &&
+  'meta' in valor && typeof valor.meta === 'string';
+
 interface ContextoNotificacaoLembrete {
   lembreteId: string;
   turmaRegistrada: string;
@@ -50,5 +55,67 @@ export class Notificacao {
   get pendenciasRegistradas(): PendenciaRegistrada[] {
     // A lista e seus itens podem ser lidos sem expor os objetos guardados.
     return this.pendencias.map(pendencia => ({ ...pendencia }));
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      nomeDestinatario: this.nomeDestinatario,
+      grupoRegistrado: this.grupoRegistrado,
+      turmaRegistrada: this.turmaRegistrada,
+      lembreteId: this.lembreteId,
+      dataHora: this.dataHora.toISOString(),
+      resultado: this.resultado,
+      motivo: this.motivo,
+      descricaoFalha: this.descricaoFalha,
+      prazoRegistrado: this.prazoRegistrado?.toISOString() ?? null,
+      pendenciasRegistradas: this.pendenciasRegistradas
+    };
+  }
+
+  static fromJSON(dados: unknown): Notificacao {
+    if (typeof dados !== 'object' || dados === null) {
+      throw new Error('Registro de notificação inválido');
+    }
+
+    const registro = dados as Record<string, unknown>;
+    const { id, nomeDestinatario, resultado, motivo, descricaoFalha } = registro;
+    if (
+      typeof id !== 'number' || !Number.isSafeInteger(id) || id < 1 ||
+      typeof nomeDestinatario !== 'string' || typeof motivo !== 'string' ||
+      (resultado !== 'Enviado' && resultado !== 'Falha' && resultado !== 'Ignorado') ||
+      (descricaoFalha !== undefined && typeof descricaoFalha !== 'string') ||
+      typeof registro.dataHora !== 'string'
+    ) {
+      throw new Error('Registro de notificação inválido');
+    }
+
+    const dataHora = new Date(registro.dataHora);
+    if (!Number.isFinite(dataHora.getTime())) {
+      throw new Error('Data da notificação inválida');
+    }
+
+    if (typeof registro.grupoRegistrado === 'string') {
+      return new Notificacao(id, nomeDestinatario, registro.grupoRegistrado, dataHora, resultado, motivo, descricaoFalha);
+    }
+
+    const { lembreteId, turmaRegistrada, prazoRegistrado, pendenciasRegistradas } = registro;
+    if (
+      typeof lembreteId !== 'string' || typeof turmaRegistrada !== 'string' ||
+      typeof prazoRegistrado !== 'string' || !Array.isArray(pendenciasRegistradas) ||
+      !pendenciasRegistradas.every(pendenciaValida)
+    ) {
+      throw new Error('Contexto de notificação de lembrete inválido');
+    }
+
+    const prazo = new Date(prazoRegistrado);
+    if (!Number.isFinite(prazo.getTime())) {
+      throw new Error('Prazo registrado inválido');
+    }
+
+    // Reconstrói o aviso com os dados históricos, sem consultar as notas atuais.
+    return new Notificacao(id, nomeDestinatario, {
+      lembreteId, turmaRegistrada, prazoRegistrado: prazo, pendenciasRegistradas
+    }, dataHora, resultado, motivo, descricaoFalha);
   }
 }

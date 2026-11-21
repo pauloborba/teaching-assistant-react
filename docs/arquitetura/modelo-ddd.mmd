@@ -143,6 +143,8 @@ namespace Servidor {
     listar() Notificacao[]
     filtrar(disciplina, turma) Notificacao[]
     buscar(idNotificacao)
+    toJSON()
+    restaurar(dados)
   }
   class Notificacao {
     id
@@ -155,6 +157,8 @@ namespace Servidor {
     descricaoFalha
     pendenciasRegistradas
     prazoRegistrado
+    toJSON()
+    fromJSON(dados)
   }
   note for Notificacao "resultado:<br/>Enviado/Falha: tentativa de envio.<br/>Ignorado: processamento sem envio."
 }
@@ -522,6 +526,9 @@ HistoricoNotificacoes <-- NotificacaoService
 %% Cadastrar as notas em 26/08 não modifica pendenciasRegistradas da tentativa anterior.
 %% Cada novo registro preserva sua própria lista; em Ignorado a lista é vazia, sem modificar os registros anteriores.
 %% HistoricoNotificacoes.registrar preserva essa lista junto dos demais dados da Notificacao.
+%% O histórico de lembretes e os estados da configuração são gravados no mesmo app-data.json.
+%% Ao iniciar, restaurar recupera as notificações e continua a sequência de identificadores.
+%% Arquivos anteriores sem historicoLembretes são carregados com histórico vazio.
 %% A relação com Lembrete continua representando a origem; as pendências históricas pertencem ao registro.
 %% PRAZO REGISTRADO: PeriodoAcademico.prazoAcademico é a fonte oficial compartilhada pelas turmas do mesmo ano e semestre.
 %% NotificacaoService acessa Classes, a Class correspondente e Class.obterPeriodoAcademico e copia o prazo para prazoRegistrado
