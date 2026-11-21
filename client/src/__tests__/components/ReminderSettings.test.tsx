@@ -1,9 +1,9 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ReminderSettings from '../../components/ReminderSettings';
 import { Class } from '../../types/Class';
-import { ConfiguracaoLembretes, SalvarConfiguracaoLembretes } from '../../types/Reminder';
+import { ConfiguracaoLembretes, Lembrete, SalvarConfiguracaoLembretes } from '../../types/Reminder';
 import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DE_MEDIA } from '../../types/EspecificacaoDoCalculoDaMedia';
 
 /**
@@ -27,6 +27,16 @@ describe('GUI de configuração de lembretes', () => {
     ok: status >= 200 && status < 300, status, json: async () => body
   } as Response);
   const open = () => render(<ReminderSettings classInfo={turma} onBack={() => {}} />);
+
+  const storedReminder = (
+    id: string, dateTime: string, estado: Lembrete['estado'] = 'Não enviado'
+  ): Lembrete => {
+    const iso = new Date(dateTime).toISOString();
+    return { id, data: iso.slice(0, 10), horario: iso.slice(11, 16), estado, motivo: null, proximoReenvioEm: null };
+  };
+
+  const reminderRow = (position: number) =>
+    within(screen.getByRole('group', { name: `Data e horário do lembrete ${position}` }));
 
   beforeEach(() => {
     let sequence = 0;
@@ -62,8 +72,8 @@ describe('GUI de configuração de lembretes', () => {
     await waitFor(() => expect(screen.getByLabelText('Quantidade de lembretes')).toHaveValue(0));
     expect(screen.getByText('31/08/2099 às 23:59')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Quantidade de lembretes'), { target: { value: '2' } });
-    fireEvent.change(screen.getByLabelText('Data e horário do lembrete 1'), { target: { value: '2099-08-25T09:00' } });
-    fireEvent.change(screen.getByLabelText('Data e horário do lembrete 2'), { target: { value: '2099-08-29T14:00' } });
+    fireEvent.change(screen.getByLabelText('Data e horário do lembrete 1', { selector: 'input' }), { target: { value: '2099-08-25T09:00' } });
+    fireEvent.change(screen.getByLabelText('Data e horário do lembrete 2', { selector: 'input' }), { target: { value: '2099-08-29T14:00' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvar configuração' }));
 
     expect(screen.queryByText('Configuração salva com sucesso')).toBeNull();
@@ -93,45 +103,86 @@ describe('GUI de configuração de lembretes', () => {
     expect(screen.queryByLabelText('Quantidade de lembretes')).not.toBeInTheDocument();
     fireEvent.click(editButton);
 
-    await waitFor(() => expect(screen.getByLabelText('Data e horário do lembrete 1'))
+    await waitFor(() => expect(screen.getByLabelText('Data e horário do lembrete 1', { selector: 'input' }))
       .toHaveValue('2099-08-25T09:00'));
-    expect(screen.getByLabelText('Data e horário do lembrete 2')).toHaveValue('2099-08-29T14:00');
+    expect(screen.getByLabelText('Data e horário do lembrete 2', { selector: 'input' })).toHaveValue('2099-08-29T14:00');
   });
 
-  test('mostra a rejeição do servidor, preserva o resumo e permite cancelar a edição', async () => {
-    const iso = new Date('2099-08-25T09:00').toISOString();
+  test('mantém a remoção no rascunho e permite desfazê-la', async () => {
     const stored: ConfiguracaoLembretes = {
       ...empty,
-      lembretes: [{
-        id: 'existente', data: iso.slice(0, 10), horario: iso.slice(11, 16),
-        estado: 'Não enviado', motivo: null, proximoReenvioEm: null
-      }]
+      lembretes: [
+        storedReminder('enviado', '2000-08-24T09:00', 'Enviado'),
+        storedReminder('pendente', '2099-08-25T09:00')
+      ]
     };
+    fetchMock.mockResolvedValue(response(200, stored));
 
+    open();
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar lembretes' }));
+
+    // O histórico continua visível, com a data bloqueada e sem ação de remoção.
+    expect(reminderRow(1).getByText('Enviado')).toBeInTheDocument();
+    expect(reminderRow(1).queryByRole('button', { name: 'Remover' })).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Data e horário do lembrete 1', { selector: 'input' })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar lembrete' }));
+    expect(screen.getByLabelText('Data e horário do lembrete 3', { selector: 'input' })).toHaveValue('');
+    fireEvent.click(reminderRow(3).getByRole('button', { name: 'Remover' }));
+    expect(screen.queryByLabelText('Data e horário do lembrete 3', { selector: 'input' })).not.toBeInTheDocument();
+
+    fireEvent.click(reminderRow(2).getByRole('button', { name: 'Remover' }));
+    expect(reminderRow(2).getByText('Será removido ao salvar')).toBeInTheDocument();
+    const pendingInput = screen.getByLabelText('Data e horário do lembrete 2', { selector: 'input' });
+    expect(pendingInput).toHaveValue('2099-08-25T09:00');
+    expect(pendingInput).toBeDisabled();
+    expect(screen.getByText('Quantidade de lembretes após salvar:')).toHaveTextContent('Quantidade de lembretes após salvar: 1');
+
+    fireEvent.click(reminderRow(2).getByRole('button', { name: 'Desfazer' }));
+    expect(pendingInput).toBeEnabled();
+    expect(screen.getByText('Quantidade de lembretes após salvar:')).toHaveTextContent('Quantidade de lembretes após salvar: 2');
+
+    // Adicionar, remover e desfazer alteram somente o rascunho.
+    expect(fetchMock.mock.calls.some(([, options]) => options?.method === 'PUT')).toBe(false);
+  });
+
+  test('mantém a remoção pendente após rejeição e a descarta ao cancelar', async () => {
+    const stored: ConfiguracaoLembretes = {
+      ...empty,
+      lembretes: [
+        storedReminder('existente', '2099-08-25T09:00'),
+        storedReminder('a-remover', '2099-08-29T14:00')
+      ]
+    };
     fetchMock.mockImplementation((_, options) => Promise.resolve(options?.method === 'PUT'
       ? response(400, { error: 'Data posterior ao prazo acadêmico' }) : response(200, stored)));
 
     open();
     fireEvent.click(await screen.findByRole('button', { name: 'Editar lembretes' }));
-    const input = await screen.findByLabelText('Data e horário do lembrete 1');
+    const input = screen.getByLabelText('Data e horário do lembrete 1', { selector: 'input' });
     fireEvent.change(input, { target: { value: '2099-09-02T09:00' } });
+    fireEvent.click(reminderRow(2).getByRole('button', { name: 'Remover' }));
     fireEvent.click(screen.getByRole('button', { name: 'Salvar configuração' }));
 
-    // Uma rejeição mantém o rascunho disponível para correção e preserva o resumo salvo.
+    // A rejeição preserva tanto a data em edição quanto a remoção pendente.
     expect(await screen.findByRole('alert')).toHaveTextContent('Data posterior ao prazo acadêmico');
     expect(screen.queryByText('Configuração salva com sucesso')).toBeNull();
     expect(screen.getByText('25/08/2099 às 09:00')).toBeInTheDocument();
     expect(input).toHaveValue('2099-09-02T09:00');
+    expect(reminderRow(2).getByText('Será removido ao salvar')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar edição' }));
-    expect(screen.queryByLabelText('Data e horário do lembrete 1')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Data e horário do lembrete 1', { selector: 'input' })).not.toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.getByText('25/08/2099 às 09:00')).toBeInTheDocument();
+    expect(screen.getByText('29/08/2099 às 14:00')).toBeInTheDocument();
 
-    // Cancelar descarta o rascunho local. O único PUT foi a tentativa rejeitada.
+    // O único PUT foi rejeitado. Reabrir recupera os dois registros confirmados.
     expect(fetchMock.mock.calls.filter(([, options]) => options?.method === 'PUT')).toHaveLength(1);
     fireEvent.click(screen.getByRole('button', { name: 'Editar lembretes' }));
-    expect(screen.getByLabelText('Data e horário do lembrete 1')).toHaveValue('2099-08-25T09:00');
+    expect(screen.getByLabelText('Data e horário do lembrete 1', { selector: 'input' })).toHaveValue('2099-08-25T09:00');
+    expect(screen.getByLabelText('Data e horário do lembrete 2', { selector: 'input' })).toBeEnabled();
+    expect(screen.getByLabelText('Data e horário do lembrete 2', { selector: 'input' })).toHaveValue('2099-08-29T14:00');
   });
 
   test('bloqueia o salvamento quando a turma está sem prazo', async () => { // Orienta o cadastro do período antes da configuração.

@@ -266,6 +266,29 @@ When('informa {string} como quantidade de lembretes', (quantidade: string) =>
   preencher('#reminder-count', quantidade)
 );
 
+When('adiciona {int} lembrete(s)', async (quantidade: number) => {
+  for (let adicionado = 0; adicionado < quantidade; adicionado++) {
+    await clicar('Adicionar lembrete');
+  }
+});
+
+When('marca o lembrete de {string} para remoção', async (data: string) => {
+  const alvo = await pagina.waitForFunction((seletor, valor) => {
+    // Procura a linha pela data visível no formulário, mesmo se a posição mudar.
+    const linha = Array.from(document.querySelectorAll(seletor)).find(item =>
+      item.querySelector<HTMLInputElement>('input')?.value === valor
+    );
+    return Array.from(linha?.querySelectorAll('button') ?? []).find(botao =>
+      !botao.disabled && botao.textContent?.trim() === 'Remover'
+    );
+  }, {}, `${telaLembretes} .reminder-edit-row`, dataParaCampo(data));
+
+  const elemento = alvo.asElement();
+  assert(elemento);
+  const botao = await elemento.toElement('button');
+  await botao.click();
+});
+
 // Os campos usam índices a partir de zero; a lista do resumo usa posições a partir de um.
 const indicesDosLembretes = { primeiro: 0, segundo: 1, terceiro: 2 };
 type OrdemLembrete = keyof typeof indicesDosLembretes;
@@ -409,17 +432,23 @@ Then(
   }
 );
 
-Then('somente o último lembrete de {string} é removido da configuração gravada',
-  async (nome: string) => {
+Then('somente o lembrete de {string} é removido da configuração gravada da turma {string}',
+  async (data: string, nome: string) => {
     const { rota, anterior } = obterTurmaDoCenario(nome);
     assert(anterior);
 
+    const instante = new Date(dataParaCampo(data)).toISOString();
+    const removido = anterior.lembretes.find(lembrete =>
+      lembrete.data === instante.slice(0, 10) && lembrete.horario === instante.slice(11, 16)
+    );
+    assert(removido);
+
     const resposta = await requisitar('GET', rota, 200);
 
-    // Preserva os registros restantes por inteiro, inclusive o estado Enviado.
+    // Confere que saiu exatamente o ID escolhido e que os outros registros ficaram intactos.
     assert.deepEqual(await resposta.json(), {
       ...anterior,
-      lembretes: anterior.lembretes.slice(0, -1)
+      lembretes: anterior.lembretes.filter(lembrete => lembrete.id !== removido.id)
     });
   }
 );

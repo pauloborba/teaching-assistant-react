@@ -133,7 +133,7 @@ Feature: Notificações de pendências no lançamento de notas
       And a turma "2026.2 de ESS" possui um lembrete não enviado para "21/08/2026 às 09:00"
       When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
       And inicia a edição dos lembretes
-      And informa "3" como quantidade de lembretes
+      And adiciona 2 lembretes
       And define o primeiro lembrete para "25/08/2026 às 09:00"
       And define o segundo lembrete para "29/08/2026 às 14:00"
       And deixa o terceiro lembrete sem data e horário
@@ -198,7 +198,7 @@ Feature: Notificações de pendências no lançamento de notas
       And a turma "2026.2 de ESS" possui dois lembretes não enviados para "25/08/2026 às 09:00" e "28/08/2026 às 09:00"
       When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
       And inicia a edição dos lembretes
-      And informa "3" como quantidade de lembretes
+      And adiciona 1 lembrete
       And define o terceiro lembrete para "29/08/2026 às 14:00"
       And salva a configuração
       Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
@@ -222,15 +222,15 @@ Feature: Notificações de pendências no lançamento de notas
       And a turma "2026.2 de ESS" possui um lembrete enviado em "20/08/2026 às 09:00" e dois não enviados para "25/08/2026 às 09:00" e "28/08/2026 às 09:00"
       When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
       And inicia a edição dos lembretes
-      And informa "2" como quantidade de lembretes
+      And marca o lembrete de "25/08/2026 às 09:00" para remoção
       And salva a configuração
       Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
       And a tela apresenta a confirmação "Configuração salva com sucesso"
       And a quantidade de lembretes configurados é "2"
       And o primeiro lembrete está programado para "20/08/2026 às 09:00"
-      And o segundo lembrete está programado para "25/08/2026 às 09:00"
+      And o segundo lembrete está programado para "28/08/2026 às 09:00"
       And o prazo acadêmico apresentado é "31/08/2026 às 23:59"
-      And somente o último lembrete de "2026.2 de ESS" é removido da configuração gravada
+      And somente o lembrete de "25/08/2026 às 09:00" é removido da configuração gravada da turma "2026.2 de ESS"
 
 
 
@@ -245,7 +245,7 @@ Feature: Notificações de pendências no lançamento de notas
       And a turma "2026.2 de ESS" possui um lembrete não enviado para "25/08/2026 às 09:00"
       When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
       And inicia a edição dos lembretes
-      And informa "2" como quantidade de lembretes
+      And adiciona 1 lembrete
       And define o segundo lembrete para "19/08/2026 às 09:00"
       And salva a configuração
       Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
