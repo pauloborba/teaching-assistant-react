@@ -76,7 +76,7 @@ namespace Servidor {
     semester
     obterPeriodoAcademico() PeriodoAcademico
     obterConfiguracaoLembretes() ConfiguracaoLembretes
-    identificarPendencias(instanteAtual)
+    identificarPendencias()
   }
   class PeriodoAcademico {
     ano
@@ -86,13 +86,12 @@ namespace Servidor {
     definirPrazoAcademico(novoPrazo, instanteAtual, configuracoesDoPeriodo)
   }
   class Enrolment {
-    buscarNota(avaliacao)
-    listarAvaliacoes() Evaluation[]
+    getEvaluationForGoal(meta)
+    getEvaluations() Evaluation[]
   }
   class Evaluation {
     goal
     grade
-    dataAvaliacao
   }
   class GradeNotification["Grade Notification"]
   class EmailSender {
@@ -337,24 +336,13 @@ HistoricoNotificacoes <-- NotificacaoService
 %% Um Enviado já encerra na primeira verificação, preservado mesmo após o prazo.
 %% O cancelamento do reenvio usa a regra descrita abaixo; a criação de lembretes após o prazo mantém sua própria rejeição.
 
-%% IDENTIFICAÇÃO DE PENDÊNCIAS: Class.identificarPendencias(instanteAtual) consulta as notas das matrículas da turma.
-%% Enrolment.buscarNota(avaliacao) representa a consulta da nota individual naquela matrícula, pelas relações com Evaluation.
-%% As notas permanecem vinculadas ao aluno por sua matrícula; Class não passa a armazenar notas.
-%% Cada matrícula já contém os registros Evaluation, mesmo antes do cadastro da nota, conforme a opção A aprovada.
-%% grade vazio representa uma nota ainda não cadastrada; zero, inclusive 0,0, representa uma nota válida.
-%% Enrolment.listarAvaliacoes retorna seus registros de avaliação, incluindo os que ainda têm grade vazio.
-%% Evaluation.dataAvaliacao informa a data em que a avaliação ocorreu ou está prevista no cenário.
-%% Class percorre apenas suas matrículas, consulta listarAvaliacoes e ignora avaliações com data futura em relação a instanteAtual.
-%% Para cada avaliação já realizada, consulta buscarNota(avaliacao); nota vazia produz a pendência do aluno naquela avaliação.
-%% Nota preenchida, inclusive zero, não produz pendência; não incluir alunos de outra turma ou avaliações futuras.
-%% No cenário de 25/08, retornar apenas João sem nota na prova realizada em 20/08; Maria com zero não é pendência
-%% e o projeto previsto para 28/08 não é pendência para nenhum dos dois alunos.
-%% Identificar é uma consulta: preservar notas, datas, matrículas, lembretes e histórico, sem solicitar email ou registrar tentativa.
-%% Em processar(Lembrete), depois dos bloqueios de Enviado e prazo, NotificacaoService chama identificarPendencias
-%% na mesma Class já localizada por Classes, usando o mesmo instanteAtual obtido pelo serviço antes de solicitar email.
-%% Usar os caminhos existentes NotificacaoService --> Classes, Classes *--> Class, Class *--> Enrolment e Enrolment *--> Evaluation.
-%% Esta coordenação é interna ao processamento do lembrete; não acrescentar uma operação em Services ou uma tela no cliente.
-%% Não acrescentar AvaliacaoDaTurma ou novas relações; Evaluation mantém goal e grade e recebe apenas dataAvaliacao.
+%% IDENTIFICAÇÃO DE PENDÊNCIAS
+%% Class.identificarPendencias() percorre as matrículas da turma e as metas exibidas na aba Avaliações.
+%% A lista de metas é EVALUATION_GOALS. Assim, uma meta ainda sem nota para toda a turma também é consultada.
+%% Enrollment.getEvaluationForGoal(meta) consulta o registro da nota na matrícula.
+%% A ausência de registro gera uma pendência com nomeAluno e meta. MANA, MPA e MA são notas lançadas.
+%% A consulta preserva as notas, as matrículas e os lembretes.
+%% NotificacaoService consulta as pendências após verificar o estado do lembrete e o prazo acadêmico.
 %% Os cancelamentos e o cálculo dos intervalos do cenário estão descritos abaixo; processarReenvios seleciona os horários de reenvio já alcançados.
 
 %% AUSÊNCIA DE PENDÊNCIAS: no cenário de todas as notas cadastradas, a consulta atual retorna uma lista vazia.

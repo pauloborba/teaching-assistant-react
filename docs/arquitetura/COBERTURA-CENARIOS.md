@@ -131,7 +131,7 @@ concorrente implementados na aplicação.
 | --- | --- | --- |
 | [Envio de lembrete com notas pendentes](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L230) | Parcial | Pendências, prazo, emailProfessor, registro, marcação Enviado e contrato de EmailSender estão representados. O comentário complementar sobre processar foi dispensado pelo responsável e deixa de ser uma alteração pendente. A classificação foi preservada até a conclusão da revisão do cenário. |
 | [Ausência de envio quando todas as notas foram cadastradas](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L253) | Regra central representada | Consulta sem pendências permite ignorar o Lembrete e registrar Notificacao Ignorado pelos métodos existentes, sem email ou nova tentativa. As consultas de tentativas consideram apenas Enviado/Falha, preservando a última tentativa de 20/08. O Then aprovado preserva Não enviado para o lembrete futuro de 29/08, igual ao Given. |
-| [Identificação correta das notas pendentes](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L278) | Regra central representada | Class.identificarPendencias percorre as matrículas e seus registros por Enrolment.listarAvaliacoes. Evaluation.dataAvaliacao permite excluir futuras; buscarNota distingue nota vazia de zero válido. Os registros já existem antes da nota, e a consulta devolve apenas a pendência de João na prova realizada, preservando os dados. |
+| [Identificação correta das notas pendentes](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L278) | Regra central representada | Class.identificarPendencias consulta as metas da aba Avaliações em cada matrícula. MANA, MPA e MA contam como lançadas. Meta sem registro gera pendência, mesmo quando nenhum aluno recebeu nota nela. |
 | [Envio independente de lembretes para múltiplas turmas](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L295) | Parcial | Busca e pendências ficam restritas à turma indicada, com o mesmo emailProfessor e contrato de EmailSender. O comentário complementar sobre processar foi dispensado pelo responsável e deixa de ser uma alteração pendente. A classificação foi preservada até a conclusão da revisão do cenário. |
 | [Bloqueio de envio de lembrete não agendado](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L316) | Regra central representada | processarAgendados consulta buscarLembretesPara na configuração da turma; lista vazia rejeita a solicitação sem email ou tentativa, preservando prazo, lembretes e histórico. |
 | [Bloqueio de criação de novo lembrete após o prazo acadêmico](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L335) | Regra central representada | Class.prazoEncerrado verifica o instante do serviço; configurarLembretes rejeita criação com o motivo Prazo acadêmico encerrado, sem alterar configuração, enviados ou histórico nem solicitar email. |
@@ -377,41 +377,19 @@ classificações nem demonstra execução de testes.
 
 ## Responsabilidades e regra da identificação de pendências
 
-- **Métodos acrescentados:** Class.identificarPendencias(instanteAtual) e
-  Enrolment.buscarNota(avaliacao), nas respectivas classes existentes, seguidos
-  de Enrolment.listarAvaliacoes() e Evaluation.dataAvaliacao no incremento aprovado.
-- **Organização preservada:** as notas pertencem aos alunos em suas matrículas,
-  no caminho Class, Enrolment e Evaluation. Class coordena a consulta das matrículas
-  sem passar a armazenar as notas individuais.
-- **Coordenação aprovada:** o método processar(Lembrete), já existente em
-  NotificacaoService, consulta as pendências na Class localizada por Classes. A chamada
-  ocorre depois dos bloqueios de Enviado e prazo e antes de uma tentativa de email,
-  aproveitando o instante atual já obtido pelo serviço.
-- **Dados aprovados:** cada matrícula já contém os registros das avaliações com
-  nota inicialmente vazia, conforme a opção A confirmada pelo responsável.
-  listarAvaliacoes inclui esses registros; dataAvaliacao informa a data da avaliação.
-- **Limites do incremento:** Services, cliente e todas as relações permanecem
-  inalterados. Evaluation mantém goal e grade e recebe apenas dataAvaliacao.
-  Não é acrescentada a classe AvaliacaoDaTurma nem uma
-  operação em Services para consulta pela GUI. O disparo automático será tratado
-  na revisão do agendamento.
+`Class.identificarPendencias()` consulta as metas da aba Avaliações em cada
+matrícula com `Enrollment.getEvaluationForGoal(meta)`. A ausência de registro
+gera uma pendência com o nome do aluno e a meta. MANA, MPA e MA contam como
+notas lançadas.
 
-Class consulta as avaliações de cada matrícula e usa o instante recebido para
-excluir as futuras. Nas avaliações já realizadas, uma nota vazia identifica
-pendência e zero é uma nota cadastrada válida. Identificar é uma consulta que
-preserva os dados e não solicita email ou registra tentativa de envio.
+No cenário, João está sem nota em Design e Tests. Maria tem MANA em Design e
+está sem nota em Tests. A consulta devolve essas três pendências e preserva as
+notas. O prazo acadêmico é verificado pelo processamento do lembrete antes de
+consultar as pendências para envio.
 
-| Registro do cenário, consultado em 25/08/2026 às 09:00 | Resultado |
-| --- | --- |
-| João sem nota na prova realizada em 20/08/2026 às 14:00 | Incluir essa pendência |
-| Maria com nota 0,0 na mesma prova | Não incluir pendência |
-| João sem nota no projeto previsto para 28/08/2026 às 14:00 | Excluir a avaliação futura |
-| Maria sem nota no mesmo projeto futuro | Excluir a avaliação futura |
-
-O cenário passa de Pendente para Regra central representada. A lista
-pendenciasRegistradas de uma Notificacao antiga preserva o histórico e não
-substitui a consulta das notas atuais. Os nomes e passos Gherkin são preservados;
-o processamento dos reenvios é coordenado pela entrada processarReenvios, descrita acima.
+A lista pendenciasRegistradas de uma Notificacao antiga preserva o histórico e
+não substitui a consulta das notas atuais. O processamento dos reenvios é
+coordenado pela entrada processarReenvios, descrita acima.
 As regras de Ignorado e Cancelado estão descritas nos incrementos acima.
 
 ## Percurso da consulta da configuração de lembretes

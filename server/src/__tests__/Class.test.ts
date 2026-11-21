@@ -148,3 +148,42 @@ describe('Configuração de lembretes da turma', () => {
     expect(turmaIP.obterConfiguracaoLembretes().listar()).toEqual([]); // A outra turma deve continuar sem lembretes.
   });
 });
+
+/**
+ * Teste unitário de Class para o cenário de identificação correta das notas pendentes.
+ * Verifica metas sem nota, conceitos já lançados e preservação dos dados consultados.
+ */
+describe('Identificação de notas pendentes da turma', () => {
+  test('identifica exatamente as metas sem nota nas matrículas', () => {
+    // Given: dois alunos matriculados e as notas já lançadas em cada meta.
+    const periodo = new PeriodoAcademico(2026, 2);
+    const turma = new Class('ESS', periodo, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA);
+    const joao = turma.addEnrollment(new Student('João da Silva', '12345678901', 'joao@example.test'));
+    const maria = turma.addEnrollment(new Student('Maria Souza', '98765432101', 'maria@example.test'));
+    const notasComuns = [
+      ['Requirements', 'MA'],
+      ['Configuration Management', 'MPA'],
+      ['Project Management', 'MANA'],
+      ['Refactoring', 'MA']
+    ] as const;
+
+    for (const [meta, conceito] of notasComuns) {
+      joao.addOrUpdateEvaluation(meta, conceito);
+      maria.addOrUpdateEvaluation(meta, conceito);
+    }
+
+    maria.addOrUpdateEvaluation('Design', 'MANA');
+    const dadosAntesDaConsulta = turma.toJSON();
+
+    // When: a turma consulta as metas que continuam sem nota.
+    const pendencias = turma.identificarPendencias();
+
+    // Then: Design de Maria está lançado, e Tests está pendente para ambos.
+    expect(pendencias).toEqual([
+      { nomeAluno: 'João da Silva', meta: 'Design' },
+      { nomeAluno: 'João da Silva', meta: 'Tests' },
+      { nomeAluno: 'Maria Souza', meta: 'Tests' }
+    ]);
+    expect(turma.toJSON()).toEqual(dadosAntesDaConsulta);
+  });
+});

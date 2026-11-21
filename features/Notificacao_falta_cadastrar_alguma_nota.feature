@@ -309,18 +309,20 @@ Feature: Notificações de pendências no lançamento de notas
 
   
    @service # //ok DDD (regra central)
-   # DDD: Class.identificarPendencias percorre as avaliações já registradas nas matrículas por listarAvaliacoes, usa dataAvaliacao para excluir futuras e buscarNota para identificar notas vazias; zero é válido e a consulta preserva os dados.
+   # DDD: Class consulta as metas da aba Avaliações nas matrículas e identifica as notas ainda ausentes.
    Scenario: Identificação correta das notas pendentes
       Given a turma "2026.2 de ESS" possui apenas os alunos matriculados "João da Silva" e "Maria Souza"
-      And a turma possui apenas as avaliações "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00", e "Projeto Teaching Assistant", prevista para "28/08/2026 às 14:00"
-      And "João da Silva" está sem nota cadastrada em "Prova de SOLID e Padrões de Projeto"
-      And "Maria Souza" possui nota "0,0" em "Prova de SOLID e Padrões de Projeto"
-      And "João da Silva" e "Maria Souza" ainda não possuem notas cadastradas em "Projeto Teaching Assistant"
-      When o serviço identifica as notas pendentes da turma "2026.2 de ESS" em "25/08/2026 às 09:00"
-      Then é identificada a pendência de "João da Silva" em "Prova de SOLID e Padrões de Projeto"
-      And a nota "0,0" de "Maria Souza" em "Prova de SOLID e Padrões de Projeto" não é considerada pendente
-      And nenhuma pendência de "Projeto Teaching Assistant" é identificada para "João da Silva" ou "Maria Souza"
-      And nenhuma outra pendência é identificada na turma "2026.2 de ESS"
+      And as notas registradas nas metas da aba Avaliações são
+         | Aluno         | Requirements | Configuration Management | Project Management | Design | Tests | Refactoring |
+         | João da Silva | MA           | MPA                      | MANA               |        |       | MA          |
+         | Maria Souza   | MA           | MPA                      | MANA               | MANA   |       | MA          |
+      When são identificadas as notas pendentes da turma "2026.2 de ESS"
+      Then a lista de pendências contém exatamente
+         | Aluno         | Meta   |
+         | João da Silva | Design |
+         | João da Silva | Tests  |
+         | Maria Souza   | Tests  |
+      And as notas registradas nas matrículas permanecem iguais
 
 
 

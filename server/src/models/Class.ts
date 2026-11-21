@@ -3,6 +3,7 @@ import { Enrollment } from './Enrollment';
 import { EspecificacaoDoCalculoDaMedia } from './EspecificacaoDoCalculoDaMedia';
 import { ConfiguracaoLembretes } from './ConfiguracaoLembretes';
 import { PeriodoAcademico } from './PeriodoAcademico';
+import { EVALUATION_GOALS } from './Evaluation';
 
 export class Class {
   private topic: string;
@@ -77,6 +78,17 @@ export class Class {
 
   prazoEncerrado(instanteAtual: Date): boolean {
     return this.periodoAcademico.prazoEncerrado(instanteAtual); // Reutiliza a regra do período, sem duplicar a comparação.
+  }
+
+  identificarPendencias(): { nomeAluno: string; meta: string }[] {
+    return this.enrollments.flatMap(matricula => {
+      const nomeAluno = matricula.getStudent().name;
+
+      // Percorre as metas esperadas, inclusive as que ainda não têm registro em nenhuma matrícula.
+      return EVALUATION_GOALS
+        .filter(meta => matricula.getEvaluationForGoal(meta) === undefined)
+        .map(meta => ({ nomeAluno, meta }));
+    });
   }
 
   // Enrollment management

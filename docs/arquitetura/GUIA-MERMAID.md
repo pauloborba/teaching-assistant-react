@@ -494,44 +494,19 @@ processamento automático e a concorrência continuam pendentes.
 
 ### Responsabilidades na identificação das notas pendentes
 
-O modelo mantém as notas dos alunos vinculadas às suas matrículas, no caminho
-Class, Enrolment e Evaluation. Foram aprovados
-`Class.identificarPendencias(instanteAtual)` e `Enrolment.buscarNota(avaliacao)`,
-seguidos de `Enrolment.listarAvaliacoes()` e `Evaluation.dataAvaliacao`.
-A consulta na Class utiliza as matrículas; as notas individuais continuam
-representadas sob Enrolment, pelas relações existentes com Evaluation.
+`Class.identificarPendencias()` consulta as metas da aba Avaliações em cada
+matrícula com `Enrollment.getEvaluationForGoal(meta)`. A ausência de registro
+gera uma pendência com o nome do aluno e a meta. MANA, MPA e MA contam como
+notas lançadas.
 
-Conforme a opção A confirmada pelo responsável, cada matrícula já contém os
-registros das avaliações, mesmo antes de o professor cadastrar as notas.
-`grade` vazio significa nota ainda não cadastrada; zero, inclusive 0,0, é uma nota
-válida. `listarAvaliacoes()` inclui os registros sem nota, e `dataAvaliacao`
-informa a data em que a avaliação ocorreu ou está prevista no cenário.
+No cenário, João está sem nota em Design e Tests. Maria tem MANA em Design e
+está sem nota em Tests. A consulta devolve essas três pendências e preserva as
+notas. O prazo acadêmico é verificado pelo processamento do lembrete antes de
+consultar as pendências para envio.
 
-`Class.identificarPendencias(instanteAtual)` consulta as avaliações de cada
-matrícula, exclui as futuras e consulta `buscarNota(avaliacao)` nas já realizadas.
-Apenas nota vazia em avaliação realizada gera uma pendência do aluno naquela
-avaliação. O resultado fica restrito às matrículas da turma consultada.
-
-Durante `NotificacaoService.processar(Lembrete)`, após os bloqueios de Enviado e
-prazo, o serviço consulta a Class já localizada por Classes e chama a identificação
-de pendências antes de solicitar email. O instante atual é o mesmo já obtido pelo
-serviço. A identificação fica no fluxo interno de processamento dos lembretes,
-sem acrescentar uma operação em Services ou exigir uma tela para o professor.
-
-No cenário consultado em 25/08/2026 às 09:00, apenas João gera pendência na prova
-realizada em 20/08/2026 às 14:00. Maria possui zero nessa prova e não gera
-pendência. O projeto previsto para 28/08/2026 às 14:00 é futuro e fica fora da
-verificação para ambos. Nenhuma outra pendência é devolvida.
-
-A identificação preserva notas, datas, matrículas, lembretes e histórico, sem
-solicitar email ou registrar tentativa. A regra central do cenário passa a estar
-representada. As pendências guardadas em uma Notificacao antiga são dados
-históricos e não substituem as notas atuais.
-
-Services, cliente e todas as relações são preservados. Evaluation mantém goal
-e grade e recebe apenas dataAvaliacao; Enrolment recebe listarAvaliacoes.
-Não é acrescentada AvaliacaoDaTurma. O mecanismo
-de disparo automático e a programação dos reenvios futuros continuam em revisão.
+As pendências guardadas em uma Notificacao antiga são dados históricos e não
+substituem as notas atuais. O mecanismo de disparo automático e a programação
+dos reenvios futuros continuam em revisão.
 O cancelamento dos reenvios está definido na seção correspondente abaixo.
 
 ### Lembrete ignorado por ausência de notas pendentes
