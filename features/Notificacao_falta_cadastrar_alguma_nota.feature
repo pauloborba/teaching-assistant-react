@@ -133,7 +133,7 @@ Feature: Notificações de pendências no lançamento de notas
       And a turma "2026.2 de ESS" possui um lembrete não enviado para "21/08/2026 às 09:00"
       When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
       And inicia a edição dos lembretes
-      And informa "3" como quantidade de lembretes
+      And adiciona 2 lembretes
       And define o primeiro lembrete para "25/08/2026 às 09:00"
       And define o segundo lembrete para "29/08/2026 às 14:00"
       And deixa o terceiro lembrete sem data e horário
@@ -169,56 +169,68 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
+   @lembretes-configuracao-gui
    @gui # //ok DDD (regra central)
-   # DDD: reagendar e a atualização completa preservam os lembretes Enviados.
+   # DDD: a GUI protege o agendamento de lembretes já enviados.
    Scenario: Bloqueio de alteração de lembrete já enviado
-      Given o professor "Paulo Borba" está na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada, pela qual é responsável
-      And a data atual é "22/08/2026 às 08:00"
+      Given a data atual é "22/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
       And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And a turma "2026.2 de ESS" possui um lembrete programado para "20/08/2026 às 09:00" com status "Enviado"
-      And a turma "2026.2 de ESS" possui outro lembrete programado para "28/08/2026 às 09:00" com status "Não enviado"
-      When "Paulo Borba" tenta alterar o lembrete enviado de "20/08/2026 às 09:00" para "24/08/2026 às 09:00"
-      And solicita salvar a configuração
-      Then "Paulo Borba" permanece na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada
-      And a alteração é rejeitada com a mensagem "Lembretes enviados não podem ser alterados"
-      And o lembrete de "20/08/2026 às 09:00" permanece com status "Enviado" e com seu agendamento original
-      And o lembrete de "28/08/2026 às 09:00" permanece com status "Não enviado" e com seu agendamento original
-      And nenhum lembrete é programado para "24/08/2026 às 09:00"
-      And o prazo acadêmico da turma permanece "31/08/2026 às 23:59"
+      And a turma "2026.2 de ESS" possui um lembrete enviado em "20/08/2026 às 09:00" e um não enviado para "28/08/2026 às 09:00"
+      When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
+      Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And o lembrete de "20/08/2026 às 09:00" aparece como "Enviado" com a edição bloqueada
+      And o lembrete pendente de "28/08/2026 às 09:00" continua editável
+      And o prazo acadêmico apresentado é "31/08/2026 às 23:59"
+      And a configuração gravada permanece igual à anterior
 
 
+   @lembretes-configuracao-gui
    @gui  # //ok DDD (regra central)
    # DDD: atualizar admite o conjunto ampliado válido, preservando os existentes; quantidade não é um novo atributo permanente.
    Scenario: Aumento da quantidade de lembretes configurados
-      Given o professor "Paulo Borba" está na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada, pela qual é responsável
-      And a data atual é "20/08/2026 às 08:00"
-      And o prazo acadêmico apresentado para a turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And a turma "2026.2 de ESS" possui "2" lembretes não enviados, programados para "25/08/2026 às 09:00" e "28/08/2026 às 09:00"
-      When "Paulo Borba" aumenta a quantidade de lembretes para "3"
-      And configura o novo lembrete para "29/08/2026 às 14:00"
+      Given a data atual é "20/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
+      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
+      And a turma "2026.2 de ESS" possui dois lembretes não enviados para "25/08/2026 às 09:00" e "28/08/2026 às 09:00"
+      When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
+      And adiciona 1 lembrete
+      And define o terceiro lembrete para "29/08/2026 às 14:00"
       And salva a configuração
-      Then "Paulo Borba" permanece na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada
-      And a tela apresenta a mensagem "Configuração salva com sucesso"
-      And a turma "2026.2 de ESS" apresenta "3" lembretes não enviados, programados para "25/08/2026 às 09:00", "28/08/2026 às 09:00" e "29/08/2026 às 14:00"
-      And o prazo acadêmico apresentado permanece "31/08/2026 às 23:59"
+      Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And a tela apresenta a confirmação "Configuração salva com sucesso"
+      And a quantidade de lembretes configurados é "3"
+      And o primeiro lembrete está programado para "25/08/2026 às 09:00"
+      And o segundo lembrete está programado para "28/08/2026 às 09:00"
+      And o terceiro lembrete está programado para "29/08/2026 às 14:00"
+      And o prazo acadêmico apresentado é "31/08/2026 às 23:59"
+      And os lembretes anteriores de "2026.2 de ESS" permanecem iguais e o único novo está não enviado para "29/08/2026 às 14:00"
 
 
+   @lembretes-configuracao-gui
    @gui # //ok DDD (regra central)
-   # DDD: remove e atualizar preservam os enviados e validam o total final.
+   # DDD: atualizar valida o conjunto restante e preserva os lembretes enviados.
    Scenario: Redução da quantidade de lembretes sem excluir envios realizados
-      Given o professor "Paulo Borba" está na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada, pela qual é responsável
-      And o prazo acadêmico apresentado para a turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And a turma "2026.2 de ESS" possui "3" lembretes, sendo um de "20/08/2026 às 09:00" com status "Enviado" e dois programados para "25/08/2026 às 09:00" e "28/08/2026 às 09:00" com status "Não enviado"
-      When "Paulo Borba" reduz a quantidade de lembretes para "2"
-      And remove o lembrete não enviado de "28/08/2026 às 09:00"
+      Given a data atual é "22/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
+      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
+      And a turma "2026.2 de ESS" possui um lembrete enviado em "20/08/2026 às 09:00" e dois não enviados para "25/08/2026 às 09:00" e "28/08/2026 às 09:00"
+      When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
+      And marca o lembrete de "25/08/2026 às 09:00" para remoção
       And salva a configuração
-      Then "Paulo Borba" permanece na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada
-      And a tela apresenta a mensagem "Configuração salva com sucesso"
-      And a turma "2026.2 de ESS" apresenta apenas "2" lembretes
-      And o lembrete de "20/08/2026 às 09:00" permanece registrado com status "Enviado"
-      And o lembrete de "25/08/2026 às 09:00" permanece programado com status "Não enviado"
-      And o lembrete de "28/08/2026 às 09:00" não é mais apresentado na configuração
-      And o prazo acadêmico apresentado permanece "31/08/2026 às 23:59"
+      Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And a tela apresenta a confirmação "Configuração salva com sucesso"
+      And a quantidade de lembretes configurados é "2"
+      And o primeiro lembrete está programado para "20/08/2026 às 09:00"
+      And o segundo lembrete está programado para "28/08/2026 às 09:00"
+      And o prazo acadêmico apresentado é "31/08/2026 às 23:59"
+      And somente o lembrete de "25/08/2026 às 09:00" é removido da configuração gravada da turma "2026.2 de ESS"
 
 
 
@@ -233,7 +245,7 @@ Feature: Notificações de pendências no lançamento de notas
       And a turma "2026.2 de ESS" possui um lembrete não enviado para "25/08/2026 às 09:00"
       When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
       And inicia a edição dos lembretes
-      And informa "2" como quantidade de lembretes
+      And adiciona 1 lembrete
       And define o segundo lembrete para "19/08/2026 às 09:00"
       And salva a configuração
       Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
@@ -249,66 +261,61 @@ Feature: Notificações de pendências no lançamento de notas
 
 
    @service # //parcial DDD
-   # DDD: Pendências, prazo, emailProfessor, registro, marcação Enviado e contrato de EmailSender estão representados; o comentário complementar sobre processar foi dispensado pelo responsável, sem exigir alteração estrutural; classificação mantida até a conclusão da revisão do cenário.
+   # DDD: o serviço consulta as pendências, envia o aviso e registra o resultado da tentativa.
    Scenario: Envio de lembrete com notas pendentes
-      Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
+      Given há um e-mail cadastrado para as turmas no endereço "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui os alunos matriculados "João da Silva" e "Maria Souza"
-      And a turma possui apenas as avaliações "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00", e "Projeto Teaching Assistant", realizado em "22/08/2026 às 14:00"
-      And "João da Silva" está sem nota em "Prova de SOLID e Padrões de Projeto" e possui nota "7,0" em "Projeto Teaching Assistant"
-      And "Maria Souza" possui nota "9,0" em "Prova de SOLID e Padrões de Projeto" e está sem nota em "Projeto Teaching Assistant"
-      And a turma "2026.2 de ESS" possui um lembrete não enviado, programado para "25/08/2026 às 09:00"
-      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And o serviço SMTP do "Gmail", utilizado pela biblioteca "Nodemailer", está disponível e aceita o envio
+      And as notas registradas nas metas da aba Avaliações são
+         | Aluno         | Requirements | Configuration Management | Project Management | Design | Tests | Refactoring |
+         | João da Silva | MA           | MA                       | MA                 |        |       | MA          |
+         | Maria Souza   | MANA         | MANA                     | MANA               | MANA   |       | MANA        |
+      And a turma possui um lembrete não enviado programado para "25/08/2026 às 09:00"
+      And o prazo acadêmico da turma é "31/08/2026 às 23:59"
+      And o serviço de e-mail aceita o envio
       When o serviço processa o lembrete da turma "2026.2 de ESS" em "25/08/2026 às 09:00"
-      Then um e-mail é aceito para envio ao professor "Paulo Borba", no endereço "paulo.borba@example.com"
-      And o e-mail identifica a turma "2026.2 de ESS" e o motivo "Notas pendentes"
-      And o e-mail informa que "João da Silva" está sem nota em "Prova de SOLID e Padrões de Projeto"
-      And o e-mail informa que "Maria Souza" está sem nota em "Projeto Teaching Assistant"
-      And nenhuma outra pendência é informada no e-mail
-      And o e-mail informa o prazo acadêmico "31/08/2026 às 23:59"
-      And a tentativa de envio de "25/08/2026 às 09:00" é registrada no histórico de "Paulo Borba" com status "Enviado"
-      And o lembrete de "25/08/2026 às 09:00" é contabilizado como enviado para a turma "2026.2 de ESS"
+      Then um e-mail com o assunto "Notas pendentes — 2026.2 de ESS" é aceito para "paulo.borba@example.com"
+      And o aviso informa "Design" e "Tests" para "João da Silva" e "Tests" para "Maria Souza"
+      And o aviso informa o prazo acadêmico "31/08/2026 às 23:59" em horário de Brasília
+      And a tentativa é registrada no histórico com status "Enviado"
+      And o lembrete é marcado como "Enviado" na configuração da turma
 
 
 
    @service # //ok DDD (regra central)
-   # DDD: Sem pendências, ignorar o Lembrete e registrar Notificacao Ignorado pelos métodos existentes, sem email ou nova tentativa; a última tentativa continua Enviado de 20/08 e o lembrete futuro de 29/08 permanece Não enviado, conforme a correção aprovada.
+   # DDD: Sem pendências, o processamento fica Ignorado e a última tentativa de envio é preservada.
    Scenario: Ausência de envio quando todas as notas foram cadastradas
-      Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
+      Given há um e-mail cadastrado para as turmas no endereço "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui apenas os alunos matriculados "João da Silva" e "Maria Souza"
-      And a turma possui apenas as avaliações "Prova de SOLID e Padrões de Projeto", realizada em "18/08/2026 às 14:00", e "Projeto Teaching Assistant", realizado em "19/08/2026 às 14:00"
-      And "João da Silva" possui nota "8,0" em "Prova de SOLID e Padrões de Projeto" e nota "7,0" em "Projeto Teaching Assistant"
-      And "Maria Souza" possui nota "9,0" em "Prova de SOLID e Padrões de Projeto" e nota "8,5" em "Projeto Teaching Assistant"
-      And as notas "8,0" de "João da Silva" e "8,5" de "Maria Souza" foram cadastradas em "24/08/2026 às 15:00"
-      And a turma possui lembretes programados para "20/08/2026 às 09:00", "25/08/2026 às 09:00" e "29/08/2026 às 09:00"
-      And o lembrete de "20/08/2026 às 09:00" possui status "Enviado" e é o último registro do histórico de envios
-      And os lembretes de "25/08/2026 às 09:00" e "29/08/2026 às 09:00" possuem status "Não enviado"
-      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      When o serviço processa o lembrete da turma "2026.2 de ESS" em "25/08/2026 às 09:00"      
-      Then nenhum e-mail de "Notas pendentes" é enviado para "paulo.borba@example.com"
-      And o lembrete de "25/08/2026 às 09:00" recebe o status "Ignorado" com o motivo "Nenhuma nota pendente"
-      And o histórico de processamento registra o lembrete de "25/08/2026 às 09:00" com status "Ignorado" e motivo "Nenhuma nota pendente"
-      And nenhuma nova tentativa de envio de e-mail é registrada
-      And a última tentativa de envio permanece sendo a de "20/08/2026 às 09:00", com status "Enviado"
-      And o lembrete de "29/08/2026 às 09:00" permanece com status "Não enviado"
-      And o prazo acadêmico da turma "2026.2 de ESS" permanece "31/08/2026 às 23:59"
+      And João possui "MA" e Maria possui "MANA" em todas as metas da aba Avaliações
+      And o lembrete de "20/08/2026 às 09:00" está "Enviado" e é a última tentativa de envio no histórico
+      And os lembretes de "25/08/2026 às 09:00" e "29/08/2026 às 09:00" estão "Não enviado"
+      And o prazo acadêmico da turma é "31/08/2026 às 23:59"
+      When o serviço processa o lembrete da turma "2026.2 de ESS" em "25/08/2026 às 09:00"
+      Then nenhum e-mail é solicitado ao transporte
+      And o lembrete de "25/08/2026 às 09:00" fica "Ignorado" com o motivo "Nenhuma nota pendente"
+      And o histórico registra o processamento como "Ignorado" com o motivo "Nenhuma nota pendente"
+      And a única tentativa de envio no histórico continua sendo a de "20/08/2026 às 09:00"
+      And o lembrete de "29/08/2026 às 09:00" permanece "Não enviado"
+      And o prazo acadêmico e as notas da turma permanecem iguais
 
 
 
   
    @service # //ok DDD (regra central)
-   # DDD: Class.identificarPendencias percorre as avaliações já registradas nas matrículas por listarAvaliacoes, usa dataAvaliacao para excluir futuras e buscarNota para identificar notas vazias; zero é válido e a consulta preserva os dados.
+   # DDD: Class consulta as metas da aba Avaliações nas matrículas e identifica as notas ainda ausentes.
    Scenario: Identificação correta das notas pendentes
       Given a turma "2026.2 de ESS" possui apenas os alunos matriculados "João da Silva" e "Maria Souza"
-      And a turma possui apenas as avaliações "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00", e "Projeto Teaching Assistant", prevista para "28/08/2026 às 14:00"
-      And "João da Silva" está sem nota cadastrada em "Prova de SOLID e Padrões de Projeto"
-      And "Maria Souza" possui nota "0,0" em "Prova de SOLID e Padrões de Projeto"
-      And "João da Silva" e "Maria Souza" ainda não possuem notas cadastradas em "Projeto Teaching Assistant"
-      When o serviço identifica as notas pendentes da turma "2026.2 de ESS" em "25/08/2026 às 09:00"
-      Then é identificada a pendência de "João da Silva" em "Prova de SOLID e Padrões de Projeto"
-      And a nota "0,0" de "Maria Souza" em "Prova de SOLID e Padrões de Projeto" não é considerada pendente
-      And nenhuma pendência de "Projeto Teaching Assistant" é identificada para "João da Silva" ou "Maria Souza"
-      And nenhuma outra pendência é identificada na turma "2026.2 de ESS"
+      And as notas registradas nas metas da aba Avaliações são
+         | Aluno         | Requirements | Configuration Management | Project Management | Design | Tests | Refactoring |
+         | João da Silva | MA           | MPA                      | MANA               |        |       | MA          |
+         | Maria Souza   | MA           | MPA                      | MANA               | MANA   |       | MA          |
+      When são identificadas as notas pendentes da turma "2026.2 de ESS"
+      Then a lista de pendências contém exatamente
+         | Aluno         | Meta   |
+         | João da Silva | Design |
+         | João da Silva | Tests  |
+         | Maria Souza   | Tests  |
+      And as notas registradas nas matrículas permanecem iguais
 
 
 

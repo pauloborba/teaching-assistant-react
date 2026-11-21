@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { app, classes, periodosAcademicos } from '../server';
 import { Class } from '../models/Class';
+import { Lembrete } from '../models/Lembrete';
 import { PeriodoAcademico } from '../models/PeriodoAcademico';
 import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from '../models/EspecificacaoDoCalculoDaMedia';
 
@@ -51,6 +52,44 @@ describe('API de configuração de lembretes', () => {
     expect(rejeitada.body.error).toBe('Data posterior ao prazo acadêmico');
     const consulta = await request(app).get(rota).expect(200);
     expect(consulta.body).toEqual(anterior.body);
+  });
+
+  test('rejeita a criação após o prazo e preserva o lembrete enviado', async () => {
+    // Given: o semestre já encerrou e a turma tem um único lembrete enviado.
+    jest.useFakeTimers({
+      now: new Date('2099-09-01T08:00:00-03:00'),
+      doNotFake: ['nextTick', 'setImmediate', 'clearImmediate', 'setTimeout', 'clearTimeout']
+    });
+
+    try {
+      const turma = classes.findClassById('ESS-2099-2');
+      if (!turma) throw new Error('Turma de teste não encontrada');
+
+      const agendamentoEnviado = proposta.lembretes[0];
+      const enviado = new Lembrete({ ...agendamentoEnviado, estado: 'Enviado' });
+      turma.obterConfiguracaoLembretes().add(enviado);
+
+      const anterior = await request(app).get(rota).expect(200);
+
+      // When: solicita um novo lembrete para as 09h de Brasília e mantém o enviado na proposta.
+      const rejeitada = await request(app).put(rota).send({
+        quantidade: 2,
+        lembretes: [
+          agendamentoEnviado,
+          { id: 'novo-apos-prazo', data: '2099-09-01', horario: '12:00' }
+        ]
+      });
+
+      // Then: a API rejeita a criação e devolve a mesma configuração na consulta seguinte.
+      expect(rejeitada.status).toBe(400);
+      expect(rejeitada.body.error).toBe('Prazo acadêmico encerrado');
+
+      const consulta = await request(app).get(rota).expect(200);
+      expect(consulta.body).toEqual(anterior.body);
+      expect(consulta.body.lembretes).toEqual([enviado.toJSON()]);
+    } finally {
+      jest.useRealTimers(); // Restaura o relógio mesmo se uma verificação falhar.
+    }
   });
 
   test('rejeita quantidade incompatível sem criar lembretes', async () => { // Mantém a mensagem prevista no cenário de preenchimento incompleto.

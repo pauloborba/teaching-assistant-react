@@ -35,6 +35,21 @@ export class ConfiguracaoLembretes {
     this.lembretes.splice(index, 1);
   }
 
+  marcarComoEnviado(id: string): void {
+    this.obterLembreteArmazenado(id).marcarComoEnviado();
+  }
+
+  ignorar(id: string, motivo: string): void {
+    this.obterLembreteArmazenado(id).ignorar(motivo);
+  }
+
+  private obterLembreteArmazenado(id: string): Lembrete {
+    // Atualiza a entidade guardada pela configuração. As buscas públicas devolvem cópias.
+    const lembrete = this.lembretes.find(item => item.getId() === id);
+    if (!lembrete) throw new Error('Lembrete não encontrado na configuração');
+    return lembrete;
+  }
+
   buscarLembretesPara(data: string, horario: string): Lembrete[] {
     return this.lembretes
       .filter(lembrete => lembrete.getData() === data && lembrete.getHorario() === horario)

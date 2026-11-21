@@ -7,8 +7,17 @@ import { join } from 'node:path';
 import { mock } from 'node:test';
 import { launch, type Browser, type Page } from 'puppeteer';
 import type { ConfiguracaoLembretes } from '../types/Reminder';
+import { Lembrete } from '../../../server/src/models/Lembrete';
+
+// Tipifica a busca da turma e a inserção de registros históricos no servidor de teste.
+interface ClassesDaApiDeTeste {
+  findClassById(id: string): {
+    obterConfiguracaoLembretes(): { add(lembrete: Lembrete): void };
+  } | undefined;
+}
 
 type TurmaDoCenario = {
+  id: string;
   topic: string;
   ano: string;
   semestre: string;
@@ -100,7 +109,7 @@ async function cadastrarTurmaDoCenario(nome: string): Promise<void> {
   const { id } = await resposta.json();
 
   turmasDoCenario.set(nome, {
-    topic, ano, semestre, rota: `/api/classes/${encodeURIComponent(id)}/lembretes`
+    id, topic, ano, semestre, rota: `/api/classes/${encodeURIComponent(id)}/lembretes`
   });
 }
 
@@ -257,10 +266,37 @@ When('informa {string} como quantidade de lembretes', (quantidade: string) =>
   preencher('#reminder-count', quantidade)
 );
 
-When(/^define o (primeiro|segundo) lembrete para "([^"]+)"$/, (ordem: string, data: string) => {
-  const indice = ordem === 'primeiro' ? 0 : 1;
-  return preencher(`#reminder-date-${indice}`, dataParaCampo(data));
+When('adiciona {int} lembrete(s)', async (quantidade: number) => {
+  for (let adicionado = 0; adicionado < quantidade; adicionado++) {
+    await clicar('Adicionar lembrete');
+  }
 });
+
+When('marca o lembrete de {string} para remoção', async (data: string) => {
+  const alvo = await pagina.waitForFunction((seletor, valor) => {
+    // Procura a linha pela data visível no formulário, mesmo se a posição mudar.
+    const linha = Array.from(document.querySelectorAll(seletor)).find(item =>
+      item.querySelector<HTMLInputElement>('input')?.value === valor
+    );
+    return Array.from(linha?.querySelectorAll('button') ?? []).find(botao =>
+      !botao.disabled && botao.textContent?.trim() === 'Remover'
+    );
+  }, {}, `${telaLembretes} .reminder-edit-row`, dataParaCampo(data));
+
+  const elemento = alvo.asElement();
+  assert(elemento);
+  const botao = await elemento.toElement('button');
+  await botao.click();
+});
+
+// Os campos usam índices a partir de zero; a lista do resumo usa posições a partir de um.
+const indicesDosLembretes = { primeiro: 0, segundo: 1, terceiro: 2 };
+type OrdemLembrete = keyof typeof indicesDosLembretes;
+
+When(/^define o (primeiro|segundo|terceiro) lembrete para "([^"]+)"$/,
+  (ordem: OrdemLembrete, data: string) =>
+    preencher(`#reminder-date-${indicesDosLembretes[ordem]}`, dataParaCampo(data))
+);
 
 When('salva a configuração', () => clicar('Salvar configuração'));
 
@@ -278,10 +314,12 @@ Then('a quantidade de lembretes configurados é {string}', (quantidade: string) 
   conferirTexto('#saved-reminders-title + p', `Quantidade de lembretes: ${quantidade}`)
 );
 
-Then(/^o (primeiro|segundo) lembrete está programado para "([^"]+)"$/, (ordem: string, data: string) => {
-  const posicao = ordem === 'primeiro' ? 1 : 2;
-  return conferirTexto(`${telaLembretes} ol li:nth-child(${posicao})`, data);
-});
+Then(/^o (primeiro|segundo|terceiro) lembrete está programado para "([^"]+)"$/,
+  (ordem: OrdemLembrete, data: string) => {
+    const posicao = indicesDosLembretes[ordem] + 1;
+    return conferirTexto(`${telaLembretes} ol li:nth-child(${posicao})`, data);
+  }
+);
 
 Then('o prazo acadêmico apresentado é {string}', (prazo: string) =>
   conferirTexto(`${telaLembretes} > p:nth-of-type(2) > strong`, prazo)
@@ -294,6 +332,51 @@ Given('a turma {string} possui um lembrete não enviado para {string}',
 Given('a turma {string} possui dois lembretes não enviados para {string} e {string}',
   (turma: string, primeiraData: string, segundaData: string) =>
     prepararLembretes(turma, [primeiraData, segundaData])
+);
+
+async function prepararLembretesComEnvio(
+  nome: string,
+  dataEnviada: string,
+  datasPendentes: string[]
+): Promise<void> {
+  const turma = obterTurmaDoCenario(nome);
+
+  // Usa o servidor isolado do cenário para preparar um envio que já ocorreu.
+  const { classes } = require('../../../server/src/server') as { classes: ClassesDaApiDeTeste };
+  const turmaNoServidor = classes.findClassById(turma.id);
+  assert(turmaNoServidor, `Turma não encontrada no servidor de teste: ${nome}`);
+
+  const configuracao = turmaNoServidor.obterConfiguracaoLembretes();
+  const registros = [
+    { dataLocal: dataEnviada, estado: 'Enviado' as const },
+    ...datasPendentes.map(dataLocal => ({ dataLocal, estado: 'Não enviado' as const }))
+  ];
+
+  registros.forEach(({ dataLocal, estado }, indice) => {
+    const instante = new Date(dataParaCampo(dataLocal)).toISOString();
+    configuracao.add(new Lembrete({
+      id: `lembrete-existente-${indice + 1}`,
+      data: instante.slice(0, 10),
+      horario: instante.slice(11, 16),
+      estado
+    }));
+  });
+
+  // Guarda os registros iniciais para a comparação pela API no Then.
+  const resposta = await requisitar('GET', turma.rota, 200);
+  turma.anterior = await resposta.json();
+}
+
+Given(
+  'a turma {string} possui um lembrete enviado em {string} e dois não enviados para {string} e {string}',
+  (nome: string, dataEnviada: string, primeiraPendente: string, segundaPendente: string) =>
+    prepararLembretesComEnvio(nome, dataEnviada, [primeiraPendente, segundaPendente])
+);
+
+Given(
+  'a turma {string} possui um lembrete enviado em {string} e um não enviado para {string}',
+  (nome: string, dataEnviada: string, dataPendente: string) =>
+    prepararLembretesComEnvio(nome, dataEnviada, [dataPendente])
 );
 
 When('deixa o terceiro lembrete sem data e horário', async () => {
@@ -312,6 +395,29 @@ Then('a configuração gravada permanece igual à anterior', async () => {
   assert(anterior);
   const resposta = await requisitar('GET', rota, 200);
   assert.deepEqual(await resposta.json(), anterior);
+});
+
+Then('o lembrete de {string} aparece como {string} com a edição bloqueada',
+  async (data: string, estado: string) => {
+    await pagina.waitForFunction((seletor, valor, estadoEsperado) =>
+      Array.from(document.querySelectorAll(seletor)).some(linha => {
+        const campo = linha.querySelector<HTMLInputElement>('input[type="datetime-local"]');
+        const acao = linha.querySelector('.reminder-row-actions');
+
+        // Confere a data bloqueada, o estado exibido e a ausência da ação Remover na mesma linha.
+        return campo?.value === valor && campo.disabled &&
+          acao?.textContent?.trim() === estadoEsperado && !acao.querySelector('button');
+      }),
+    {}, `${telaLembretes} .reminder-edit-row`, dataParaCampo(data), estado);
+  }
+);
+
+Then('o lembrete pendente de {string} continua editável', async (data: string) => {
+  // Procura a data entre os campos que a interface permite editar.
+  await pagina.waitForFunction((seletor, valor) =>
+    Array.from(document.querySelectorAll<HTMLInputElement>(seletor))
+      .some(campo => campo.value === valor),
+  {}, `${telaLembretes} .reminder-edit-row input:enabled`, dataParaCampo(data));
 });
 
 Then(
@@ -336,5 +442,48 @@ Then(
 
     const respostaOutra = await requisitar('GET', outra.rota, 200);
     assert.deepEqual(await respostaOutra.json(), outra.anterior);
+  }
+);
+
+Then(
+  'os lembretes anteriores de {string} permanecem iguais e o único novo está não enviado para {string}',
+  async (nome: string, data: string) => {
+    const { rota, anterior } = obterTurmaDoCenario(nome);
+    assert(anterior);
+
+    const resposta = await requisitar('GET', rota, 200);
+    const atual: ConfiguracaoLembretes = await resposta.json();
+    assert.equal(atual.lembretes.length, anterior.lembretes.length + 1);
+
+    // Compara os registros anteriores inteiros, incluindo IDs, datas e estados.
+    assert.deepEqual(atual.lembretes.slice(0, -1), anterior.lembretes);
+
+    const novo = atual.lembretes[atual.lembretes.length - 1];
+    const instante = new Date(dataParaCampo(data)).toISOString();
+    assert(anterior.lembretes.every(lembrete => lembrete.id !== novo.id));
+    assert.equal(novo.estado, 'Não enviado');
+    assert.equal(novo.data, instante.slice(0, 10));
+    assert.equal(novo.horario, instante.slice(11, 16));
+  }
+);
+
+Then('somente o lembrete de {string} é removido da configuração gravada da turma {string}',
+  async (data: string, nome: string) => {
+    const { rota, anterior } = obterTurmaDoCenario(nome);
+    assert(anterior);
+
+    const instante = new Date(dataParaCampo(data)).toISOString();
+    const removido = anterior.lembretes.find(lembrete =>
+      lembrete.data === instante.slice(0, 10) && lembrete.horario === instante.slice(11, 16)
+    );
+    assert(removido);
+
+    const resposta = await requisitar('GET', rota, 200);
+
+    // Confere que saiu exatamente o ID escolhido e que os outros registros ficaram intactos.
+    assert.deepEqual(await resposta.json(), {
+      ...anterior,
+      lembretes: anterior.lembretes.filter(lembrete => lembrete.id !== removido.id)
+    });
   }
 );

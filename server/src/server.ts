@@ -4,6 +4,7 @@ import { StudentSet } from './models/StudentSet';
 import { Student } from './models/Student';
 import { Evaluation } from './models/Evaluation';
 import { Classes } from './models/Classes';
+import { HistoricoNotificacoes } from './models/HistoricoNotificacoes';
 import { Class } from './models/Class';
 import { Report } from './models/Report';
 import { PeriodoAcademico } from './models/PeriodoAcademico';
@@ -31,6 +32,7 @@ app.use(express.json());
 // In-memory storage with file persistence
 const studentSet = new StudentSet();
 const classes = new Classes();
+const historicoLembretes = new HistoricoNotificacoes(); // Histórico das turmas, separado do fluxo de grupos.
 const periodosAcademicos = new Map<string, PeriodoAcademico>(); // Mantém um período por identificação, como 2026.2, mesmo sem turmas cadastradas.
 const dataFile = path.resolve('./data/app-data.json');
 
@@ -57,6 +59,7 @@ const saveDataToFile = (
 ): boolean => { // Grava a proposta antes de alterar períodos ou lembretes em memória.
   try {
     const data = {
+      historicoLembretes: historicoLembretes.toJSON(),
       emailDasTurmas: classes.obterEmailDasTurmas(), // Grava um único endereço no mesmo JSON das turmas e dos alunos.
       periodosAcademicos: Array.from(periodosParaSalvar.values()).map(periodo => ({
         ano: periodo.getAno(),
@@ -100,6 +103,7 @@ const loadDataFromFile = (): void => {
     if (fs.existsSync(dataFile)) {
       const fileContent = fs.readFileSync(dataFile, 'utf-8');
       const data = JSON.parse(fileContent);
+      historicoLembretes.restaurar(data.historicoLembretes);
       if (data.emailDasTurmas != null) {
         classes.definirEmailDasTurmas(data.emailDasTurmas); // Recupera o contato quando ele existe no arquivo.
       }
@@ -742,7 +746,7 @@ const services = new Services();
 app.use('/api', grupoRoutes(services));
 
 // Export the app for testing
-export { app, studentSet, classes, periodosAcademicos, services };
+export { app, studentSet, classes, periodosAcademicos, services, historicoLembretes, saveDataToFile };
 
 // Only start the server if this file is run directly (not imported for testing)
 if (require.main === module) {
