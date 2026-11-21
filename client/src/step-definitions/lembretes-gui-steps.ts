@@ -334,37 +334,49 @@ Given('a turma {string} possui dois lembretes não enviados para {string} e {str
     prepararLembretes(turma, [primeiraData, segundaData])
 );
 
+async function prepararLembretesComEnvio(
+  nome: string,
+  dataEnviada: string,
+  datasPendentes: string[]
+): Promise<void> {
+  const turma = obterTurmaDoCenario(nome);
+
+  // Usa o servidor isolado do cenário para preparar um envio que já ocorreu.
+  const { classes } = require('../../../server/src/server') as { classes: ClassesDaApiDeTeste };
+  const turmaNoServidor = classes.findClassById(turma.id);
+  assert(turmaNoServidor, `Turma não encontrada no servidor de teste: ${nome}`);
+
+  const configuracao = turmaNoServidor.obterConfiguracaoLembretes();
+  const registros = [
+    { dataLocal: dataEnviada, estado: 'Enviado' as const },
+    ...datasPendentes.map(dataLocal => ({ dataLocal, estado: 'Não enviado' as const }))
+  ];
+
+  registros.forEach(({ dataLocal, estado }, indice) => {
+    const instante = new Date(dataParaCampo(dataLocal)).toISOString();
+    configuracao.add(new Lembrete({
+      id: `lembrete-existente-${indice + 1}`,
+      data: instante.slice(0, 10),
+      horario: instante.slice(11, 16),
+      estado
+    }));
+  });
+
+  // Guarda os registros iniciais para a comparação pela API no Then.
+  const resposta = await requisitar('GET', turma.rota, 200);
+  turma.anterior = await resposta.json();
+}
+
 Given(
   'a turma {string} possui um lembrete enviado em {string} e dois não enviados para {string} e {string}',
-  async (nome: string, dataEnviada: string, primeiraPendente: string, segundaPendente: string) => {
-    const turma = obterTurmaDoCenario(nome);
+  (nome: string, dataEnviada: string, primeiraPendente: string, segundaPendente: string) =>
+    prepararLembretesComEnvio(nome, dataEnviada, [primeiraPendente, segundaPendente])
+);
 
-    // Reutiliza a instância isolada que o hook Before iniciou para este cenário.
-    const { classes } = require('../../../server/src/server') as { classes: ClassesDaApiDeTeste };
-    const turmaNoServidor = classes.findClassById(turma.id);
-    assert(turmaNoServidor, `Turma não encontrada no servidor de teste: ${nome}`);
-
-    const configuracao = turmaNoServidor.obterConfiguracaoLembretes();
-    const registros = [
-      { dataLocal: dataEnviada, estado: 'Enviado' },
-      { dataLocal: primeiraPendente, estado: 'Não enviado' },
-      { dataLocal: segundaPendente, estado: 'Não enviado' }
-    ] as const;
-
-    registros.forEach(({ dataLocal, estado }, indice) => {
-      const instante = new Date(dataParaCampo(dataLocal)).toISOString();
-      configuracao.add(new Lembrete({
-        id: `lembrete-existente-${indice + 1}`,
-        data: instante.slice(0, 10),
-        horario: instante.slice(11, 16),
-        estado
-      }));
-    });
-
-    // Guarda a configuração inicial para comparar os registros após a redução.
-    const resposta = await requisitar('GET', turma.rota, 200);
-    turma.anterior = await resposta.json();
-  }
+Given(
+  'a turma {string} possui um lembrete enviado em {string} e um não enviado para {string}',
+  (nome: string, dataEnviada: string, dataPendente: string) =>
+    prepararLembretesComEnvio(nome, dataEnviada, [dataPendente])
 );
 
 When('deixa o terceiro lembrete sem data e horário', async () => {
@@ -383,6 +395,29 @@ Then('a configuração gravada permanece igual à anterior', async () => {
   assert(anterior);
   const resposta = await requisitar('GET', rota, 200);
   assert.deepEqual(await resposta.json(), anterior);
+});
+
+Then('o lembrete de {string} aparece como {string} com a edição bloqueada',
+  async (data: string, estado: string) => {
+    await pagina.waitForFunction((seletor, valor, estadoEsperado) =>
+      Array.from(document.querySelectorAll(seletor)).some(linha => {
+        const campo = linha.querySelector<HTMLInputElement>('input[type="datetime-local"]');
+        const acao = linha.querySelector('.reminder-row-actions');
+
+        // Confere a data bloqueada, o estado exibido e a ausência da ação Remover na mesma linha.
+        return campo?.value === valor && campo.disabled &&
+          acao?.textContent?.trim() === estadoEsperado && !acao.querySelector('button');
+      }),
+    {}, `${telaLembretes} .reminder-edit-row`, dataParaCampo(data), estado);
+  }
+);
+
+Then('o lembrete pendente de {string} continua editável', async (data: string) => {
+  // Procura a data entre os campos que a interface permite editar.
+  await pagina.waitForFunction((seletor, valor) =>
+    Array.from(document.querySelectorAll<HTMLInputElement>(seletor))
+      .some(campo => campo.value === valor),
+  {}, `${telaLembretes} .reminder-edit-row input:enabled`, dataParaCampo(data));
 });
 
 Then(

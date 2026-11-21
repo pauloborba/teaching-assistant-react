@@ -169,22 +169,22 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
+   @lembretes-configuracao-gui
    @gui # //ok DDD (regra central)
-   # DDD: reagendar e a atualização completa preservam os lembretes Enviados.
+   # DDD: a GUI protege o agendamento de lembretes já enviados.
    Scenario: Bloqueio de alteração de lembrete já enviado
-      Given o professor "Paulo Borba" está na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada, pela qual é responsável
-      And a data atual é "22/08/2026 às 08:00"
+      Given a data atual é "22/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
       And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And a turma "2026.2 de ESS" possui um lembrete programado para "20/08/2026 às 09:00" com status "Enviado"
-      And a turma "2026.2 de ESS" possui outro lembrete programado para "28/08/2026 às 09:00" com status "Não enviado"
-      When "Paulo Borba" tenta alterar o lembrete enviado de "20/08/2026 às 09:00" para "24/08/2026 às 09:00"
-      And solicita salvar a configuração
-      Then "Paulo Borba" permanece na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada
-      And a alteração é rejeitada com a mensagem "Lembretes enviados não podem ser alterados"
-      And o lembrete de "20/08/2026 às 09:00" permanece com status "Enviado" e com seu agendamento original
-      And o lembrete de "28/08/2026 às 09:00" permanece com status "Não enviado" e com seu agendamento original
-      And nenhum lembrete é programado para "24/08/2026 às 09:00"
-      And o prazo acadêmico da turma permanece "31/08/2026 às 23:59"
+      And a turma "2026.2 de ESS" possui um lembrete enviado em "20/08/2026 às 09:00" e um não enviado para "28/08/2026 às 09:00"
+      When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
+      Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And o lembrete de "20/08/2026 às 09:00" aparece como "Enviado" com a edição bloqueada
+      And o lembrete pendente de "28/08/2026 às 09:00" continua editável
+      And o prazo acadêmico apresentado é "31/08/2026 às 23:59"
+      And a configuração gravada permanece igual à anterior
 
 
    @lembretes-configuracao-gui
