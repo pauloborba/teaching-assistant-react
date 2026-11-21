@@ -143,6 +143,7 @@ namespace Servidor {
   }
   class Notificacao {
     id
+    lembreteId
     nomeDestinatario
     turmaRegistrada
     dataHora
@@ -493,6 +494,9 @@ HistoricoNotificacoes <-- NotificacaoService
 %% Um reenvio gera outra Notificacao para o mesmo Lembrete, preservando a anterior.
 %% IDENTIDADE E CONTEXTO DO REGISTRO: cada Notificacao tem id próprio, estável e distinto a cada registro.
 %% O id da Notificacao não é o id do Lembrete nem a combinação de turma, data e horário.
+%% Notificacao.lembreteId representa a origem do processamento pelo identificador do Lembrete.
+%% Cada tentativa tem seu próprio id de Notificacao e pode compartilhar o mesmo lembreteId.
+%% O prazo e as pendências ficam guardados com os valores do aviso.
 %% Registros com a mesma data e horário continuam distintos; formato e geração técnica do id não são fixados aqui.
 %% nomeDestinatario preserva o professor destinatário do lembrete, inclusive quando o processamento não solicita envio.
 %% turmaRegistrada preserva a identificação textual da turma naquele processamento, como 2026.2 de ESS.
