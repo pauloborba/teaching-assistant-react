@@ -15,6 +15,9 @@ type DependenciasLembretes = {
  * envio a EmailSender e registra o resultado em HistoricoNotificacoes.
  */
 export class NotificacaoService {
+  private pararVerificacao?: () => void;
+  private verificacaoEmAndamento = false;
+
   constructor(
     private readonly historico: HistoricoNotificacoes,
     private readonly emailSender: EmailSender,
@@ -82,6 +85,56 @@ export class NotificacaoService {
     };
   }
 
+  iniciarVerificacaoDeLembretes(): () => void {
+    if (this.pararVerificacao) return this.pararVerificacao;
+    if (!this.lembretes) throw new Error('Processamento de lembretes não configurado');
+
+    const executar = async () => {
+      // Se um envio ainda estiver em andamento, a próxima verificação espera outro ciclo.
+      if (this.verificacaoEmAndamento) return;
+      this.verificacaoEmAndamento = true;
+
+      try {
+        await this.processarLembretesAteAgora();
+      } catch (erro) {
+        console.error('Erro ao verificar lembretes:', erro);
+      } finally {
+        this.verificacaoEmAndamento = false;
+      }
+    };
+
+    const intervalo = setInterval(() => void executar(), 30_000);
+    const parar = () => {
+      if (this.pararVerificacao !== parar) return;
+      clearInterval(intervalo);
+      this.pararVerificacao = undefined;
+    };
+
+    this.pararVerificacao = parar;
+    void executar(); // Já verifica os lembretes atrasados ao iniciar.
+    return parar;
+  }
+
+  async processarLembretesAteAgora(): Promise<Notificacao[]> {
+    const dependencias = this.lembretes;
+    if (!dependencias) throw new Error('Processamento de lembretes não configurado');
+
+    const limiteDaVerificacao = Date.now();
+    const registros: Notificacao[] = [];
+
+    for (const turma of dependencias.classes.getAllClasses()) {
+      for (const lembrete of turma.obterConfiguracaoLembretes().listar()) {
+        // A comparação inclui agendamentos anteriores ao início da verificação.
+        if (lembrete.getAgendamento().getTime() > limiteDaVerificacao) continue;
+
+        const registro = await this.processar(turma, lembrete, dependencias);
+        if (registro) registros.push(registro);
+      }
+    }
+
+    return registros;
+  }
+
   async processarAgendados(turmaId: string, data: string, horario: string): Promise<Notificacao[]> {
     const dependencias = this.lembretes;
     if (!dependencias) throw new Error('Processamento de lembretes não configurado');
@@ -119,22 +172,22 @@ export class NotificacaoService {
     const prazoAcademico = turma.getPrazoAcademico();
     if (prazoAcademico === null || turma.prazoEncerrado(instanteAtual)) return null;
 
+    const turmaRegistrada = NotificacaoService.nomeDaTurma(turma);
+    const lembreteId = lembrete.getId();
+
+    // A varredura cuida do primeiro envio. Tentativas anteriores seguem a regra de reenvio.
+    const temTentativaAnterior = this.historico.listar().some(registro =>
+      registro.turmaRegistrada === turmaRegistrada &&
+      registro.lembreteId === lembreteId &&
+      (registro.resultado === 'Falha' || registro.resultado === 'Enviado')
+    );
+    if (temTentativaAnterior) return null;
+
     const destinatario = dependencias.classes.obterEmailDasTurmas();
     if (destinatario === null) throw new Error('Cadastre um e-mail para as turmas');
 
     const mensagem = NotificacaoService.montarEmailNotasPendentes(turma, destinatario, prazoAcademico);
     if (mensagem === null) {
-      const turmaRegistrada = NotificacaoService.nomeDaTurma(turma);
-      const lembreteId = lembrete.getId();
-
-      // Um lembrete com tentativa anterior será tratado pelo fluxo de reenvio.
-      const temTentativaAnterior = this.historico.listar().some(registro =>
-        registro.turmaRegistrada === turmaRegistrada &&
-        registro.lembreteId === lembreteId &&
-        (registro.resultado === 'Falha' || registro.resultado === 'Enviado')
-      );
-      if (temTentativaAnterior) return null;
-
       const motivo = 'Nenhuma nota pendente';
       turma.obterConfiguracaoLembretes().ignorar(lembreteId, motivo);
 

@@ -153,4 +153,107 @@ describe('Processamento do lembrete de notas pendentes', () => {
     ]);
     expect(turma.toJSON()).toEqual(dadosAntes);
   });
+
+  test.each([true, false])(
+    'processa o atrasado ao iniciar e aguarda o próximo horário, com aceitação inicial %s',
+    async (aceito) => {
+      // Given: o servidor inicia às 08h59min45s com um lembrete atrasado e outro para 09h.
+      jest.useFakeTimers({ now: new Date('2026-08-25T08:59:45-03:00') });
+      const prazo = new Date('2026-08-31T23:59:00-03:00');
+      const classes = new Classes();
+      classes.definirEmailDasTurmas('paulo.borba@example.com');
+
+      const turma = classes.addClass(new Class(
+        'ESS', new PeriodoAcademico(2026, 2, prazo), DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA
+      ));
+      turma.addEnrollment(new Student('João da Silva', '12345678901', 'joao@example.test'));
+      const configuracao = turma.obterConfiguracaoLembretes();
+      configuracao.add(new Lembrete({ id: 'atrasado', data: '2026-08-25', horario: '11:58' }));
+      configuracao.add(new Lembrete({ id: 'na-hora', data: '2026-08-25', horario: '12:00' }));
+
+      const encerrada = classes.addClass(new Class(
+        'IP',
+        new PeriodoAcademico(2026, 1, new Date('2026-08-24T23:59:00-03:00')),
+        DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA
+      ));
+      encerrada.addEnrollment(new Student('Maria Souza', '98765432101', 'maria@example.test'));
+      encerrada.obterConfiguracaoLembretes().add(
+        new Lembrete({ id: 'prazo-encerrado', data: '2026-08-24', horario: '12:00' })
+      );
+
+      const historico = new HistoricoNotificacoes();
+      const send = jest.fn()
+        .mockResolvedValueOnce(aceito ? { aceito: true } : { aceito: false, descricaoFalha: 'Falha temporária' })
+        .mockResolvedValue({ aceito: true });
+      const servico = new NotificacaoService(historico, new EmailSenderSimulado(), {
+        classes, emailSender: { send }
+      });
+
+      // When: executa a verificação inicial e avança por mais dois ciclos.
+      const parar = servico.iniciarVerificacaoDeLembretes();
+      try {
+        await jest.advanceTimersByTimeAsync(0);
+        const aoIniciar = historico.listar().map(registro => registro.lembreteId);
+
+        await jest.advanceTimersByTimeAsync(29_999);
+        const antesDaVerificacao = historico.listar().map(registro => registro.lembreteId);
+
+        await jest.advanceTimersByTimeAsync(1);
+        const depoisDaVerificacao = historico.listar().map(registro => registro.lembreteId);
+
+        await jest.advanceTimersByTimeAsync(30_000);
+
+        // Then: o vencido entra na primeira verificação, o de 09h aguarda e o prazo encerrado bloqueia.
+        expect(aoIniciar).toEqual(['atrasado']);
+        expect(antesDaVerificacao).toEqual(['atrasado']);
+        expect(depoisDaVerificacao).toEqual(['atrasado', 'na-hora']);
+        expect(historico.listar().map(registro => registro.resultado))
+          .toEqual([aceito ? 'Enviado' : 'Falha', 'Enviado']);
+        expect(send).toHaveBeenCalledTimes(2);
+        expect(encerrada.obterConfiguracaoLembretes().listar()[0].getEstado()).toBe('Não enviado');
+      } finally {
+        parar();
+      }
+    }
+  );
+
+  test('mantém uma única verificação por vez e permite encerrá-la', async () => {
+    // Given: a primeira verificação fica em andamento por mais de um intervalo.
+    jest.useFakeTimers();
+    const servico = new NotificacaoService(
+      new HistoricoNotificacoes(),
+      new EmailSenderSimulado(),
+      { classes: new Classes(), emailSender: { send: jest.fn() } }
+    );
+    let concluir = () => {};
+    const pendente = new Promise<Notificacao[]>(resolve => {
+      concluir = () => resolve([]);
+    });
+    const verificar = jest.spyOn(servico, 'processarLembretesAteAgora')
+      .mockReturnValueOnce(pendente)
+      .mockResolvedValue([]);
+
+    // When: inicia duas vezes, deixa passar dois ciclos e conclui a primeira execução.
+    const parar = servico.iniciarVerificacaoDeLembretes();
+    const pararSegundaChamada = servico.iniciarVerificacaoDeLembretes();
+    try {
+      await jest.advanceTimersByTimeAsync(60_000);
+      const chamadasEnquantoOcupado = verificar.mock.calls.length;
+
+      concluir();
+      await jest.advanceTimersByTimeAsync(30_000);
+      const chamadasDepoisDeConcluir = verificar.mock.calls.length;
+
+      parar();
+      await jest.advanceTimersByTimeAsync(30_000);
+
+      // Then: as duas partidas compartilham o intervalo, sem sobreposição.
+      expect(pararSegundaChamada).toBe(parar);
+      expect(chamadasEnquantoOcupado).toBe(1);
+      expect(chamadasDepoisDeConcluir).toBe(2);
+      expect(verificar).toHaveBeenCalledTimes(2);
+    } finally {
+      parar();
+    }
+  });
 });

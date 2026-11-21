@@ -130,6 +130,8 @@ namespace Servidor {
     programarReenvio(dataHora)
   }
   class NotificacaoService["NotificaçãoService"] {
+    iniciarVerificacaoDeLembretes()
+    processarLembretesAteAgora()
     montarEmailNotasPendentes(turma, destinatario, prazoAcademico)
     processar(turma, Lembrete, dependencias)
     processarAgendados(turmaId, data, horario)
@@ -291,6 +293,9 @@ HistoricoNotificacoes <-- NotificacaoService
 
 %% ENTRADA POR AGENDAMENTO: processarAgendados usa a turma indicada, acessível por Classes,
 %% e consulta sua ConfiguracaoLembretes por buscarLembretesPara(data, horario).
+%% NotificacaoService verifica os agendamentos ao iniciar e a cada 30 segundos.
+%% Cada instância do serviço mantém um único intervalo e executa uma verificação por vez.
+%% processarLembretesAteAgora seleciona os horários alcançados. O envio continua sujeito ao prazo acadêmico.
 %% Se a lista estiver vazia, rejeitar a solicitação por inexistência de lembrete para a turma e o agendamento.
 %% Preservar turma, prazo, configuração, lembretes e histórico; não solicitar email nem registrar tentativa.
 %% Se houver correspondências, coordenar processar(turma, Lembrete, dependencias) para cada uma, mantendo as verificações dessa operação.
