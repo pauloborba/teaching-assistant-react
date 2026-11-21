@@ -7,8 +7,17 @@ import { join } from 'node:path';
 import { mock } from 'node:test';
 import { launch, type Browser, type Page } from 'puppeteer';
 import type { ConfiguracaoLembretes } from '../types/Reminder';
+import { Lembrete } from '../../../server/src/models/Lembrete';
+
+// Tipifica a busca da turma e a inserção de registros históricos no servidor de teste.
+interface ClassesDaApiDeTeste {
+  findClassById(id: string): {
+    obterConfiguracaoLembretes(): { add(lembrete: Lembrete): void };
+  } | undefined;
+}
 
 type TurmaDoCenario = {
+  id: string;
   topic: string;
   ano: string;
   semestre: string;
@@ -100,7 +109,7 @@ async function cadastrarTurmaDoCenario(nome: string): Promise<void> {
   const { id } = await resposta.json();
 
   turmasDoCenario.set(nome, {
-    topic, ano, semestre, rota: `/api/classes/${encodeURIComponent(id)}/lembretes`
+    id, topic, ano, semestre, rota: `/api/classes/${encodeURIComponent(id)}/lembretes`
   });
 }
 
@@ -302,6 +311,39 @@ Given('a turma {string} possui dois lembretes não enviados para {string} e {str
     prepararLembretes(turma, [primeiraData, segundaData])
 );
 
+Given(
+  'a turma {string} possui um lembrete enviado em {string} e dois não enviados para {string} e {string}',
+  async (nome: string, dataEnviada: string, primeiraPendente: string, segundaPendente: string) => {
+    const turma = obterTurmaDoCenario(nome);
+
+    // Reutiliza a instância isolada que o hook Before iniciou para este cenário.
+    const { classes } = require('../../../server/src/server') as { classes: ClassesDaApiDeTeste };
+    const turmaNoServidor = classes.findClassById(turma.id);
+    assert(turmaNoServidor, `Turma não encontrada no servidor de teste: ${nome}`);
+
+    const configuracao = turmaNoServidor.obterConfiguracaoLembretes();
+    const registros = [
+      { dataLocal: dataEnviada, estado: 'Enviado' },
+      { dataLocal: primeiraPendente, estado: 'Não enviado' },
+      { dataLocal: segundaPendente, estado: 'Não enviado' }
+    ] as const;
+
+    registros.forEach(({ dataLocal, estado }, indice) => {
+      const instante = new Date(dataParaCampo(dataLocal)).toISOString();
+      configuracao.add(new Lembrete({
+        id: `lembrete-existente-${indice + 1}`,
+        data: instante.slice(0, 10),
+        horario: instante.slice(11, 16),
+        estado
+      }));
+    });
+
+    // Guarda a configuração inicial para comparar os registros após a redução.
+    const resposta = await requisitar('GET', turma.rota, 200);
+    turma.anterior = await resposta.json();
+  }
+);
+
 When('deixa o terceiro lembrete sem data e horário', async () => {
   // Confere que o campo foi criado e que permanece vazio antes do envio.
   await pagina.waitForFunction(() =>
@@ -364,5 +406,20 @@ Then(
     assert.equal(novo.estado, 'Não enviado');
     assert.equal(novo.data, instante.slice(0, 10));
     assert.equal(novo.horario, instante.slice(11, 16));
+  }
+);
+
+Then('somente o último lembrete de {string} é removido da configuração gravada',
+  async (nome: string) => {
+    const { rota, anterior } = obterTurmaDoCenario(nome);
+    assert(anterior);
+
+    const resposta = await requisitar('GET', rota, 200);
+
+    // Preserva os registros restantes por inteiro, inclusive o estado Enviado.
+    assert.deepEqual(await resposta.json(), {
+      ...anterior,
+      lembretes: anterior.lembretes.slice(0, -1)
+    });
   }
 );

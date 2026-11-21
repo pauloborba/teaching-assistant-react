@@ -211,22 +211,26 @@ Feature: Notificações de pendências no lançamento de notas
       And os lembretes anteriores de "2026.2 de ESS" permanecem iguais e o único novo está não enviado para "29/08/2026 às 14:00"
 
 
+   @lembretes-configuracao-gui
    @gui # //ok DDD (regra central)
-   # DDD: remove e atualizar preservam os enviados e validam o total final.
+   # DDD: atualizar valida o conjunto restante e preserva os lembretes enviados.
    Scenario: Redução da quantidade de lembretes sem excluir envios realizados
-      Given o professor "Paulo Borba" está na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada, pela qual é responsável
-      And o prazo acadêmico apresentado para a turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And a turma "2026.2 de ESS" possui "3" lembretes, sendo um de "20/08/2026 às 09:00" com status "Enviado" e dois programados para "25/08/2026 às 09:00" e "28/08/2026 às 09:00" com status "Não enviado"
-      When "Paulo Borba" reduz a quantidade de lembretes para "2"
-      And remove o lembrete não enviado de "28/08/2026 às 09:00"
+      Given a data atual é "22/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
+      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
+      And a turma "2026.2 de ESS" possui um lembrete enviado em "20/08/2026 às 09:00" e dois não enviados para "25/08/2026 às 09:00" e "28/08/2026 às 09:00"
+      When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
+      And informa "2" como quantidade de lembretes
       And salva a configuração
-      Then "Paulo Borba" permanece na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada
-      And a tela apresenta a mensagem "Configuração salva com sucesso"
-      And a turma "2026.2 de ESS" apresenta apenas "2" lembretes
-      And o lembrete de "20/08/2026 às 09:00" permanece registrado com status "Enviado"
-      And o lembrete de "25/08/2026 às 09:00" permanece programado com status "Não enviado"
-      And o lembrete de "28/08/2026 às 09:00" não é mais apresentado na configuração
-      And o prazo acadêmico apresentado permanece "31/08/2026 às 23:59"
+      Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And a tela apresenta a confirmação "Configuração salva com sucesso"
+      And a quantidade de lembretes configurados é "2"
+      And o primeiro lembrete está programado para "20/08/2026 às 09:00"
+      And o segundo lembrete está programado para "25/08/2026 às 09:00"
+      And o prazo acadêmico apresentado é "31/08/2026 às 23:59"
+      And somente o último lembrete de "2026.2 de ESS" é removido da configuração gravada
 
 
 
