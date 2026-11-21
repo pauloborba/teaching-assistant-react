@@ -257,10 +257,14 @@ When('informa {string} como quantidade de lembretes', (quantidade: string) =>
   preencher('#reminder-count', quantidade)
 );
 
-When(/^define o (primeiro|segundo) lembrete para "([^"]+)"$/, (ordem: string, data: string) => {
-  const indice = ordem === 'primeiro' ? 0 : 1;
-  return preencher(`#reminder-date-${indice}`, dataParaCampo(data));
-});
+// Os campos usam índices a partir de zero; a lista do resumo usa posições a partir de um.
+const indicesDosLembretes = { primeiro: 0, segundo: 1, terceiro: 2 };
+type OrdemLembrete = keyof typeof indicesDosLembretes;
+
+When(/^define o (primeiro|segundo|terceiro) lembrete para "([^"]+)"$/,
+  (ordem: OrdemLembrete, data: string) =>
+    preencher(`#reminder-date-${indicesDosLembretes[ordem]}`, dataParaCampo(data))
+);
 
 When('salva a configuração', () => clicar('Salvar configuração'));
 
@@ -278,10 +282,12 @@ Then('a quantidade de lembretes configurados é {string}', (quantidade: string) 
   conferirTexto('#saved-reminders-title + p', `Quantidade de lembretes: ${quantidade}`)
 );
 
-Then(/^o (primeiro|segundo) lembrete está programado para "([^"]+)"$/, (ordem: string, data: string) => {
-  const posicao = ordem === 'primeiro' ? 1 : 2;
-  return conferirTexto(`${telaLembretes} ol li:nth-child(${posicao})`, data);
-});
+Then(/^o (primeiro|segundo|terceiro) lembrete está programado para "([^"]+)"$/,
+  (ordem: OrdemLembrete, data: string) => {
+    const posicao = indicesDosLembretes[ordem] + 1;
+    return conferirTexto(`${telaLembretes} ol li:nth-child(${posicao})`, data);
+  }
+);
 
 Then('o prazo acadêmico apresentado é {string}', (prazo: string) =>
   conferirTexto(`${telaLembretes} > p:nth-of-type(2) > strong`, prazo)
@@ -336,5 +342,27 @@ Then(
 
     const respostaOutra = await requisitar('GET', outra.rota, 200);
     assert.deepEqual(await respostaOutra.json(), outra.anterior);
+  }
+);
+
+Then(
+  'os lembretes anteriores de {string} permanecem iguais e o único novo está não enviado para {string}',
+  async (nome: string, data: string) => {
+    const { rota, anterior } = obterTurmaDoCenario(nome);
+    assert(anterior);
+
+    const resposta = await requisitar('GET', rota, 200);
+    const atual: ConfiguracaoLembretes = await resposta.json();
+    assert.equal(atual.lembretes.length, anterior.lembretes.length + 1);
+
+    // Compara os registros anteriores inteiros, incluindo IDs, datas e estados.
+    assert.deepEqual(atual.lembretes.slice(0, -1), anterior.lembretes);
+
+    const novo = atual.lembretes[atual.lembretes.length - 1];
+    const instante = new Date(dataParaCampo(data)).toISOString();
+    assert(anterior.lembretes.every(lembrete => lembrete.id !== novo.id));
+    assert.equal(novo.estado, 'Não enviado');
+    assert.equal(novo.data, instante.slice(0, 10));
+    assert.equal(novo.horario, instante.slice(11, 16));
   }
 );

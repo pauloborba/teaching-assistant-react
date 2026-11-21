@@ -187,20 +187,28 @@ Feature: Notificações de pendências no lançamento de notas
       And o prazo acadêmico da turma permanece "31/08/2026 às 23:59"
 
 
+   @lembretes-configuracao-gui
    @gui  # //ok DDD (regra central)
    # DDD: atualizar admite o conjunto ampliado válido, preservando os existentes; quantidade não é um novo atributo permanente.
    Scenario: Aumento da quantidade de lembretes configurados
-      Given o professor "Paulo Borba" está na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada, pela qual é responsável
-      And a data atual é "20/08/2026 às 08:00"
-      And o prazo acadêmico apresentado para a turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And a turma "2026.2 de ESS" possui "2" lembretes não enviados, programados para "25/08/2026 às 09:00" e "28/08/2026 às 09:00"
-      When "Paulo Borba" aumenta a quantidade de lembretes para "3"
-      And configura o novo lembrete para "29/08/2026 às 14:00"
+      Given a data atual é "20/08/2026 às 08:00"
+      And há um e-mail válido cadastrado em "E-mail para as turmas"
+      And o professor "Paulo Borba" está na tela "Turmas", onde possui acesso à turma "2026.2 de ESS", pela qual é responsável
+      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
+      And a turma "2026.2 de ESS" possui dois lembretes não enviados para "25/08/2026 às 09:00" e "28/08/2026 às 09:00"
+      When "Paulo Borba" acessa a tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And inicia a edição dos lembretes
+      And informa "3" como quantidade de lembretes
+      And define o terceiro lembrete para "29/08/2026 às 14:00"
       And salva a configuração
-      Then "Paulo Borba" permanece na tela "Configuração de lembretes" com a turma "2026.2 de ESS" selecionada
-      And a tela apresenta a mensagem "Configuração salva com sucesso"
-      And a turma "2026.2 de ESS" apresenta "3" lembretes não enviados, programados para "25/08/2026 às 09:00", "28/08/2026 às 09:00" e "29/08/2026 às 14:00"
-      And o prazo acadêmico apresentado permanece "31/08/2026 às 23:59"
+      Then "Paulo Borba" permanece na tela "Configuração de lembretes" da turma "2026.2 de ESS"
+      And a tela apresenta a confirmação "Configuração salva com sucesso"
+      And a quantidade de lembretes configurados é "3"
+      And o primeiro lembrete está programado para "25/08/2026 às 09:00"
+      And o segundo lembrete está programado para "28/08/2026 às 09:00"
+      And o terceiro lembrete está programado para "29/08/2026 às 14:00"
+      And o prazo acadêmico apresentado é "31/08/2026 às 23:59"
+      And os lembretes anteriores de "2026.2 de ESS" permanecem iguais e o único novo está não enviado para "29/08/2026 às 14:00"
 
 
    @gui # //ok DDD (regra central)
