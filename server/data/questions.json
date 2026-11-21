@@ -1,0 +1,56 @@
+{
+  "questions": [
+    {
+      "code": "876ed9bb-f16e-40b3-8a1f-6b612ef8cbf2",
+      "subject": "Gerência de configuração",
+      "statement": "quais comandos dão conflito",
+      "alternatives": [
+        {
+          "text": "merge",
+          "isTrue": true
+        },
+        {
+          "text": "cherry-pick",
+          "isTrue": true
+        },
+        {
+          "text": "log",
+          "isTrue": true
+        }
+      ]
+    },
+    {
+      "code": "5381b396-5528-4d2b-bfb0-ba2a98f94640",
+      "subject": "Requisitos",
+      "statement": "1",
+      "alternatives": [
+        {
+          "text": "1",
+          "isTrue": true
+        }
+      ]
+    },
+    {
+      "code": "f83f38ab-541d-4d0e-ad6a-3da79c0b83f0",
+      "subject": "Requisitos",
+      "statement": "22",
+      "alternatives": [
+        {
+          "text": "2",
+          "isTrue": true
+        }
+      ]
+    },
+    {
+      "code": "b89d5a1a-5ca2-4e19-9494-87ed82b9ab3b",
+      "subject": "Gerência de configuração",
+      "statement": "123",
+      "alternatives": [
+        {
+          "text": "123",
+          "isTrue": true
+        }
+      ]
+    }
+  ]
+}

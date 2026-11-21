@@ -3,7 +3,8 @@ import { Question } from '../models/Question';
 import { QuestionBank } from '../models/QuestionBank';
 
 export function questionRoutes(
-    questionBank: QuestionBank
+  questionBank: QuestionBank,
+  onQuestionsChanged: () => void
 ): Router {
     const router = Router();
 
@@ -18,7 +19,7 @@ export function questionRoutes(
 
     // POST /api/questions
     router.post('/', (req, res) => {
-        const { subject, statement, alternatives} = req.body ?? {};
+        const { subject, statement, alternatives } = req.body ?? {};
 
         const question = new Question(
             subject,
@@ -27,6 +28,9 @@ export function questionRoutes(
         );
 
         const addedQuestion = questionBank.addQuestion(question);
+
+        // Solicita a persistência após um cadastro válido
+        onQuestionsChanged();
 
         res.status(201).json(addedQuestion.toJSON());
     });

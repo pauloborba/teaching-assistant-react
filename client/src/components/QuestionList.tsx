@@ -36,7 +36,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                         {alternative.isTrue ? 'Verdadeira' : 'Falsa'}
                                     </li>
                                 ))}
-                            </ul>
+                            </ul>3
                         </article>
                     ))}
                 </div>

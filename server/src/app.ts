@@ -11,13 +11,18 @@ import { gradeImportRoutes } from './routes/gradeImport';
 import { errorHandler } from './routes/HttpError';
 import { QuestionBank } from './models/QuestionBank';
 import { questionRoutes } from './routes/questions';
-
+import { ExamBank } from './models/ExamBank';
+import { examRoutes } from './routes/exams';
+ 
 /** Everything the HTTP application needs, injected by the composition root. */
 export interface AppDependencies {
   students: StudentSet;
   classes: Classes;
   repository: AppStateRepository;
   questionBank: QuestionBank;
+  onQuestionsChanged: () => void;
+  examBank: ExamBank;
+  onExamsChanged: () => void;
 }
 
 /**
@@ -28,7 +33,7 @@ export interface AppDependencies {
  * Persistence is deferred (setImmediate) so that responses are not delayed
  * by disk access.
  */
-export function createApp({ students, classes, repository, questionBank }: AppDependencies): Express {
+export function createApp({ students, classes, repository, questionBank, onQuestionsChanged, examBank, onExamsChanged }: AppDependencies): Express {
   const app = express();
   app.use(cors());
   app.use(express.json());
@@ -42,7 +47,8 @@ export function createApp({ students, classes, repository, questionBank }: AppDe
   app.use('/api/classes', enrollmentRoutes(classes, students, onStateChanged));
   app.use('/api/classes', reportRoutes(classes));
   app.use('/api/classes', gradeImportRoutes());
-  app.use('/api/questions', questionRoutes(questionBank));
+  app.use('/api/questions', questionRoutes(questionBank, onQuestionsChanged));
+  app.use('/api/exams', examRoutes(examBank, onExamsChanged));
   app.use(errorHandler);
 
   return app;
