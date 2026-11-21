@@ -109,6 +109,7 @@ namespace Servidor {
     add(Lembrete)
     remove(Lembrete)
     marcarComoEnviado(id)
+    ignorar(id, motivo)
     atualizar(quantidade, lembretesPropostos, instanteAtual, prazoAcademico)
     possuiAgendamentosPendentesApos(novoPrazo) boolean
     buscarLembretesPara(data, horario) Lembrete[]
@@ -356,6 +357,8 @@ HistoricoNotificacoes <-- NotificacaoService
 %% No primeiro processamento desse lembrete, sem tentativa anterior, o serviço usa a relação NotificacaoService --> Lembrete para chamar ignorar(Nenhuma nota pendente)
 %% no lembrete ainda aguardando envio, sem solicitar email ou registrar uma Notificacao de tentativa.
 %% Lembrete.ignorar(motivo) muda estado para Ignorado e guarda o motivo recebido no atributo motivo.
+%% ConfiguracaoLembretes.ignorar(id, motivo) localiza o lembrete da turma e delega a transição a Lembrete.ignorar(motivo).
+%% processarAgendados retorna os registros do processamento. Apenas Enviado e Falha contam como tentativas de envio.
 %% A operação preserva id, data e horário; não consulta notas ou relógio, não envia email e não registra histórico.
 %% No caso Ignorado, motivo de Lembrete e de Notificacao guardam Nenhuma nota pendente.
 %% Nas tentativas Enviado/Falha, Notificacao.motivo mantém o propósito do aviso.

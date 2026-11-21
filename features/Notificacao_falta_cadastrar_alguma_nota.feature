@@ -282,26 +282,21 @@ Feature: Notificações de pendências no lançamento de notas
 
 
    @service # //ok DDD (regra central)
-   # DDD: Sem pendências, ignorar o Lembrete e registrar Notificacao Ignorado pelos métodos existentes, sem email ou nova tentativa; a última tentativa continua Enviado de 20/08 e o lembrete futuro de 29/08 permanece Não enviado, conforme a correção aprovada.
+   # DDD: Sem pendências, o processamento fica Ignorado e a última tentativa de envio é preservada.
    Scenario: Ausência de envio quando todas as notas foram cadastradas
-      Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
+      Given há um e-mail cadastrado para as turmas no endereço "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui apenas os alunos matriculados "João da Silva" e "Maria Souza"
-      And a turma possui apenas as avaliações "Prova de SOLID e Padrões de Projeto", realizada em "18/08/2026 às 14:00", e "Projeto Teaching Assistant", realizado em "19/08/2026 às 14:00"
-      And "João da Silva" possui nota "8,0" em "Prova de SOLID e Padrões de Projeto" e nota "7,0" em "Projeto Teaching Assistant"
-      And "Maria Souza" possui nota "9,0" em "Prova de SOLID e Padrões de Projeto" e nota "8,5" em "Projeto Teaching Assistant"
-      And as notas "8,0" de "João da Silva" e "8,5" de "Maria Souza" foram cadastradas em "24/08/2026 às 15:00"
-      And a turma possui lembretes programados para "20/08/2026 às 09:00", "25/08/2026 às 09:00" e "29/08/2026 às 09:00"
-      And o lembrete de "20/08/2026 às 09:00" possui status "Enviado" e é o último registro do histórico de envios
-      And os lembretes de "25/08/2026 às 09:00" e "29/08/2026 às 09:00" possuem status "Não enviado"
-      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      When o serviço processa o lembrete da turma "2026.2 de ESS" em "25/08/2026 às 09:00"      
-      Then nenhum e-mail de "Notas pendentes" é enviado para "paulo.borba@example.com"
-      And o lembrete de "25/08/2026 às 09:00" recebe o status "Ignorado" com o motivo "Nenhuma nota pendente"
-      And o histórico de processamento registra o lembrete de "25/08/2026 às 09:00" com status "Ignorado" e motivo "Nenhuma nota pendente"
-      And nenhuma nova tentativa de envio de e-mail é registrada
-      And a última tentativa de envio permanece sendo a de "20/08/2026 às 09:00", com status "Enviado"
-      And o lembrete de "29/08/2026 às 09:00" permanece com status "Não enviado"
-      And o prazo acadêmico da turma "2026.2 de ESS" permanece "31/08/2026 às 23:59"
+      And João possui "MA" e Maria possui "MANA" em todas as metas da aba Avaliações
+      And o lembrete de "20/08/2026 às 09:00" está "Enviado" e é a última tentativa de envio no histórico
+      And os lembretes de "25/08/2026 às 09:00" e "29/08/2026 às 09:00" estão "Não enviado"
+      And o prazo acadêmico da turma é "31/08/2026 às 23:59"
+      When o serviço processa o lembrete da turma "2026.2 de ESS" em "25/08/2026 às 09:00"
+      Then nenhum e-mail é solicitado ao transporte
+      And o lembrete de "25/08/2026 às 09:00" fica "Ignorado" com o motivo "Nenhuma nota pendente"
+      And o histórico registra o processamento como "Ignorado" com o motivo "Nenhuma nota pendente"
+      And a única tentativa de envio no histórico continua sendo a de "20/08/2026 às 09:00"
+      And o lembrete de "29/08/2026 às 09:00" permanece "Não enviado"
+      And o prazo acadêmico e as notas da turma permanecem iguais
 
 
 

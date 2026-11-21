@@ -36,11 +36,18 @@ export class ConfiguracaoLembretes {
   }
 
   marcarComoEnviado(id: string): void {
+    this.obterLembreteArmazenado(id).marcarComoEnviado();
+  }
+
+  ignorar(id: string, motivo: string): void {
+    this.obterLembreteArmazenado(id).ignorar(motivo);
+  }
+
+  private obterLembreteArmazenado(id: string): Lembrete {
+    // Atualiza a entidade guardada pela configuração. As buscas públicas devolvem cópias.
     const lembrete = this.lembretes.find(item => item.getId() === id);
     if (!lembrete) throw new Error('Lembrete não encontrado na configuração');
-
-    // Atualiza o registro da turma. As consultas continuam devolvendo cópias.
-    lembrete.marcarComoEnviado();
+    return lembrete;
   }
 
   buscarLembretesPara(data: string, horario: string): Lembrete[] {

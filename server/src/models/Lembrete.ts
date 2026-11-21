@@ -17,7 +17,7 @@ export class Lembrete {
   private data: string; // Data UTC no formato YYYY-MM-DD; a conversão do horário local pertence à fronteira da aplicação.
   private horario: string; // Horário UTC no formato HH:mm, com a mesma precisão dos campos atuais da GUI.
   private estado: EstadoLembrete;
-  private readonly motivo: string | null;
+  private motivo: string | null;
   private proximoReenvioEm: Date | null;
 
   constructor(registro: RegistroLembrete) {
@@ -62,6 +62,17 @@ export class Lembrete {
 
     this.estado = 'Enviado';
     this.proximoReenvioEm = null; // A aceitação do envio encerra o reenvio programado.
+  }
+
+  ignorar(motivo: string): void {
+    if ((this.estado !== 'Não enviado' && this.estado !== 'Agendado') ||
+      this.proximoReenvioEm !== null) {
+      throw new Error('Somente lembretes aguardando o primeiro envio podem ser ignorados');
+    }
+
+    // Encerra o lembrete com o motivo do processamento, preservando ID, data e horário.
+    this.estado = 'Ignorado';
+    this.motivo = motivo;
   }
 
   getAgendamento(): Date {

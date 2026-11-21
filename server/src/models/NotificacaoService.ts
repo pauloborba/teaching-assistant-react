@@ -21,6 +21,10 @@ export class NotificacaoService {
     private readonly lembretes?: DependenciasLembretes
   ) {}
 
+  private static nomeDaTurma(turma: Class): string {
+    return `${turma.getYear()}.${turma.getSemester()} de ${turma.getTopic()}`;
+  }
+
   static montarEmailNotasPendentes(
     turma: Class,
     destinatario: string,
@@ -47,7 +51,7 @@ export class NotificacaoService {
       }
     }
 
-    const nomeTurma = `${turma.getYear()}.${turma.getSemester()} de ${turma.getTopic()}`;
+    const nomeTurma = NotificacaoService.nomeDaTurma(turma);
     const fuso = 'America/Sao_Paulo';
 
     // Formata o instante do prazo no horário de Brasília, independentemente do fuso do servidor.
@@ -89,13 +93,13 @@ export class NotificacaoService {
     const agendados = turma.obterConfiguracaoLembretes().buscarLembretesPara(data, horario);
     if (agendados.length === 0) throw new Error('Não existe lembrete para o agendamento informado');
 
-    const tentativas: Notificacao[] = [];
+    const registros: Notificacao[] = [];
     for (const lembrete of agendados) {
-      const tentativa = await this.processar(turma, lembrete, dependencias);
-      if (tentativa) tentativas.push(tentativa);
+      const registro = await this.processar(turma, lembrete, dependencias);
+      if (registro) registros.push(registro);
     }
 
-    return tentativas;
+    return registros;
   }
 
   private async processar(
@@ -119,7 +123,33 @@ export class NotificacaoService {
     if (destinatario === null) throw new Error('Cadastre um e-mail para as turmas');
 
     const mensagem = NotificacaoService.montarEmailNotasPendentes(turma, destinatario, prazoAcademico);
-    if (mensagem === null) return null;
+    if (mensagem === null) {
+      const turmaRegistrada = NotificacaoService.nomeDaTurma(turma);
+      const lembreteId = lembrete.getId();
+
+      // Um lembrete com tentativa anterior será tratado pelo fluxo de reenvio.
+      const temTentativaAnterior = this.historico.listar().some(registro =>
+        registro.turmaRegistrada === turmaRegistrada &&
+        registro.lembreteId === lembreteId &&
+        (registro.resultado === 'Falha' || registro.resultado === 'Enviado')
+      );
+      if (temTentativaAnterior) return null;
+
+      const motivo = 'Nenhuma nota pendente';
+      turma.obterConfiguracaoLembretes().ignorar(lembreteId, motivo);
+
+      // Ignorado registra o processamento sem contar como tentativa de envio.
+      const registro = new Notificacao(
+        this.historico.proximoId(),
+        destinatario,
+        { lembreteId, turmaRegistrada, prazoRegistrado: prazoAcademico, pendenciasRegistradas: [] },
+        instanteAtual,
+        'Ignorado',
+        motivo
+      );
+      this.historico.registrar(registro);
+      return registro;
+    }
 
     const resultado = await dependencias.emailSender.send(
       mensagem.destinatario, mensagem.assunto, mensagem.conteudo
