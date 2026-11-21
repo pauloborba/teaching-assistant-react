@@ -8,6 +8,56 @@ describe('Lembrete', () => {
   const instanteAtual = new Date('2026-08-20T08:00:00.000Z'); // Relógio fornecido pelo teste, independente do dia em que for executado.
   const prazo = new Date('2026-08-31T23:59:00.000Z'); // Limite usado somente nestes exemplos, sem definir um prazo fixo na aplicação.
 
+  // Cobre a transição de estado após a aceitação do e-mail.
+  test.each(['Não enviado', 'Agendado'] as const)(
+    'marca um lembrete %s como enviado e limpa o reenvio',
+    estado => {
+      const lembrete = new Lembrete({
+        id: 'primeiro',
+        data: '2026-08-25',
+        horario: '12:00',
+        estado,
+        motivo: 'Notas pendentes',
+        proximoReenvioEm: new Date('2026-08-25T12:01:00.000Z')
+      });
+      const anterior = lembrete.toJSON();
+
+      lembrete.marcarComoEnviado();
+
+      expect(lembrete.toJSON()).toEqual({
+        ...anterior,
+        estado: 'Enviado',
+        proximoReenvioEm: null
+      });
+    }
+  );
+
+  test('preserva o registro quando o lembrete já é enviado', () => {
+    const lembrete = new Lembrete({
+      id: 'primeiro', data: '2026-08-25', horario: '12:00', estado: 'Enviado'
+    });
+    const anterior = lembrete.toJSON();
+
+    lembrete.marcarComoEnviado();
+
+    expect(lembrete.toJSON()).toEqual(anterior);
+  });
+
+  test.each(['Ignorado', 'Cancelado'] as const)(
+    'rejeita marcar um lembrete %s como enviado',
+    estado => {
+      const lembrete = new Lembrete({
+        id: 'primeiro', data: '2026-08-25', horario: '12:00', estado
+      });
+      const anterior = lembrete.toJSON();
+
+      // Uma transição rejeitada preserva integralmente o registro.
+      expect(() => lembrete.marcarComoEnviado())
+        .toThrow('Lembrete neste estado não pode ser marcado como enviado');
+      expect(lembrete.toJSON()).toEqual(anterior);
+    }
+  );
+
   test('reagenda um lembrete pendente preservando sua identidade e estado', () => { // Regra do cenário de alteração de lembrete futuro.
     const lembrete = Lembrete.criar({ id: 'primeiro', data: '2026-08-25', horario: '09:00' }, instanteAtual, prazo);
 

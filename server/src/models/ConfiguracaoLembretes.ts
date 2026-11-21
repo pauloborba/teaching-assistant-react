@@ -35,6 +35,14 @@ export class ConfiguracaoLembretes {
     this.lembretes.splice(index, 1);
   }
 
+  marcarComoEnviado(id: string): void {
+    const lembrete = this.lembretes.find(item => item.getId() === id);
+    if (!lembrete) throw new Error('Lembrete não encontrado na configuração');
+
+    // Atualiza o registro da turma. As consultas continuam devolvendo cópias.
+    lembrete.marcarComoEnviado();
+  }
+
   buscarLembretesPara(data: string, horario: string): Lembrete[] {
     return this.lembretes
       .filter(lembrete => lembrete.getData() === data && lembrete.getHorario() === horario)

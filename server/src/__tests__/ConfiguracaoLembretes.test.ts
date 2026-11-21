@@ -11,6 +11,32 @@ describe('ConfiguracaoLembretes', () => {
   const primeiro: LembreteProposto = { id: 'primeiro', data: '2026-08-25', horario: '09:00' };
   const segundo: LembreteProposto = { id: 'segundo', data: '2026-08-29', horario: '14:00' };
 
+  test('marca como enviado apenas o lembrete do ID informado', () => {
+    const configuracao = new ConfiguracaoLembretes([
+      new Lembrete(primeiro), new Lembrete(segundo)
+    ]);
+    const anterior = configuracao.toJSON();
+    const [copia] = configuracao.buscarLembretesPara(primeiro.data, primeiro.horario);
+
+    configuracao.marcarComoEnviado(primeiro.id);
+
+    // O registro armazenado muda. A cópia e o segundo lembrete preservam os valores.
+    expect(configuracao.toJSON()).toEqual([
+      { ...anterior[0], estado: 'Enviado' },
+      anterior[1]
+    ]);
+    expect(copia.toJSON()).toEqual(anterior[0]);
+  });
+
+  test('rejeita marcar um ID inexistente sem alterar a configuração', () => {
+    const configuracao = new ConfiguracaoLembretes([new Lembrete(primeiro)]);
+    const anterior = configuracao.toJSON();
+
+    expect(() => configuracao.marcarComoEnviado('inexistente'))
+      .toThrow('Lembrete não encontrado na configuração');
+    expect(configuracao.toJSON()).toEqual(anterior);
+  });
+
   test('configura dois lembretes e deriva a quantidade da lista', () => { // Regra central do cenário de configuração da quantidade, datas e horários.
     const configuracao = new ConfiguracaoLembretes();
 

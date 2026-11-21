@@ -108,6 +108,7 @@ namespace Servidor {
   class ConfiguracaoLembretes {
     add(Lembrete)
     remove(Lembrete)
+    marcarComoEnviado(id)
     atualizar(quantidade, lembretesPropostos, instanteAtual, prazoAcademico)
     possuiAgendamentosPendentesApos(novoPrazo) boolean
     buscarLembretesPara(data, horario) Lembrete[]
@@ -370,6 +371,8 @@ HistoricoNotificacoes <-- NotificacaoService
 %% Rejeitar a marcação em Ignorado, Cancelado ou outra condição não admitida, sem modificar o Lembrete.
 %% Ao passar para Enviado, a operação também esvazia proximoReenvioEm, retirando o reenvio pendente.
 %% Preservar motivo, id, data e horário; não enviar email, registrar Notificacao ou programar outro reenvio.
+%% ConfiguracaoLembretes.marcarComoEnviado(id) localiza o lembrete armazenado e delega a transição à entidade.
+%% A marcação atualiza o registro da turma. listar e buscarLembretesPara devolvem cópias para consulta.
 %% Após aceitação do email, NotificacaoService coordena registrar uma nova Notificacao Enviado
 %% e chamar marcarComoEnviado no mesmo Lembrete.
 %% Se uma tentativa válida falhar, o serviço coordena registrar uma nova Notificacao Falha,
