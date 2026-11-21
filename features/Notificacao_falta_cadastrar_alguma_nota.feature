@@ -261,25 +261,23 @@ Feature: Notificações de pendências no lançamento de notas
 
 
    @service # //parcial DDD
-   # DDD: Pendências, prazo, emailProfessor, registro, marcação Enviado e contrato de EmailSender estão representados; o comentário complementar sobre processar foi dispensado pelo responsável, sem exigir alteração estrutural; classificação mantida até a conclusão da revisão do cenário.
+   # DDD: o serviço consulta as pendências, envia o aviso e registra o resultado da tentativa.
    Scenario: Envio de lembrete com notas pendentes
-      Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
+      Given há um e-mail cadastrado para as turmas no endereço "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui os alunos matriculados "João da Silva" e "Maria Souza"
-      And a turma possui apenas as avaliações "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00", e "Projeto Teaching Assistant", realizado em "22/08/2026 às 14:00"
-      And "João da Silva" está sem nota em "Prova de SOLID e Padrões de Projeto" e possui nota "7,0" em "Projeto Teaching Assistant"
-      And "Maria Souza" possui nota "9,0" em "Prova de SOLID e Padrões de Projeto" e está sem nota em "Projeto Teaching Assistant"
-      And a turma "2026.2 de ESS" possui um lembrete não enviado, programado para "25/08/2026 às 09:00"
-      And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And o serviço SMTP do "Gmail", utilizado pela biblioteca "Nodemailer", está disponível e aceita o envio
+      And as notas registradas nas metas da aba Avaliações são
+         | Aluno         | Requirements | Configuration Management | Project Management | Design | Tests | Refactoring |
+         | João da Silva | MA           | MA                       | MA                 |        |       | MA          |
+         | Maria Souza   | MANA         | MANA                     | MANA               | MANA   |       | MANA        |
+      And a turma possui um lembrete não enviado programado para "25/08/2026 às 09:00"
+      And o prazo acadêmico da turma é "31/08/2026 às 23:59"
+      And o serviço de e-mail aceita o envio
       When o serviço processa o lembrete da turma "2026.2 de ESS" em "25/08/2026 às 09:00"
-      Then um e-mail é aceito para envio ao professor "Paulo Borba", no endereço "paulo.borba@example.com"
-      And o e-mail identifica a turma "2026.2 de ESS" e o motivo "Notas pendentes"
-      And o e-mail informa que "João da Silva" está sem nota em "Prova de SOLID e Padrões de Projeto"
-      And o e-mail informa que "Maria Souza" está sem nota em "Projeto Teaching Assistant"
-      And nenhuma outra pendência é informada no e-mail
-      And o e-mail informa o prazo acadêmico "31/08/2026 às 23:59"
-      And a tentativa de envio de "25/08/2026 às 09:00" é registrada no histórico de "Paulo Borba" com status "Enviado"
-      And o lembrete de "25/08/2026 às 09:00" é contabilizado como enviado para a turma "2026.2 de ESS"
+      Then um e-mail com o assunto "Notas pendentes — 2026.2 de ESS" é aceito para "paulo.borba@example.com"
+      And o aviso informa "Design" e "Tests" para "João da Silva" e "Tests" para "Maria Souza"
+      And o aviso informa o prazo acadêmico "31/08/2026 às 23:59" em horário de Brasília
+      And a tentativa é registrada no histórico com status "Enviado"
+      And o lembrete é marcado como "Enviado" na configuração da turma
 
 
 

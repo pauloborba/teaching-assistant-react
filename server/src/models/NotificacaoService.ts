@@ -1,7 +1,14 @@
-import { EmailSender } from './EmailSender';
+import { EmailSender, EmailSenderSmtp } from './EmailSender';
 import { Class } from './Class';
+import { Classes } from './Classes';
 import { HistoricoNotificacoes } from './HistoricoNotificacoes';
+import { Lembrete } from './Lembrete';
 import { Notificacao } from './Notificacao';
+
+type DependenciasLembretes = {
+  classes: Classes;
+  emailSender: Pick<EmailSenderSmtp, 'send'>; // Permite usar o SMTP real ou simular somente a operação de envio.
+};
 
 /**
  * Serviço compartilhado de notificações. Para cada destinatário, solicita o
@@ -10,14 +17,21 @@ import { Notificacao } from './Notificacao';
 export class NotificacaoService {
   constructor(
     private readonly historico: HistoricoNotificacoes,
-    private readonly emailSender: EmailSender
+    private readonly emailSender: EmailSender,
+    private readonly lembretes?: DependenciasLembretes
   ) {}
 
   static montarEmailNotasPendentes(
     turma: Class,
     destinatario: string,
     prazoAcademico: Date
-  ): { destinatario: string; assunto: string; conteudo: string } | null {
+  ): {
+    destinatario: string;
+    assunto: string;
+    conteudo: string;
+    turmaRegistrada: string;
+    pendenciasRegistradas: { nomeAluno: string; meta: string }[];
+  } | null {
     const pendencias = turma.identificarPendencias();
     if (pendencias.length === 0) return null;
 
@@ -49,6 +63,8 @@ export class NotificacaoService {
 
     return {
       destinatario,
+      turmaRegistrada: nomeTurma,
+      pendenciasRegistradas: pendencias.map(({ nomeAluno, meta }) => ({ nomeAluno, meta })),
       assunto: `Notas pendentes — ${nomeTurma}`,
       conteudo: [
         'Olá,',
@@ -60,6 +76,78 @@ export class NotificacaoService {
         `Prazo acadêmico para lançamento das notas: ${data} às ${hora} (horário de Brasília).`
       ].join('\n')
     };
+  }
+
+  async processarAgendados(turmaId: string, data: string, horario: string): Promise<Notificacao[]> {
+    const dependencias = this.lembretes;
+    if (!dependencias) throw new Error('Processamento de lembretes não configurado');
+
+    const turma = dependencias.classes.findClassById(turmaId);
+    if (!turma) throw new Error('Turma não encontrada');
+
+    // Data e horário localizam o agendamento original em UTC.
+    const agendados = turma.obterConfiguracaoLembretes().buscarLembretesPara(data, horario);
+    if (agendados.length === 0) throw new Error('Não existe lembrete para o agendamento informado');
+
+    const tentativas: Notificacao[] = [];
+    for (const lembrete of agendados) {
+      const tentativa = await this.processar(turma, lembrete, dependencias);
+      if (tentativa) tentativas.push(tentativa);
+    }
+
+    return tentativas;
+  }
+
+  private async processar(
+    turma: Class,
+    lembrete: Lembrete,
+    dependencias: DependenciasLembretes
+  ): Promise<Notificacao | null> {
+    const estado = lembrete.getEstado();
+    if (lembrete.jaFoiEnviado() || estado === 'Ignorado' || estado === 'Cancelado') return null;
+
+    // A entrada de agendamentos trata o horário original. Reenvios terão sua própria entrada.
+    if (lembrete.getProximoReenvioEm() !== null) return null;
+
+    const instanteAtual = new Date();
+    if (lembrete.getAgendamento().getTime() > instanteAtual.getTime()) return null;
+
+    const prazoAcademico = turma.getPrazoAcademico();
+    if (prazoAcademico === null || turma.prazoEncerrado(instanteAtual)) return null;
+
+    const destinatario = dependencias.classes.obterEmailDasTurmas();
+    if (destinatario === null) throw new Error('Cadastre um e-mail para as turmas');
+
+    const mensagem = NotificacaoService.montarEmailNotasPendentes(turma, destinatario, prazoAcademico);
+    if (mensagem === null) return null;
+
+    const resultado = await dependencias.emailSender.send(
+      mensagem.destinatario, mensagem.assunto, mensagem.conteudo
+    );
+
+    // O histórico guarda o contexto da mensagem que foi entregue ao transporte.
+    const tentativa = new Notificacao(
+      this.historico.proximoId(),
+      mensagem.destinatario,
+      {
+        lembreteId: lembrete.getId(),
+        turmaRegistrada: mensagem.turmaRegistrada,
+        prazoRegistrado: prazoAcademico,
+        pendenciasRegistradas: mensagem.pendenciasRegistradas
+      },
+      instanteAtual,
+      resultado.aceito ? 'Enviado' : 'Falha',
+      'Notas pendentes',
+      resultado.aceito ? undefined : resultado.descricaoFalha
+    );
+
+    this.historico.registrar(tentativa);
+    if (resultado.aceito) {
+      // Atualiza pelo ID porque buscarLembretesPara devolve uma cópia.
+      turma.obterConfiguracaoLembretes().marcarComoEnviado(lembrete.getId());
+    }
+
+    return tentativa;
   }
 
   /** Notifica cada destinatário sobre uma mudança na composição de um grupo. */

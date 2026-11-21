@@ -130,8 +130,8 @@ namespace Servidor {
   }
   class NotificacaoService["NotificaçãoService"] {
     montarEmailNotasPendentes(turma, destinatario, prazoAcademico)
-    processar(Lembrete)
-    processarAgendados(turma, data, horario)
+    processar(turma, Lembrete, dependencias)
+    processarAgendados(turmaId, data, horario)
     processarReenvios(turma)
     calcularProximoReenvio(lembrete, instanteAtual)
   }
@@ -292,7 +292,10 @@ HistoricoNotificacoes <-- NotificacaoService
 %% e consulta sua ConfiguracaoLembretes por buscarLembretesPara(data, horario).
 %% Se a lista estiver vazia, rejeitar a solicitação por inexistência de lembrete para a turma e o agendamento.
 %% Preservar turma, prazo, configuração, lembretes e histórico; não solicitar email nem registrar tentativa.
-%% Se houver correspondências, coordenar processar(Lembrete) para cada uma, mantendo as verificações dessa operação.
+%% Se houver correspondências, coordenar processar(turma, Lembrete, dependencias) para cada uma, mantendo as verificações dessa operação.
+%% processarAgendados localiza a Class pelo id e repassa a turma à operação processar.
+%% A tentativa usa o mesmo prazo e as mesmas pendências da mensagem entregue ao transporte.
+%% Enquanto o cadastro das turmas possui somente o endereço, nomeDestinatario guarda o e-mail usado na tentativa.
 %% Um Lembrete já Enviado continua sendo tratado pelo bloqueio existente; correspondência não autoriza envio.
 %% data e horario identificam o agendamento solicitado; não são substituídos pelo instante atual do relógio.
 %% Esta busca continua usando o agendamento original; a seleção pelo próximo reenvio é tratada na entrada processarReenvios abaixo.
