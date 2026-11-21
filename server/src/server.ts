@@ -6,6 +6,10 @@ import { Evaluation } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import { Report } from './models/Report';
+import { RespostasDeAvaliacao } from './models/RespostasDeAvaliacao';
+import { MENSAGEM_SEM_RESULTADOS } from './models/RespostasDeRoteiro';
+import { Roteiro } from './models/Roteiro';
+import { ComparacaoService } from './models/ComparacaoService';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
@@ -26,6 +30,7 @@ app.use(express.json());
 // In-memory storage with file persistence
 const studentSet = new StudentSet();
 const classes = new Classes();
+const comparacaoService = new ComparacaoService(classes);
 const dataFile = path.resolve('./data/app-data.json');
 
 // Persistence functions
@@ -52,7 +57,8 @@ const saveDataToFile = (): void => {
         enrollments: classObj.getEnrollments().map(enrollment => ({
           studentCPF: enrollment.getStudent().getCPF(),
           evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
-        }))
+        })),
+        respostasDeRoteiros: classObj.getRespostasDeRoteiros().map(respostas => respostas.toJSON())
       }))
     };
     
@@ -123,6 +129,19 @@ const loadDataFromFile = (): void => {
                 } else {
                   console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
                 }
+              });
+            }
+
+            // Load roteiro results for this class
+            if (classData.respostasDeRoteiros && Array.isArray(classData.respostasDeRoteiros)) {
+              classData.respostasDeRoteiros.forEach((respostasData: any) => {
+                respostasData.avaliacoes.forEach((avaliacaoData: any) => {
+                  const student = studentSet.findStudentByCPF(avaliacaoData.studentCPF);
+                  if (student) {
+                    const avaliacao = new RespostasDeAvaliacao(student, avaliacaoData.acertos, avaliacaoData.erros, avaliacaoData.tempoEntrega);
+                    classObj.addRespostasDeAvaliacao(buscarRoteiro(respostasData.roteiro, classObj), avaliacao);
+                  }
+                });
               });
             }
           } catch (error) {
@@ -511,6 +530,99 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
 
     const report = new Report(classObj);
     res.json(report.toJSON());
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+
+// ---------- Relatório de desempenho do roteiro ----------
+
+// PONTO DE ENCAIXE com "Cadastro de roteiros": todo roteiro usado pelo relatório vem daqui.
+// Enquanto o cadastro não existe, o roteiro é identificado só pelo título.
+// Quando existir, trocar o corpo por: return roteiroList.findByTitulo(titulo, turma)
+function buscarRoteiro(titulo: string, turma: Class): Roteiro {
+  return new Roteiro(titulo);
+}
+
+// Procura a turma; se não existir, já responde 404 (usado pelas rotas abaixo)
+function buscarTurmaOuResponder404(classId: string, res: Response): Class | undefined {
+  const classObj = classes.findClassById(classId);
+  if (!classObj) {
+    res.status(404).json({ error: 'Class not found' });
+  }
+  return classObj;
+}
+
+// POST /api/classes/:classId/roteiros/:titulo/respostas - Cadastra o resultado de um aluno em um roteiro
+app.post('/api/classes/:classId/roteiros/:titulo/respostas', (req: Request, res: Response) => {
+  try {
+    const { classId, titulo } = req.params;
+    const { studentCPF, acertos, erros, tempoEntrega } = req.body;
+
+    const classObj = buscarTurmaOuResponder404(classId, res);
+    if (!classObj) return;
+
+    const student = studentSet.findStudentByCPF(cleanCPF(studentCPF || ''));
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    const avaliacao = new RespostasDeAvaliacao(student, acertos, erros, tempoEntrega);
+    classObj.addRespostasDeAvaliacao(buscarRoteiro(titulo, classObj), avaliacao);
+    triggerSave();
+    res.status(201).json(avaliacao.toJSON());
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// DELETE /api/classes/:classId/roteiros/:titulo/respostas - Remove os resultados da turma em um roteiro
+app.delete('/api/classes/:classId/roteiros/:titulo/respostas', (req: Request, res: Response) => {
+  try {
+    const { classId, titulo } = req.params;
+
+    const classObj = buscarTurmaOuResponder404(classId, res);
+    if (!classObj) return;
+
+    classObj.removeRespostasDoRoteiro(titulo);
+    triggerSave();
+    res.status(204).send();
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /api/classes/:classId/roteiros/:titulo/desempenho - Médias da turma em um roteiro
+app.get('/api/classes/:classId/roteiros/:titulo/desempenho', (req: Request, res: Response) => {
+  try {
+    const { classId, titulo } = req.params;
+
+    const classObj = buscarTurmaOuResponder404(classId, res);
+    if (!classObj) return;
+
+    if (!classObj.temResultadosNoRoteiro(titulo)) {
+      return res.status(404).json({ error: MENSAGEM_SEM_RESULTADOS });
+    }
+
+    res.json(classObj.getDesempenhoNoRoteiro(titulo));
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /api/relatorio-roteiro?turmaAtual=...&roteiro=...&passadas=...&passadas=...
+// As turmas vão pelo nome, ex.: turmaAtual=ESS - 2026.2
+// Compara o desempenho da turma atual no roteiro com a média das turmas passadas
+app.get('/api/relatorio-roteiro', (req: Request, res: Response) => {
+  try {
+    const turmaAtual = String(req.query.turmaAtual || '');
+    const roteiro = String(req.query.roteiro || '');
+    const passadasParam = req.query.passadas;
+    const passadas = passadasParam === undefined ? [] : ([] as any[]).concat(passadasParam).map(String);
+
+    const linhas = comparacaoService.comparar(turmaAtual, roteiro, passadas);
+    res.json(linhas);
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }

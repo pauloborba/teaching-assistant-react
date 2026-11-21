@@ -7,9 +7,10 @@ import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
+import RelatorioRoteiro from './components/RelatorioRoteiro';
 import './App.css';
 
-type TabType = 'students' | 'evaluations' | 'classes';
+type TabType = 'students' | 'evaluations' | 'classes' | 'relatorio-roteiro';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -146,6 +147,13 @@ const App: React.FC = () => {
           >
             Classes
           </button>
+          <button
+            className={`tab-button ${activeTab === 'relatorio-roteiro' ? 'active' : ''}`}
+            onClick={() => setActiveTab('relatorio-roteiro')}
+            data-testid="relatorio-roteiro-tab"
+          >
+            Relatório de Roteiros
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -214,6 +222,10 @@ const App: React.FC = () => {
               onClassDeleted={handleClassDeleted}
               onError={handleError}
             />
+          )}
+
+          {activeTab === 'relatorio-roteiro' && (
+            <RelatorioRoteiro classes={classes} />
           )}
         </div>
       </main>

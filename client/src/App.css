@@ -1193,3 +1193,48 @@ tbody tr:last-child td {
   background-color: #fecaca;
   color: #991b1b;
 }
+/* Relatório de desempenho do roteiro */
+.relatorio-roteiro-container {
+  padding: 1rem 0;
+}
+
+.relatorio-roteiro-form {
+  background: #f7fafc;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.relatorio-roteiro-form select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 1rem;
+  background-color: #fff;
+}
+
+.relatorio-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #4a5568;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.turmas-passadas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.form-group .turma-passada {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.form-group .turma-passada input {
+  width: auto;
+}

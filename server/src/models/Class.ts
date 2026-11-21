@@ -1,6 +1,9 @@
 import { Student } from './Student';
 import { Enrollment } from './Enrollment';
 import { EspecificacaoDoCalculoDaMedia } from './EspecificacaoDoCalculoDaMedia';
+import { Roteiro } from './Roteiro';
+import { RespostasDeRoteiro, Desempenho, MENSAGEM_SEM_RESULTADOS } from './RespostasDeRoteiro';
+import { RespostasDeAvaliacao } from './RespostasDeAvaliacao';
 
 export class Class {
   private topic: string;
@@ -8,6 +11,7 @@ export class Class {
   private year: number;
   private readonly especificacaoDoCalculoDaMedia: EspecificacaoDoCalculoDaMedia;
   private enrollments: Enrollment[];
+  private respostasDeRoteiros: RespostasDeRoteiro[] = [];
 
   constructor(topic: string, semester: number, year: number, especificacaoDoCalculoDaMedia: EspecificacaoDoCalculoDaMedia, enrollments: Enrollment[] = []) {
     this.topic = topic;
@@ -93,6 +97,53 @@ export class Class {
     return this.enrollments.map(enrollment => enrollment.getStudent());
   }
 
+  // Nome da turma como aparece no relatório, ex.: "ESS - 2026.2"
+  getNome(): string {
+    return `${this.topic} - ${this.year}.${this.semester}`;
+  }
+
+  // Resultados da turma nos roteiros
+  getRespostasDeRoteiros(): RespostasDeRoteiro[] {
+    return [...this.respostasDeRoteiros];
+  }
+
+  findRespostasDoRoteiro(tituloRoteiro: string): RespostasDeRoteiro | undefined {
+    return this.respostasDeRoteiros.find(r => r.getRoteiro().temTitulo(tituloRoteiro));
+  }
+
+  // PONTO DE ENCAIXE com "Corrigir roteiros": é por aqui que entra o resultado corrigido
+  // de um aluno matriculado na turma (acertos, erros e tempo de entrega) em um roteiro.
+  // Hoje quem chama é o cadastro direto (rota POST .../respostas); depois, a correção.
+  addRespostasDeAvaliacao(roteiro: Roteiro, avaliacao: RespostasDeAvaliacao): void {
+    if (!this.findEnrollmentByStudentCPF(avaliacao.getAluno().getCPF())) {
+      throw new Error('Student is not enrolled in this class');
+    }
+
+    let respostas = this.findRespostasDoRoteiro(roteiro.getTitulo());
+    if (!respostas) {
+      respostas = new RespostasDeRoteiro(roteiro);
+      this.respostasDeRoteiros.push(respostas);
+    }
+    respostas.addAvaliacao(avaliacao);
+  }
+
+  removeRespostasDoRoteiro(tituloRoteiro: string): void {
+    this.respostasDeRoteiros = this.respostasDeRoteiros.filter(r => !r.getRoteiro().temTitulo(tituloRoteiro));
+  }
+
+  temResultadosNoRoteiro(tituloRoteiro: string): boolean {
+    const respostas = this.findRespostasDoRoteiro(tituloRoteiro);
+    return respostas !== undefined && respostas.temResultados();
+  }
+
+  getDesempenhoNoRoteiro(tituloRoteiro: string): Desempenho {
+    const respostas = this.findRespostasDoRoteiro(tituloRoteiro);
+    if (!respostas) {
+      throw new Error(MENSAGEM_SEM_RESULTADOS);
+    }
+    return respostas.calcularDesempenho();
+  }
+
   // Convert to JSON for API responses
   toJSON() {
     return {
@@ -101,7 +152,8 @@ export class Class {
       semester: this.semester,
       year: this.year,
       especificacaoDoCalculoDaMedia: this.especificacaoDoCalculoDaMedia.toJSON(),
-      enrollments: this.enrollments.map(enrollment => enrollment.toJSON())
+      enrollments: this.enrollments.map(enrollment => enrollment.toJSON()),
+      respostasDeRoteiros: this.respostasDeRoteiros.map(respostas => respostas.toJSON())
     };
   }
 
