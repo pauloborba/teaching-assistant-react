@@ -320,12 +320,13 @@ describe('Processamento do lembrete de notas pendentes', () => {
         await jest.advanceTimersByTimeAsync(30_000);
 
         // Then: o vencido entra na primeira verificação, o de 09h aguarda e o prazo encerrado bloqueia.
+        const tentativasDoAtrasado = aceito ? ['atrasado'] : ['atrasado', 'atrasado'];
         expect(aoIniciar).toEqual(['atrasado']);
-        expect(antesDaVerificacao).toEqual(['atrasado']);
-        expect(depoisDaVerificacao).toEqual(['atrasado', 'na-hora']);
+        expect(antesDaVerificacao).toEqual(tentativasDoAtrasado);
+        expect(depoisDaVerificacao).toEqual([...tentativasDoAtrasado, 'na-hora']);
         expect(historico.listar().map(registro => registro.resultado))
-          .toEqual([aceito ? 'Enviado' : 'Falha', 'Enviado']);
-        expect(send).toHaveBeenCalledTimes(2);
+          .toEqual(aceito ? ['Enviado', 'Enviado'] : ['Falha', 'Enviado', 'Enviado']);
+        expect(send).toHaveBeenCalledTimes(aceito ? 2 : 3);
         expect(encerrada.obterConfiguracaoLembretes().listar()[0].getEstado()).toBe('Não enviado');
       } finally {
         parar();

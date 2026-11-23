@@ -23,7 +23,7 @@ describe('Lembretes automáticos no servidor', () => {
     process.env = { ...ambienteAnterior, ...gmail, NODE_ENV: 'development' };
     jest.useFakeTimers({
       now: new Date('2026-08-25T08:59:45-03:00'),
-      doNotFake: ['nextTick', 'setImmediate', 'clearImmediate', 'setTimeout', 'clearTimeout']
+      doNotFake: ['nextTick', 'setImmediate', 'clearImmediate']
     });
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'warn').mockImplementation(() => {});
@@ -112,17 +112,98 @@ describe('Lembretes automáticos no servidor', () => {
       );
     }
     const historico = resumoDoHistorico(inicial);
-    expect(historico).toEqual([expect.objectContaining({
-      id: 1, lembreteId: lembrete.id, resultado, descricaoFalha
-    })]);
+    expect(historico).toEqual(Array.from({ length: envios || 1 }, (_, indice) => expect.objectContaining({
+      id: indice + 1, lembreteId: lembrete.id, resultado, descricaoFalha
+    })));
 
     inicial.parar();
     const reiniciado = iniciar();
-    await jest.advanceTimersByTimeAsync(30_000);
+    await jest.advanceTimersByTimeAsync(0);
     expect(resumoDoHistorico(reiniciado)).toEqual(historico);
     expect(reiniciado.send).not.toHaveBeenCalled();
     const consulta = await request(reiniciado.app).get(rota).expect(200);
     expect(consulta.body.lembretes).toEqual([expect.objectContaining({ id: lembrete.id, estado })]);
+    if (resultado === 'Falha') {
+      expect(consulta.body.lembretes[0].proximoReenvioEm).toBe('2026-08-25T12:00:30.000Z');
+
+      const erro = jest.spyOn(console, 'error').mockImplementation(() => {});
+      reiniciado.send.mockResolvedValue({ aceito: false, descricaoFalha });
+      await jest.advanceTimersByTimeAsync(14_999);
+      expect(reiniciado.send).not.toHaveBeenCalled();
+      await jest.advanceTimersByTimeAsync(1);
+      expect(reiniciado.send).toHaveBeenCalledTimes(1);
+      const segunda = await request(reiniciado.app).get(rota).expect(200);
+      expect(segunda.body.lembretes[0].proximoReenvioEm).toBe('2026-08-25T12:01:00.000Z');
+
+      await jest.advanceTimersByTimeAsync(29_999);
+      expect(reiniciado.send).toHaveBeenCalledTimes(1);
+      await jest.advanceTimersByTimeAsync(1);
+      expect(reiniciado.send).toHaveBeenCalledTimes(2);
+      const terceira = await request(reiniciado.app).get(rota).expect(200);
+      expect(terceira.body.lembretes[0].proximoReenvioEm).toBe('2026-08-25T12:01:45.000Z');
+
+      await jest.advanceTimersByTimeAsync(44_999);
+      expect(reiniciado.send).toHaveBeenCalledTimes(2);
+      await jest.advanceTimersByTimeAsync(1);
+      await jest.advanceTimersByTimeAsync(300_000);
+      expect(reiniciado.send).toHaveBeenCalledTimes(3); // Três reenvios após o envio original.
+      expect(resumoDoHistorico(reiniciado).map(registro => registro.resultado))
+        .toEqual(['Falha', 'Falha', 'Falha', 'Falha']);
+      const encerrado = await request(reiniciado.app).get(rota).expect(200);
+      expect(encerrado.body.lembretes).toEqual([expect.objectContaining({
+        id: lembrete.id, estado: 'Cancelado', motivo: 'Limite de tentativas atingido', proximoReenvioEm: null
+      })]);
+      expect(erro).toHaveBeenCalledTimes(1);
+      expect(erro).toHaveBeenCalledWith('Limite de tentativas do lembrete atingido.', {
+        turma: '2026.2 de ESS', lembreteId: lembrete.id
+      }); // Informa o esgotamento em vez de fazer um quinto envio.
+    }
+  });
+
+  test('reenvia após 15 segundos e recupera as duas tentativas ao reiniciar', async () => {
+    jest.setSystemTime(new Date('2026-08-25T08:59:30-03:00')); // Given: primeira rodada do cadastro às 09h.
+    prepararDados(); // Given: destinatário, prazo e nota de Design pendente.
+    const inicial = iniciar();
+    const horaOriginal = '2026-08-25T12:00:00.000Z';
+    const horaReenvio = '2026-08-25T12:00:15.000Z';
+    const descricaoFalha = 'Indisponibilidade temporária do serviço de e-mail';
+    inicial.send
+      .mockResolvedValueOnce({ aceito: false, descricaoFalha }) // Given: falha temporária no envio original.
+      .mockResolvedValueOnce({ aceito: true }); // Given: transporte disponível quando chegar o reenvio.
+    await request(inicial.app).put(rota).send({ quantidade: 1, lembretes: [lembrete] }).expect(200);
+
+    await jest.advanceTimersByTimeAsync(30_000);
+    const tentativaOriginal = { id: 1, lembreteId: lembrete.id, resultado: 'Falha', descricaoFalha, dataHora: horaOriginal };
+    expect(resumoDoHistorico(inicial)).toEqual([
+      expect.objectContaining(tentativaOriginal)
+    ]); // Given: a primeira falha foi registrada com a descrição original.
+    const aguardando = await request(inicial.app).get(rota).expect(200);
+    expect(aguardando.body.lembretes[0].proximoReenvioEm).toBe(horaReenvio); // Given: reenvio marcado para 09h00min15s.
+
+    await jest.advanceTimersByTimeAsync(14_999);
+    expect(inicial.send).toHaveBeenCalledTimes(1); // O transporte ainda recebeu só a primeira tentativa.
+    await jest.advanceTimersByTimeAsync(1); // When: o agendador executa o reenvio às 09h00min15s.
+
+    expect(inicial.send).toHaveBeenCalledTimes(2); // Then: um envio original e um reenvio.
+    expect(inicial.send).toHaveBeenNthCalledWith(
+      2, destinatario, 'Notas pendentes — 2026.2 de ESS',
+      expect.stringContaining('Aluno Fictício: Design')
+    ); // Then: o reenvio identifica o destinatário, a turma e a pendência.
+    const historico = resumoDoHistorico(inicial);
+    expect(historico).toEqual([
+      expect.objectContaining(tentativaOriginal),
+      expect.objectContaining({ id: 2, lembreteId: lembrete.id, resultado: 'Enviado', dataHora: horaReenvio })
+    ]); // Then: a falha e a aceitação ficam em dois registros.
+
+    inicial.parar();
+    const reiniciado = iniciar();
+    await jest.advanceTimersByTimeAsync(30_000);
+    const consulta = await request(reiniciado.app).get(rota).expect(200);
+    expect(consulta.body.lembretes).toEqual([
+      { ...lembrete, estado: 'Enviado', motivo: null, proximoReenvioEm: null }
+    ]); // Then: um único lembrete enviado e nenhum reenvio programado.
+    expect(resumoDoHistorico(reiniciado)).toEqual(historico); // Os dois registros voltaram do arquivo.
+    expect(reiniciado.send).not.toHaveBeenCalled();
   });
 
   test('tenta gravar novamente sem repetir o envio', async () => {

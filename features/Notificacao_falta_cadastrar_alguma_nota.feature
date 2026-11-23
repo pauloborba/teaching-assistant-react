@@ -391,7 +391,7 @@ Feature: Notificações de pendências no lançamento de notas
    
    
    @service
-   # DDD (regra central representada): proximoReenvioEm e programarReenvio representam a programação; processar aciona um único reenvio imediato após a primeira Falha e marcarComoEnviado limpa a programação após o sucesso; os dois passos da falha preservam o erro como descrição da falha, conforme o campo descricaoFalha.
+   # DDD (regra central representada): proximoReenvioEm e programarReenvio representam a programação; processar programa o primeiro reenvio para 15 segundos após a primeira Falha e marcarComoEnviado limpa a programação após o sucesso; os dois passos da falha preservam o erro como descrição da falha, conforme o campo descricaoFalha.
    Scenario: Reenvio automático após falha temporária
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui apenas o aluno matriculado "João da Silva" e a avaliação "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
@@ -399,12 +399,12 @@ Feature: Notificações de pendências no lançamento de notas
       And a turma possui um lembrete programado para "25/08/2026 às 09:00"
       And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
       And o histórico de "Paulo Borba" registra apenas uma tentativa de envio desse lembrete, em "25/08/2026 às 09:00", com status "Falha" e descrição da falha "Indisponibilidade temporária do serviço de e-mail"
-      And o lembrete aguarda reenvio imediato e o serviço de e-mail do "Gmail" está disponível
-      When o serviço executa o reenvio imediato do lembrete
+      And o lembrete aguarda reenvio em "25/08/2026 às 09:00:15" e o serviço de e-mail do "Gmail" está disponível
+      When o serviço executa o reenvio do lembrete em "25/08/2026 às 09:00:15"
       Then o reenvio é aceito pelo "Gmail" para o endereço "paulo.borba@example.com"
       And o e-mail identifica a turma "2026.2 de ESS" e a pendência de "João da Silva" em "Prova de SOLID e Padrões de Projeto"
       And o histórico de "Paulo Borba" preserva a tentativa de "25/08/2026 às 09:00" com status "Falha" e descrição da falha "Indisponibilidade temporária do serviço de e-mail"
-      And o reenvio imediato é registrado no histórico de "Paulo Borba" com status "Enviado"
+      And o reenvio de "25/08/2026 às 09:00:15" é registrado no histórico de "Paulo Borba" com status "Enviado"
       And o histórico apresenta apenas as duas tentativas desse lembrete, uma com status "Falha" e outra com status "Enviado"
       And o lembrete de "25/08/2026 às 09:00" é contabilizado como um único lembrete enviado
       And nenhum novo reenvio permanece programado para esse lembrete
@@ -437,7 +437,7 @@ Feature: Notificações de pendências no lançamento de notas
       And a turma possui apenas o aluno "João da Silva", sem nota cadastrada em "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
       And a turma possui um lembrete programado para "25/08/2026 às 09:00"
       And o histórico de "Paulo Borba" registra uma tentativa inicial desse lembrete com status "Falha"
-      And o histórico registra um reenvio imediato do mesmo lembrete com status "Enviado"
+      And o histórico registra um reenvio do mesmo lembrete em "25/08/2026 às 09:00:15" com status "Enviado"
       And exatamente um e-mail desse lembrete foi aceito pelo serviço de e-mail do "Gmail"
       And o lembrete possui status "Enviado" e não possui novos reenvios programados
       And o prazo acadêmico da turma é "31/08/2026 às 23:59"
@@ -449,20 +449,20 @@ Feature: Notificações de pendências no lançamento de notas
       And o lembrete continua contabilizado como um único envio
 
    @service
-   # DDD (regra central representada): processarReenvios seleciona proximoReenvioEm preenchido e já alcançado e chama processar; a terceira Falha de 09:01 preserva as anteriores e programa 09:03 pelo cálculo existente; os dois passos de erro usam descrição da falha, conforme descricaoFalha.
+   # DDD (regra central representada): processarLembretesAteAgora seleciona os reenvios cujo horário já chegou; a terceira Falha de 09:00:45 preserva as anteriores e programa 09:01:30; os dois passos de erro usam descrição da falha, conforme descricaoFalha.
    Scenario: Reenvio progressivo após falhas persistentes
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui apenas o aluno matriculado "João da Silva" e a avaliação "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
       And "João da Silva" está sem nota cadastrada em "Prova de SOLID e Padrões de Projeto"
       And a turma possui um lembrete programado para "25/08/2026 às 09:00"
       And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And o histórico de "Paulo Borba" registra duas tentativas desse lembrete, a primeira em "25/08/2026 às 09:00" e a segunda imediatamente após a primeira, ambas com status "Falha" e descrição da falha "Indisponibilidade temporária do serviço de e-mail"
-      And existe um terceiro envio programado para "25/08/2026 às 09:01"
-      And o serviço de e-mail do "Gmail" permanece indisponível em "25/08/2026 às 09:01"
-      When o serviço executa o terceiro envio em "25/08/2026 às 09:01"
-      Then a terceira tentativa é registrada no histórico de "Paulo Borba", em "25/08/2026 às 09:01", com status "Falha" e descrição da falha "Indisponibilidade temporária do serviço de e-mail"
+      And o histórico de "Paulo Borba" registra duas tentativas desse lembrete, a primeira em "25/08/2026 às 09:00" e a segunda em "25/08/2026 às 09:00:15", ambas com status "Falha" e descrição da falha "Indisponibilidade temporária do serviço de e-mail"
+      And existe um terceiro envio programado para "25/08/2026 às 09:00:45"
+      And o serviço de e-mail do "Gmail" permanece indisponível em "25/08/2026 às 09:00:45"
+      When o serviço executa o terceiro envio em "25/08/2026 às 09:00:45"
+      Then a terceira tentativa é registrada no histórico de "Paulo Borba", em "25/08/2026 às 09:00:45", com status "Falha" e descrição da falha "Indisponibilidade temporária do serviço de e-mail"
       And as duas tentativas anteriores permanecem registradas com status "Falha"
-      And uma quarta tentativa é programada para "25/08/2026 às 09:03"
+      And uma quarta tentativa é programada para "25/08/2026 às 09:01:30"
       And nenhum e-mail desse lembrete foi aceito para envio ao endereço "paulo.borba@example.com"
       And o lembrete de "25/08/2026 às 09:00" não é contabilizado como enviado
       And o prazo acadêmico permanece "31/08/2026 às 23:59"
@@ -489,12 +489,12 @@ Feature: Notificações de pendências no lançamento de notas
    Scenario: Cancelamento de reenvio após resolução das pendências
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui apenas o aluno matriculado "João da Silva" e a avaliação "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
-      And a nota atual de "João da Silva" em "Prova de SOLID e Padrões de Projeto" é "8,0", cadastrada em "25/08/2026 às 09:02"
-      And o histórico de "Paulo Borba" registra duas tentativas de envio do lembrete de "25/08/2026 às 09:00", a segunda imediatamente após a primeira, ambas com status "Falha" e descrição da falha "Indisponibilidade temporária do serviço de e-mail"
-      And uma terceira tentativa em "25/08/2026 às 09:01" também está registrada com status "Falha" e a mesma descrição da falha
-      And existe uma quarta tentativa de envio programada para "25/08/2026 às 09:03"
+      And a nota atual de "João da Silva" em "Prova de SOLID e Padrões de Projeto" é "8,0", cadastrada em "25/08/2026 às 09:01:00"
+      And o histórico de "Paulo Borba" registra duas tentativas de envio do lembrete de "25/08/2026 às 09:00", a segunda em "25/08/2026 às 09:00:15", ambas com status "Falha" e descrição da falha "Indisponibilidade temporária do serviço de e-mail"
+      And uma terceira tentativa em "25/08/2026 às 09:00:45" também está registrada com status "Falha" e a mesma descrição da falha
+      And existe uma quarta tentativa de envio programada para "25/08/2026 às 09:01:30"
       And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      When o serviço processa o reenvio do lembrete em "25/08/2026 às 09:03"
+      When o serviço processa o reenvio do lembrete em "25/08/2026 às 09:01:30"
       Then o reenvio é cancelado com o motivo "Nenhuma nota pendente"
       And nenhuma nova solicitação de envio é realizada ao serviço de e-mail do "Gmail" para "paulo.borba@example.com"
       And as três tentativas anteriores permanecem registradas no histórico de "Paulo Borba" com status "Falha"
@@ -513,14 +513,14 @@ Feature: Notificações de pendências no lançamento de notas
       And a turma "2026.2 de ESS" possui apenas o aluno matriculado "João da Silva" e a avaliação "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
       And "João da Silva" permanece sem nota cadastrada em "Prova de SOLID e Padrões de Projeto"
       And o prazo acadêmico da turma "2026.2 de ESS" é "31/08/2026 às 23:59"
-      And o histórico de "Paulo Borba" registra duas tentativas de envio do lembrete de "31/08/2026 às 23:57", a segunda imediatamente após a primeira, ambas com status "Falha" e descrição da falha "Indisponibilidade temporária do serviço de e-mail"
-      And uma terceira tentativa em "31/08/2026 às 23:58" também está registrada com status "Falha" e a mesma descrição da falha
-      And existe uma quarta tentativa de envio programada para "01/09/2026 às 00:00"
-      When o serviço processa o reenvio do lembrete em "01/09/2026 às 00:00"
+      And o histórico de "Paulo Borba" registra duas tentativas de envio do lembrete de "31/08/2026 às 23:58", a segunda em "31/08/2026 às 23:58:15", ambas com status "Falha" e descrição da falha "Indisponibilidade temporária do serviço de e-mail"
+      And uma terceira tentativa em "31/08/2026 às 23:58:45" também está registrada com status "Falha" e a mesma descrição da falha
+      And existe uma quarta tentativa de envio programada para "31/08/2026 às 23:59:30"
+      When o serviço processa o reenvio do lembrete em "31/08/2026 às 23:59:30"
       Then o reenvio é cancelado com o motivo "Prazo acadêmico encerrado"
       And nenhuma nova solicitação de envio é realizada ao serviço de e-mail do "Gmail" para "paulo.borba@example.com"
       And as três tentativas anteriores permanecem registradas no histórico de "Paulo Borba" com status "Falha"
-      And o lembrete de "31/08/2026 às 23:57" recebe o status "Cancelado" com o motivo "Prazo acadêmico encerrado"
+      And o lembrete de "31/08/2026 às 23:58" recebe o status "Cancelado" com o motivo "Prazo acadêmico encerrado"
       And nenhuma nova tentativa de envio é registrada
       And nenhum lembrete é contabilizado como enviado
       And não existem novos reenvios programados para esse lembrete
