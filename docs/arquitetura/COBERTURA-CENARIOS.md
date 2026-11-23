@@ -40,8 +40,7 @@ dados, com informações, responsabilidades, regras e contratos definidos.
 Nos cenários GUI, essa avaliação considera o significado de negócio das ações e
 dos resultados; não exige desenhar as telas no diagrama de classes.
 
-`//ok DDD (regra central)` registra cobertura limitada e não basta para declarar
-completude. Enquanto houver lacunas conceituais, classificações parciais ou
+`# DDD (regra central representada)` registra cobertura limitada do modelo. Enquanto houver lacunas conceituais, classificações parciais ou
 pendentes, a feature continua incompleta no modelo. Mudanças de classificação
 exigem evidência no modelo ou nas regras documentadas e validação com o responsável
 pela feature. A completude do modelo compartilhado também depende da análise
@@ -55,28 +54,28 @@ dos cenários das outras funcionalidades da equipe.
   necessários para explicar o resultado completo.
 - **Pendente:** a decisão ou garantia principal do cenário ainda não está modelada.
 
-Não há testes executáveis aprovados demonstrados para esta feature. As classificações
-abaixo são uma análise conceitual, não resultados de execução de passos Cucumber.
+As classificações abaixo descrevem o DDD. O comentário de validação na feature
+registra a execução que comprovou todos os resultados esperados do cenário.
 Rejeições previstas pelos cenários são resultados corretos das regras de negócio.
 
-## Marcações junto às tags
+## Comentários de DDD e de validação
 
-A feature apresenta a classificação ao lado de cada `@gui` ou `@service`:
+O comentário `# DDD (...)` registra a classificação e a regra modelada. O
+comentário `# Validação: completa (...)` identifica a evidência de execução
+e aparece nos cenários cuja validação foi concluída.
 
 ```gherkin
-@gui # //ok DDD (regra central)
-@service # //parcial DDD
-@service # //pendente DDD
+@lembretes-configuracao-gui
+@gui
+# DDD (regra central representada): atualizar valida o conjunto final, a quantidade e os agendamentos antes de alterar a configuração.
+# Validação: completa (Chrome/Cucumber, perfil lembretesGui).
+Scenario: Configuração da quantidade, datas e horários dos lembretes
 ```
 
-O `#` inicia o comentário; `//ok`, `//parcial` e `//pendente` são marcadores
-visuais dentro dele. Eles não são novas tags, não alteram passos e não indicam
-resultados de execução. Cada cenário tem abaixo uma evidência ou lacuna do DDD.
-
-`//ok DDD (regra central)` corresponde à classificação **Regra central representada**,
-com as condições e limites das seções abaixo. Não há marcação de aprovação
-integral dos cenários GUI ou service. As contagens são 12 GUI e 10 service com `//ok`,
-2 cenários com `//parcial` e 1 com `//pendente`, totalizando 12 GUI e 13 service.
+No DDD, a regra central foi representada em 12 cenários de GUI e 10 de
+serviço. Outros dois cenários de serviço têm classificação parcial e um
+está pendente. As tags `@gui` e `@service` identificam a camada. O perfil
+`lembretesGui` seleciona os cenários com `@lembretes-configuracao-gui`.
 
 ## Cenários GUI
 
@@ -106,18 +105,18 @@ prevista no respectivo cenário.
 
 | Cenário | Tela inicial aprovada | Cobertura conceitual | Evidência e lacuna |
 | --- | --- | --- | --- |
-| [Visualização do histórico de notificações](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L23) | Turmas | Regra central representada | Services.consultarHistorico coordena HistoricoNotificacoes.listar pela associação existente; a composição com Notificacao fornece as duas tentativas e seus dados registrados, sem seleção entre professores ou alteração do histórico. |
-| [Visualização dos detalhes históricos de uma notificação](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L36) | Histórico de notificações | Regra central representada | Services.consultarDetalhesNotificacao usa buscar(idNotificacao) e devolve os dados da tentativa, incluindo pendenciasRegistradas e prazoRegistrado. NotificacaoService copia o prazo da Class ao compor o registro, pelas relações existentes. O cadastro posterior das notas preserva as pendências históricas. |
-| [Filtragem do próprio histórico por disciplina e turma](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L50) | Histórico de notificações — sem filtros aplicados | Regra central representada | Services.filtrarHistorico coordena HistoricoNotificacoes.filtrar pelas relações existentes; turmaRegistrada já identifica disciplina e turma. A seleção combina os dois critérios, exclui ESS de outro semestre e outras disciplinas do resultado e preserva todos os registros. |
-| [Visualização de uma falha no próprio histórico](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L66) | Histórico de notificações | Regra central representada | consultarDetalhesNotificacao usa buscar(idNotificacao) e devolve nomeDestinatario, turmaRegistrada, dataHora, motivo, resultado e descricaoFalha do registro selecionado, preservando a falha original e todos os dados. |
-| [Configuração da quantidade, datas e horários dos lembretes](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L78) | Turmas — turma 2026.2 de ESS disponível | Regra central representada | `atualizar` valida o conjunto final, a quantidade e os agendamentos antes de alterar a configuração. |
-| [Alteração de lembrete futuro sem afetar outra turma](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L100) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | `reagendar` preserva identidade e demais lembretes; configurações ficam associadas às respectivas turmas. |
-| [Rejeição de quantidade de datas incompatível](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L120) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | Quantidade e conjunto final devem corresponder; rejeição preserva a configuração anterior. |
-| [Rejeição de lembrete após o prazo acadêmico](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L139) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | Novos agendamentos ou alterações após o prazo recebido são rejeitados sem alteração parcial. |
-| [Bloqueio de alteração de lembrete já enviado](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L156) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | `reagendar` e a atualização completa preservam os lembretes Enviados. |
-| [Aumento da quantidade de lembretes configurados](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L174) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | `atualizar` admite o conjunto ampliado válido, preservando os existentes; quantidade não é um novo atributo permanente. |
-| [Redução da quantidade de lembretes sem excluir envios realizados](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L190) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | `remove` e `atualizar` preservam os enviados e validam o total final. |
-| [Rejeição de criação de lembrete em data anterior à atual](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L209) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | A configuração rejeita novos agendamentos anteriores a `instanteAtual`, preservando o conjunto anterior. |
+| [Visualização do histórico de notificações](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L22) | Turmas | Regra central representada | Services.consultarHistorico coordena HistoricoNotificacoes.listar pela associação existente; a composição com Notificacao fornece as duas tentativas e seus dados registrados, sem seleção entre professores ou alteração do histórico. |
+| [Visualização dos detalhes históricos de uma notificação](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L35) | Histórico de notificações | Regra central representada | Services.consultarDetalhesNotificacao usa buscar(idNotificacao) e devolve os dados da tentativa, incluindo pendenciasRegistradas e prazoRegistrado. NotificacaoService copia o prazo da Class ao compor o registro, pelas relações existentes. O cadastro posterior das notas preserva as pendências históricas. |
+| [Filtragem do próprio histórico por disciplina e turma](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L49) | Histórico de notificações — sem filtros aplicados | Regra central representada | Services.filtrarHistorico coordena HistoricoNotificacoes.filtrar pelas relações existentes; turmaRegistrada já identifica disciplina e turma. A seleção combina os dois critérios, exclui ESS de outro semestre e outras disciplinas do resultado e preserva todos os registros. |
+| [Visualização de uma falha no próprio histórico](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L65) | Histórico de notificações | Regra central representada | consultarDetalhesNotificacao usa buscar(idNotificacao) e devolve nomeDestinatario, turmaRegistrada, dataHora, motivo, resultado e descricaoFalha do registro selecionado, preservando a falha original e todos os dados. |
+| [Configuração da quantidade, datas e horários dos lembretes](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L79) | Turmas — turma 2026.2 de ESS disponível | Regra central representada | `atualizar` valida o conjunto final, a quantidade e os agendamentos antes de alterar a configuração. |
+| [Alteração de lembrete futuro sem afetar outra turma](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L104) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | `reagendar` preserva identidade e demais lembretes; configurações ficam associadas às respectivas turmas. |
+| [Rejeição de quantidade de datas incompatível](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L130) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | Quantidade e conjunto final devem corresponder; rejeição preserva a configuração anterior. |
+| [Rejeição de lembrete após o prazo acadêmico](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L156) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | Novos agendamentos ou alterações após o prazo recebido são rejeitados sem alteração parcial. |
+| [Bloqueio de alteração de lembrete já enviado](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L179) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | `reagendar` e a atualização completa preservam os lembretes Enviados. |
+| [Aumento da quantidade de lembretes configurados](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L198) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | `atualizar` admite o conjunto ampliado válido, preservando os existentes; quantidade não é um novo atributo permanente. |
+| [Redução da quantidade de lembretes sem excluir envios realizados](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L223) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | `remove` e `atualizar` preservam os enviados e validam o total final. |
+| [Rejeição de criação de lembrete em data anterior à atual](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L247) | Configuração de lembretes — turma 2026.2 de ESS | Regra central representada | A configuração rejeita novos agendamentos anteriores a `instanteAtual`, preservando o conjunto anterior. |
 
 ## Cenários service
 
@@ -129,19 +128,19 @@ concorrente implementados na aplicação.
 
 | Cenário | Cobertura conceitual | Evidência e lacuna |
 | --- | --- | --- |
-| [Envio de lembrete com notas pendentes](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L230) | Parcial | Pendências, prazo, emailProfessor, registro, marcação Enviado e contrato de EmailSender estão representados. O comentário complementar sobre processar foi dispensado pelo responsável e deixa de ser uma alteração pendente. A classificação foi preservada até a conclusão da revisão do cenário. |
-| [Ausência de envio quando todas as notas foram cadastradas](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L253) | Regra central representada | Consulta sem pendências permite ignorar o Lembrete e registrar Notificacao Ignorado pelos métodos existentes, sem email ou nova tentativa. As consultas de tentativas consideram apenas Enviado/Falha, preservando a última tentativa de 20/08. O Then aprovado preserva Não enviado para o lembrete futuro de 29/08, igual ao Given. |
-| [Identificação correta das notas pendentes](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L278) | Regra central representada | Class.identificarPendencias consulta as metas da aba Avaliações em cada matrícula. MANA, MPA e MA contam como lançadas. Meta sem registro gera pendência, mesmo quando nenhum aluno recebeu nota nela. |
-| [Envio independente de lembretes para múltiplas turmas](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L295) | Parcial | Busca e pendências ficam restritas à turma indicada, com o mesmo emailProfessor e contrato de EmailSender. O comentário complementar sobre processar foi dispensado pelo responsável e deixa de ser uma alteração pendente. A classificação foi preservada até a conclusão da revisão do cenário. |
-| [Bloqueio de envio de lembrete não agendado](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L316) | Regra central representada | processarAgendados consulta buscarLembretesPara na configuração da turma; lista vazia rejeita a solicitação sem email ou tentativa, preservando prazo, lembretes e histórico. |
-| [Bloqueio de criação de novo lembrete após o prazo acadêmico](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L335) | Regra central representada | Class.prazoEncerrado verifica o instante do serviço; configurarLembretes rejeita criação com o motivo Prazo acadêmico encerrado, sem alterar configuração, enviados ou histórico nem solicitar email. |
-| [Reenvio automático após falha temporária](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L354) | Regra central representada | proximoReenvioEm e programarReenvio representam a programação; processar aciona um único reenvio imediato após a primeira Falha e marcarComoEnviado esvazia a programação após o sucesso. Preservam-se duas tentativas e um único lembrete enviado. A correção aprovada dos dois passos usa descrição da falha para o erro, conforme descricaoFalha. |
-| [Prevenção de envio duplicado por reprocessamento de lembrete já enviado](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L376) | Regra central representada | `jaFoiEnviado()` faz `processar` encerrar sem novo email, notificação de tentativa ou reenvio; preserva lembrete e histórico. |
-| [Bloqueio de novo reenvio após sucesso de tentativa anterior](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L394) | Regra central representada | O mesmo bloqueio preserva as duas notificações anteriores e impede uma terceira tentativa quando o estado recebido já é Enviado. |
-| [Reenvio progressivo após falhas persistentes](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L412) | Regra central representada | processarReenvios consulta a configuração da turma, seleciona proximoReenvioEm preenchido e menor ou igual ao instante atual e delega a processar. A terceira Falha de 09:01 preserva as anteriores e programa 09:03 pelo cálculo existente. A correção aprovada dos dois passos usa descrição da falha para o erro, conforme descricaoFalha. |
-| [Prevenção de envio duplicado por processamento concorrente](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L432) | Pendente | Duas execuções podem observar o estado ainda não enviado. Consulta e marcação, isoladamente, não garantem um único envio ou registro. |
-| [Cancelamento de reenvio após resolução das pendências](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L448) | Regra central representada | processar consulta as notas atuais e chama Lembrete.cancelar(Nenhuma nota pendente) no reenvio: estado Cancelado, motivo preservado e proximoReenvioEm vazio, sem email ou novo registro e com as três Falhas anteriores intactas. A correção aprovada usa descrição da falha nos dois passos do histórico anterior, conforme descricaoFalha. |
-| [Interrupção dos reenvios após o prazo acadêmico](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L470) | Regra central representada | processar verifica o prazo e chama Lembrete.cancelar(Prazo acadêmico encerrado) no reenvio: estado Cancelado, motivo guardado e proximoReenvioEm vazio, sem email ou novo registro e com as três Falhas anteriores intactas. A correção aprovada usa descrição da falha nos dois passos do histórico anterior, conforme descricaoFalha. |
+| [Envio de lembrete com notas pendentes](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L273) | Parcial | Pendências, prazo, emailProfessor, registro, marcação Enviado e contrato de EmailSender estão representados. O comentário complementar sobre processar foi dispensado pelo responsável e deixa de ser uma alteração pendente. A classificação foi preservada até a conclusão da revisão do cenário. |
+| [Ausência de envio quando todas as notas foram cadastradas](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L295) | Regra central representada | Consulta sem pendências permite ignorar o Lembrete e registrar Notificacao Ignorado pelos métodos existentes, sem email ou nova tentativa. As consultas de tentativas consideram apenas Enviado/Falha, preservando a última tentativa de 20/08. O Then aprovado preserva Não enviado para o lembrete futuro de 29/08, igual ao Given. |
+| [Identificação correta das notas pendentes](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L316) | Regra central representada | Class.identificarPendencias consulta as metas da aba Avaliações em cada matrícula. MANA, MPA e MA contam como lançadas. Meta sem registro gera pendência, mesmo quando nenhum aluno recebeu nota nela. |
+| [Envio independente de lembretes para múltiplas turmas](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L335) | Parcial | Busca e pendências ficam restritas à turma indicada, com o mesmo emailProfessor e contrato de EmailSender. O comentário complementar sobre processar foi dispensado pelo responsável e deixa de ser uma alteração pendente. A classificação foi preservada até a conclusão da revisão do cenário. |
+| [Bloqueio de envio de lembrete não agendado](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L357) | Regra central representada | processarAgendados consulta buscarLembretesPara na configuração da turma; lista vazia rejeita a solicitação sem email ou tentativa, preservando prazo, lembretes e histórico. |
+| [Bloqueio de criação de novo lembrete após o prazo acadêmico](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L376) | Regra central representada | Class.prazoEncerrado verifica o instante do serviço; configurarLembretes rejeita criação com o motivo Prazo acadêmico encerrado, sem alterar configuração, enviados ou histórico nem solicitar email. |
+| [Reenvio automático após falha temporária](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L395) | Regra central representada | proximoReenvioEm e programarReenvio representam a programação; processar aciona um único reenvio imediato após a primeira Falha e marcarComoEnviado esvazia a programação após o sucesso. Preservam-se duas tentativas e um único lembrete enviado. A correção aprovada dos dois passos usa descrição da falha para o erro, conforme descricaoFalha. |
+| [Prevenção de envio duplicado por reprocessamento de lembrete já enviado](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L417) | Regra central representada | `jaFoiEnviado()` faz `processar` encerrar sem novo email, notificação de tentativa ou reenvio; preserva lembrete e histórico. |
+| [Bloqueio de novo reenvio após sucesso de tentativa anterior](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L435) | Regra central representada | O mesmo bloqueio preserva as duas notificações anteriores e impede uma terceira tentativa quando o estado recebido já é Enviado. |
+| [Reenvio progressivo após falhas persistentes](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L453) | Regra central representada | processarReenvios consulta a configuração da turma, seleciona proximoReenvioEm preenchido e menor ou igual ao instante atual e delega a processar. A terceira Falha de 09:01 preserva as anteriores e programa 09:03 pelo cálculo existente. A correção aprovada dos dois passos usa descrição da falha para o erro, conforme descricaoFalha. |
+| [Prevenção de envio duplicado por processamento concorrente](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L473) | Pendente | Duas execuções podem observar o estado ainda não enviado. Consulta e marcação, isoladamente, não garantem um único envio ou registro. |
+| [Cancelamento de reenvio após resolução das pendências](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L489) | Regra central representada | processar consulta as notas atuais e chama Lembrete.cancelar(Nenhuma nota pendente) no reenvio: estado Cancelado, motivo preservado e proximoReenvioEm vazio, sem email ou novo registro e com as três Falhas anteriores intactas. A correção aprovada usa descrição da falha nos dois passos do histórico anterior, conforme descricaoFalha. |
+| [Interrupção dos reenvios após o prazo acadêmico](../../features/Notificacao_falta_cadastrar_alguma_nota.feature#L511) | Regra central representada | processar verifica o prazo e chama Lembrete.cancelar(Prazo acadêmico encerrado) no reenvio: estado Cancelado, motivo guardado e proximoReenvioEm vazio, sem email ou novo registro e com as três Falhas anteriores intactas. A correção aprovada usa descrição da falha nos dois passos do histórico anterior, conforme descricaoFalha. |
 
 Resultado da análise: 22 regras centrais representadas (12 GUI e 10 service),
 2 cenários parciais e 1 pendente. Isso não equivale a 22 cenários completos passando.

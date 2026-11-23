@@ -100,6 +100,18 @@ This will start both the server and client simultaneously.
    ```
    Client runs on http://localhost:3004
 
+#### Automatic grade reminders
+
+Copy `server/.env.example` to `server/.env` and fill in `GMAIL_USER` and
+`GMAIL_APP_PASSWORD` to enable automatic reminders. Loading this file
+uses the Node.js API available in Node 20.12 and later in the Node 20
+series, and in Node 22 and later. The server also accepts these
+credentials from its process environment.
+
+If the SMTP configuration is unavailable, the API starts and logs a
+warning that automatic reminders are disabled. Restart the backend
+after updating the credentials.
+
 ### Usage
 
 1. Open http://localhost:3004 in your browser

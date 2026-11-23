@@ -75,6 +75,23 @@ export class Lembrete {
     this.motivo = motivo;
   }
 
+  programarReenvio(dataHora: Date): void {
+    if (this.estado !== 'Não enviado' && this.estado !== 'Agendado') {
+      throw new Error('Somente lembretes aguardando envio podem ser reprogramados');
+    }
+    if (!Number.isFinite(dataHora.getTime())) throw new Error('Data do reenvio inválida');
+    this.proximoReenvioEm = new Date(dataHora.getTime()); // Conserva o agendamento original.
+  }
+
+  cancelar(motivo: string): void {
+    if (this.proximoReenvioEm === null || (this.estado !== 'Não enviado' && this.estado !== 'Agendado')) {
+      throw new Error('O lembrete não aguarda reenvio');
+    }
+    this.estado = 'Cancelado';
+    this.motivo = motivo;
+    this.proximoReenvioEm = null;
+  }
+
   getAgendamento(): Date {
     return Lembrete.obterInstante(this.data, this.horario); // Retorna um novo Date para impedir alterações externas no agendamento.
   }

@@ -5,6 +5,9 @@ import { HistoricoNotificacoes } from './HistoricoNotificacoes';
 import { Lembrete } from './Lembrete';
 import { Notificacao } from './Notificacao';
 
+const INTERVALO_VERIFICACAO_MS = 30_000;
+const INTERVALOS_REENVIO_MS = [15_000, 30_000, 45_000];
+
 type DependenciasLembretes = {
   classes: Classes;
   emailSender: Pick<EmailSenderSmtp, 'send'>; // Permite usar o SMTP real ou simular somente a operação de envio.
@@ -17,6 +20,7 @@ type DependenciasLembretes = {
 export class NotificacaoService {
   private pararVerificacao?: () => void;
   private verificacaoEmAndamento = false;
+  private cancelamentoPendenteDeGravacao = false;
 
   constructor(
     private readonly historico: HistoricoNotificacoes,
@@ -85,28 +89,90 @@ export class NotificacaoService {
     };
   }
 
-  iniciarVerificacaoDeLembretes(): () => void {
+  iniciarVerificacaoDeLembretes(persistirResultados?: () => boolean): () => void {
     if (this.pararVerificacao) return this.pararVerificacao;
-    if (!this.lembretes) throw new Error('Processamento de lembretes não configurado');
+    const dependencias = this.lembretes;
+    if (!dependencias) throw new Error('Processamento de lembretes não configurado');
 
-    const executar = async () => {
+    let gravacaoPendente = false;
+    let proximaRodadaRegular = Date.now() + INTERVALO_VERIFICACAO_MS;
+    let temporizadorReenvio: ReturnType<typeof setTimeout> | undefined;
+
+    const limparTemporizadorReenvio = () => {
+      if (temporizadorReenvio !== undefined) clearTimeout(temporizadorReenvio);
+      temporizadorReenvio = undefined;
+    };
+
+    const agendarProximoReenvio = (inicioDaRodada: number) => {
+      limparTemporizadorReenvio();
+      if (this.pararVerificacao !== parar || gravacaoPendente) return;
+
+      let horario = proximaRodadaRegular;
+      for (const turma of dependencias.classes.getAllClasses()) {
+        for (const lembrete of turma.obterConfiguracaoLembretes().listar()) {
+          const estado = lembrete.getEstado();
+          if (estado !== 'Não enviado' && estado !== 'Agendado') continue;
+          const agendamento = lembrete.getProximoReenvioEm()?.getTime();
+          // A rodada regular fará a seleção se chegar antes ou junto com o reenvio.
+          if (agendamento !== undefined && agendamento > inicioDaRodada && agendamento < horario) {
+            horario = agendamento;
+          }
+        }
+      }
+
+      if (horario < proximaRodadaRegular) {
+        temporizadorReenvio = setTimeout(() => {
+          if (Date.now() < proximaRodadaRegular) void executar(true);
+        }, Math.max(0, horario - Date.now()));
+      }
+    };
+
+    const gravar = () => {
+      gravacaoPendente = true;
+      if (!persistirResultados?.()) return;
+      gravacaoPendente = false;
+      this.cancelamentoPendenteDeGravacao = false;
+    };
+    const executar = async (somenteReenvios = false) => {
       // Se um envio ainda estiver em andamento, a próxima verificação espera outro ciclo.
       if (this.verificacaoEmAndamento) return;
       this.verificacaoEmAndamento = true;
+      const inicioDaRodada = Date.now();
 
       try {
-        await this.processarLembretesAteAgora();
+        // Recupera a gravação da rodada anterior antes de iniciar novos envios.
+        if (persistirResultados && gravacaoPendente) {
+          gravar();
+          if (gravacaoPendente) return;
+        }
+
+        const quantidadeAnterior = persistirResultados ? this.historico.listar().length : 0;
+        try {
+          await this.processarLembretesAteAgora(somenteReenvios);
+        } finally {
+          // Um cancelamento muda o lembrete sem acrescentar tentativa ao histórico.
+          if (persistirResultados && (
+            this.cancelamentoPendenteDeGravacao || this.historico.listar().length > quantidadeAnterior
+          )) {
+            gravar();
+          }
+        }
       } catch (erro) {
         console.error('Erro ao verificar lembretes:', erro);
       } finally {
         this.verificacaoEmAndamento = false;
+        agendarProximoReenvio(inicioDaRodada);
       }
     };
 
-    const intervalo = setInterval(() => void executar(), 30_000);
+    const intervalo = setInterval(() => {
+      proximaRodadaRegular = Date.now() + INTERVALO_VERIFICACAO_MS;
+      void executar();
+    }, INTERVALO_VERIFICACAO_MS);
     const parar = () => {
       if (this.pararVerificacao !== parar) return;
       clearInterval(intervalo);
+      limparTemporizadorReenvio();
       this.pararVerificacao = undefined;
     };
 
@@ -115,7 +181,7 @@ export class NotificacaoService {
     return parar;
   }
 
-  async processarLembretesAteAgora(): Promise<Notificacao[]> {
+  async processarLembretesAteAgora(somenteReenvios = false): Promise<Notificacao[]> {
     const dependencias = this.lembretes;
     if (!dependencias) throw new Error('Processamento de lembretes não configurado');
 
@@ -124,11 +190,12 @@ export class NotificacaoService {
 
     for (const turma of dependencias.classes.getAllClasses()) {
       for (const lembrete of turma.obterConfiguracaoLembretes().listar()) {
-        // A comparação inclui agendamentos anteriores ao início da verificação.
-        if (lembrete.getAgendamento().getTime() > limiteDaVerificacao) continue;
+        const proximoReenvio = lembrete.getProximoReenvioEm();
+        if (somenteReenvios && proximoReenvio === null) continue;
+        const agendamento = proximoReenvio ?? lembrete.getAgendamento();
+        if (agendamento.getTime() > limiteDaVerificacao) continue;
 
-        const registro = await this.processar(turma, lembrete, dependencias);
-        if (registro) registros.push(registro);
+        registros.push(...await this.processar(turma, lembrete, dependencias));
       }
     }
 
@@ -148,8 +215,9 @@ export class NotificacaoService {
 
     const registros: Notificacao[] = [];
     for (const lembrete of agendados) {
-      const registro = await this.processar(turma, lembrete, dependencias);
-      if (registro) registros.push(registro);
+      // A solicitação pelo agendamento original não adianta um reenvio programado.
+      if (lembrete.getProximoReenvioEm() !== null) continue;
+      registros.push(...await this.processar(turma, lembrete, dependencias));
     }
 
     return registros;
@@ -159,29 +227,32 @@ export class NotificacaoService {
     turma: Class,
     lembrete: Lembrete,
     dependencias: DependenciasLembretes
-  ): Promise<Notificacao | null> {
+  ): Promise<Notificacao[]> {
     const estado = lembrete.getEstado();
-    if (lembrete.jaFoiEnviado() || estado === 'Ignorado' || estado === 'Cancelado') return null;
+    if (lembrete.jaFoiEnviado() || estado === 'Ignorado' || estado === 'Cancelado') return [];
 
-    // A entrada de agendamentos trata o horário original. Reenvios terão sua própria entrada.
-    if (lembrete.getProximoReenvioEm() !== null) return null;
-
+    const proximoReenvio = lembrete.getProximoReenvioEm();
+    const reenvio = proximoReenvio !== null;
     const instanteAtual = new Date();
-    if (lembrete.getAgendamento().getTime() > instanteAtual.getTime()) return null;
-
-    const prazoAcademico = turma.getPrazoAcademico();
-    if (prazoAcademico === null || turma.prazoEncerrado(instanteAtual)) return null;
+    if ((proximoReenvio ?? lembrete.getAgendamento()).getTime() > instanteAtual.getTime()) return [];
 
     const turmaRegistrada = NotificacaoService.nomeDaTurma(turma);
     const lembreteId = lembrete.getId();
-
-    // A varredura cuida do primeiro envio. Tentativas anteriores seguem a regra de reenvio.
-    const temTentativaAnterior = this.historico.listar().some(registro =>
+    const tentativas = this.historico.listar().filter(registro =>
       registro.turmaRegistrada === turmaRegistrada &&
       registro.lembreteId === lembreteId &&
       (registro.resultado === 'Falha' || registro.resultado === 'Enviado')
     );
-    if (temTentativaAnterior) return null;
+    if (tentativas.some(registro => registro.resultado === 'Enviado')) return [];
+    if (reenvio ? tentativas.length === 0 || tentativas.length > INTERVALOS_REENVIO_MS.length : tentativas.length > 0) {
+      return [];
+    }
+
+    const prazoAcademico = turma.getPrazoAcademico();
+    if (prazoAcademico === null || turma.prazoEncerrado(instanteAtual)) {
+      if (reenvio) this.cancelarReenvio(turma, lembreteId, 'Prazo acadêmico encerrado');
+      return [];
+    }
 
     const destinatario = dependencias.classes.obterEmailDasTurmas();
     if (destinatario === null) throw new Error('Cadastre um e-mail para as turmas');
@@ -189,6 +260,10 @@ export class NotificacaoService {
     const mensagem = NotificacaoService.montarEmailNotasPendentes(turma, destinatario, prazoAcademico);
     if (mensagem === null) {
       const motivo = 'Nenhuma nota pendente';
+      if (reenvio) {
+        this.cancelarReenvio(turma, lembreteId, motivo);
+        return [];
+      }
       turma.obterConfiguracaoLembretes().ignorar(lembreteId, motivo);
 
       // Ignorado registra o processamento sem contar como tentativa de envio.
@@ -201,7 +276,7 @@ export class NotificacaoService {
         motivo
       );
       this.historico.registrar(registro);
-      return registro;
+      return [registro];
     }
 
     const resultado = await dependencias.emailSender.send(
@@ -225,12 +300,27 @@ export class NotificacaoService {
     );
 
     this.historico.registrar(tentativa);
+    const configuracao = turma.obterConfiguracaoLembretes();
     if (resultado.aceito) {
-      // Atualiza pelo ID porque buscarLembretesPara devolve uma cópia.
-      turma.obterConfiguracaoLembretes().marcarComoEnviado(lembrete.getId());
+      configuracao.marcarComoEnviado(lembreteId);
+      return [tentativa];
     }
 
-    return tentativa;
+    // O índice representa as tentativas anteriores à falha que acabamos de registrar.
+    const espera = INTERVALOS_REENVIO_MS[tentativas.length];
+    if (espera === undefined) {
+      this.cancelarReenvio(turma, lembreteId, 'Limite de tentativas atingido');
+      console.error('Limite de tentativas do lembrete atingido.', { turma: turmaRegistrada, lembreteId });
+      return [tentativa];
+    }
+
+    configuracao.programarReenvio(lembreteId, new Date(Date.now() + espera));
+    return [tentativa];
+  }
+
+  private cancelarReenvio(turma: Class, lembreteId: string, motivo: string): void {
+    turma.obterConfiguracaoLembretes().cancelar(lembreteId, motivo);
+    this.cancelamentoPendenteDeGravacao = true;
   }
 
   /** Notifica cada destinatário sobre uma mudança na composição de um grupo. */

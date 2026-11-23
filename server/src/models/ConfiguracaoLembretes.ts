@@ -43,6 +43,14 @@ export class ConfiguracaoLembretes {
     this.obterLembreteArmazenado(id).ignorar(motivo);
   }
 
+  programarReenvio(id: string, dataHora: Date): void {
+    this.obterLembreteArmazenado(id).programarReenvio(dataHora);
+  }
+
+  cancelar(id: string, motivo: string): void {
+    this.obterLembreteArmazenado(id).cancelar(motivo);
+  }
+
   private obterLembreteArmazenado(id: string): Lembrete {
     // Atualiza a entidade guardada pela configuração. As buscas públicas devolvem cópias.
     const lembrete = this.lembretes.find(item => item.getId() === id);

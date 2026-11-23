@@ -189,7 +189,8 @@ O acompanhamento dos 25 cenários de lembretes está em
 lacunas e resultados de descoberta dos testes.
 Esses cenários e suas marcações orientam a avaliação de completude do DDD desta
 feature; a cada incremento, revise a cobertura conforme o critério registrado
-na matriz. `//ok DDD (regra central)` não significa cobertura integral do cenário.
+na matriz. `# DDD (regra central representada)` indica a cobertura da regra de domínio.
+A evidência de execução fica no comentário `# Validação: completa (...)` na feature.
 Quando outra equipe ainda não disponibiliza uma dependência, combine seu contrato
 e os dados necessários para um mock/stub. Não trate esse dado simulado como uma
 funcionalidade já implementada no projeto.

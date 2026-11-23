@@ -110,6 +110,8 @@ namespace Servidor {
     remove(Lembrete)
     marcarComoEnviado(id)
     ignorar(id, motivo)
+    programarReenvio(id, dataHora)
+    cancelar(id, motivo)
     atualizar(quantidade, lembretesPropostos, instanteAtual, prazoAcademico)
     possuiAgendamentosPendentesApos(novoPrazo) boolean
     buscarLembretesPara(data, horario) Lembrete[]
@@ -131,12 +133,10 @@ namespace Servidor {
   }
   class NotificacaoService["NotificaçãoService"] {
     iniciarVerificacaoDeLembretes()
-    processarLembretesAteAgora()
+    processarLembretesAteAgora(somenteReenvios)
     montarEmailNotasPendentes(turma, destinatario, prazoAcademico)
     processar(turma, Lembrete, dependencias)
     processarAgendados(turmaId, data, horario)
-    processarReenvios(turma)
-    calcularProximoReenvio(lembrete, instanteAtual)
   }
   class HistoricoNotificacoes {
     registrar(Notificacao)
@@ -196,7 +196,7 @@ GradeNotification --> EmailSender
 
 %% ENVIO SMTP: lê a configuração do Gmail ao ser criado e retorna a aceitação de forma assíncrona.
 %% O campo descricaoFalha é opcional e a aceitação SMTP não confirma a entrega.
-%% A ligação do envio SMTP ao processamento de lembretes será definida em outro incremento.
+%% A inicialização do servidor injeta EmailSenderSmtp no processamento automático de lembretes.
 EmailSender ..> ResultadoEnvio : retorna
 EmailSenderSmtp ..> ResultadoEnvio : retorna
 
@@ -219,7 +219,7 @@ Notificacao --> Lembrete : origem
 %% O processamento de outros tipos de notificação será validado com a equipe, sem novas operações neste incremento.
 %% Processar um lembrete não implica envio obrigatório.
 %% Classes permite acessar as turmas, suas configurações e os lembretes.
-%% Estas associações não definem o início automático do processamento.
+%% A inicialização do servidor ativa a verificação automática quando o SMTP está configurado.
 %% A escrita invertida orienta o layout; o acesso continua de NotificacaoService para Classes.
 Classes <-- NotificacaoService
 %% A escrita invertida preserva o acesso de NotificacaoService ao Lembrete.
@@ -308,22 +308,15 @@ HistoricoNotificacoes <-- NotificacaoService
 %% Enquanto o cadastro das turmas possui somente o endereço, nomeDestinatario guarda o e-mail usado na tentativa.
 %% Um Lembrete já Enviado continua sendo tratado pelo bloqueio existente; correspondência não autoriza envio.
 %% data e horario identificam o agendamento solicitado; não são substituídos pelo instante atual do relógio.
-%% Esta busca continua usando o agendamento original; a seleção pelo próximo reenvio é tratada na entrada processarReenvios abaixo.
+%% Esta busca usa o agendamento original. A varredura automática seleciona os reenvios.
 %% O mecanismo técnico que dispara as entradas e as garantias de concorrência não são definidos por esta busca.
 
-%% ENTRADA DOS REENVIOS: processarReenvios(turma) seleciona os reenvios da turma cujo horário já chegou e delega seu processamento.
-%% Localizar a turma por Classes.buscar(turma), obter Class.obterConfiguracaoLembretes e consultar ConfiguracaoLembretes.listar.
-%% Obter uma vez o instante atual do relógio do servidor para a seleção; não receber esse instante do professor nem de uma tela.
-%% Selecionar somente os lembretes dessa configuração com proximoReenvioEm preenchido e menor ou igual ao instante atual.
-%% Não selecionar programação futura ou vazia; data e horário originais do lembrete não substituem proximoReenvioEm nessa seleção.
-%% Formar a lista de selecionados e chamar processar(Lembrete) uma vez para cada um nessa entrada, sem refazer a seleção na mesma chamada.
-%% processar mantém suas verificações de Enviado, Cancelado, prazo e notas atuais; ser selecionado não autoriza email automaticamente.
-%% Se a lista estiver vazia, encerrar sem email, novo registro ou alteração dos lembretes, configuração, turma e histórico.
-%% No cenário, às 09:00 não processar o reenvio previsto para 09:01; às 09:01 selecioná-lo e encaminhar a processar.
-%% A terceira tentativa Falha é registrada por processar, que calcula e programa 09:03; a entrada não executa esse quarto envio antes do horário.
-%% O processamento automático utiliza essa entrada, sem ação do professor; o mecanismo técnico de disparo não é implementado no modelo.
-%% Reutilizar os caminhos existentes por Classes, Class, ConfiguracaoLembretes e Lembrete; não acrescentar campo, classe ou relação.
-%% Esta seleção considera chamadas sequenciais; não garante exclusividade entre execuções concorrentes.
+%% ENTRADA DOS REENVIOS: processarLembretesAteAgora percorre as turmas e suas configurações.
+%% A seleção usa proximoReenvioEm, quando preenchido, e o agendamento original nos primeiros envios.
+%% O relógio do servidor define o limite da seleção no início de cada rodada.
+%% O próximo reenvio usa um temporizador próprio quando vence antes da varredura regular de 30 segundos.
+%% processar verifica o estado, o histórico, o prazo e as pendências atuais antes de cada envio.
+%% A seleção exclui horários futuros. A proteção entre entradas concorrentes continua pendente.
 
 %% BLOQUEIO DE REPROCESSAMENTO: jaFoiEnviado retorna verdadeiro quando estado é Enviado.
 %% A consulta não altera o Lembrete, não consulta o relógio e não realiza envio.
@@ -360,7 +353,7 @@ HistoricoNotificacoes <-- NotificacaoService
 %% NotificacaoService.montarEmailNotasPendentes agrupa as metas pelo CPF e inclui na mensagem apenas os nomes, as metas, a turma e o prazo em horário de Brasília.
 %% A consulta preserva as notas, as matrículas e os lembretes.
 %% NotificacaoService consulta as pendências após verificar o estado do lembrete e o prazo acadêmico.
-%% Os cancelamentos e o cálculo dos intervalos do cenário estão descritos abaixo; processarReenvios seleciona os horários de reenvio já alcançados.
+%% Os cancelamentos e os intervalos de reenvio estão descritos nas seções abaixo.
 
 %% AUSÊNCIA DE PENDÊNCIAS: no cenário de todas as notas cadastradas, a consulta atual retorna uma lista vazia.
 %% No primeiro processamento desse lembrete, sem tentativa anterior, o serviço usa a relação NotificacaoService --> Lembrete para chamar ignorar(Nenhuma nota pendente)
@@ -396,40 +389,39 @@ HistoricoNotificacoes <-- NotificacaoService
 %% Falha é resultado da Notificacao; este incremento não acrescenta estado Falha ao Lembrete.
 %% Falha seguida de sucesso preserva dois registros para o mesmo Lembrete, contabilizado como um enviado.
 %% Esta coordenação não define atomicidade entre email, estado e histórico nem acrescenta contadores.
-%% O reenvio imediato, os intervalos e a entrada de reenvios estão representados; persistência e concorrência seguem em revisão.
+%% A programação de reenvio segue os intervalos de 15, 30 e 45 segundos.
 
 %% PROGRAMAÇÃO DO REENVIO: Lembrete.proximoReenvioEm guarda a data e hora da próxima tentativa; vazio significa nenhum reenvio programado.
 %% data e horário continuam identificando o agendamento original; Notificacao.dataHora guarda o momento de um resultado já registrado.
 %% programarReenvio(dataHora) recebe o instante do serviço e altera somente proximoReenvioEm no lembrete que aguarda envio.
 %% Preservar id, data, horário, estado, motivo, outros lembretes e histórico; não consultar relógio ou notas, enviar email ou registrar Notificacao.
-%% REENVIO IMEDIATO: após registrar a primeira tentativa Falha de um Lembrete, NotificacaoService programa o reenvio para imediato
-%% por programarReenvio(instanteAtual) e aciona processar(Lembrete) novamente, sem solicitação do professor.
+%% PRIMEIRO REENVIO: NotificacaoService registra a primeira Falha e programa o reenvio para 15 segundos após a falha.
+%% O temporizador da rodada automática seleciona o reenvio quando chega o horário.
 %% Reconhecer a primeira falha pelos registros do mesmo Lembrete no histórico existente: há apenas uma tentativa, com resultado Falha.
 %% Considerar somente Enviado/Falha; excluir Ignorado e registros de outros lembretes. Não acrescentar contador de tentativas.
 %% A nova execução passa pelos bloqueios de Enviado e prazo e consulta novamente as pendências atuais, como já definido em processar.
-%% No cenário, a primeira tentativa de 25/08 às 09:00 falha; o mesmo lembrete aguarda e recebe um único reenvio imediato.
+%% No cenário, a primeira tentativa de 25/08 às 09:00 falha. O reenvio está programado para 09:00:15.
 %% Quando o email desse reenvio é aceito, registrar outra Notificacao Enviado e chamar marcarComoEnviado no mesmo Lembrete.
 %% Preservar a primeira Falha; ficam duas tentativas e um único lembrete Enviado, com proximoReenvioEm vazio.
-%% Se o reenvio imediato também falhar, não disparar outro imediato em cadeia; calcular e guardar o horário futuro conforme a regra abaixo.
-%% Os cancelamentos são tratados abaixo; processarReenvios seleciona os horários alcançados, sem resolver concorrência ou falhas entre email e gravação.
+%% Se o primeiro reenvio também falhar, guardar o próximo horário conforme a regra abaixo.
+%% A varredura seleciona horários alcançados. Concorrência e falhas entre email e gravação continuam em revisão.
 %% Reutilizar as relações NotificacaoService --> Lembrete e NotificacaoService --> HistoricoNotificacoes, sem classe, atributo ou seta nova.
 
-%% CÁLCULO DO PRÓXIMO REENVIO: calcularProximoReenvio(lembrete, instanteAtual) consulta o histórico existente e devolve um horário.
+%% CÁLCULO DO PRÓXIMO REENVIO: processar usa o histórico do lembrete para determinar a espera.
 %% Usar somente as tentativas do mesmo Lembrete, identificadas pela origem, com resultado Enviado ou Falha; excluir Ignorado e outros lembretes.
 %% No fluxo do cenário, a última tentativa acabou de falhar e o lembrete ainda aguarda envio; a quantidade é derivada do histórico, sem contador novo.
-%% Uma tentativa Falha: devolver instanteAtual, preservando o primeiro reenvio imediato já aprovado.
-%% Duas tentativas Falha: devolver instanteAtual acrescido de 1 minuto, programando a terceira tentativa.
-%% Três tentativas Falha: devolver instanteAtual acrescido de 2 minutos, programando a quarta tentativa.
+%% Uma tentativa Falha: esperar 15 segundos e programar a segunda tentativa.
+%% Duas tentativas Falha: esperar 30 segundos e programar a terceira tentativa.
+%% Três tentativas Falha: esperar 45 segundos e programar a quarta tentativa.
 %% instanteAtual é o instante do processamento que acabou de falhar, fornecido por NotificacaoService a partir do relógio do servidor.
 %% Após registrar a Falha, processar usa o horário devolvido para chamar o método existente Lembrete.programarReenvio(dataHora).
-%% Para 1 ou 2 minutos de espera, somente guardar a programação e encerrar; não disparar outro envio imediato.
-%% No cenário, a terceira tentativa de 25/08 às 09:01 falha e o cálculo devolve 25/08 às 09:03 para proximoReenvioEm.
+%% A espera começa quando o transporte informa a falha e o horário futuro fica guardado em proximoReenvioEm.
+%% No cenário, a terceira tentativa falha às 09:00:45 e a quarta fica programada para 09:01:30.
 %% O cálculo não altera Lembrete, configuração, prazo, notas ou histórico; não consulta o relógio, envia email ou cria Notificacao.
 %% A programação preserva o agendamento original de 09:00, as três Falhas e o estado de aguardando envio; não contabilizar como Enviado.
-%% O cálculo cobre somente os intervalos exigidos até a quarta tentativa; não define novos intervalos ou limite de tentativas.
-%% processarReenvios faz a seleção pelos horários alcançados e chama processar para executar as tentativas.
+%% Quatro tentativas com Falha: cancelar com Limite de tentativas atingido, preservar os quatro registros e emitir um erro no log.
 
-%% CANCELAMENTO DO REENVIO: Lembrete.cancelar(motivo) atua no lembrete que aguarda reenvio, nos dois cenários aprovados.
+%% CANCELAMENTO DO REENVIO: Lembrete.cancelar(motivo) atua no lembrete que aguarda reenvio.
 %% Alterar somente estado para Cancelado, motivo para a justificativa recebida e proximoReenvioEm para vazio.
 %% Preservar id, data e horário originais, a participação na configuração, os demais lembretes, as notas e o histórico.
 %% A operação não consulta notas ou relógio, não remove o lembrete da configuração, não envia email nem registra Notificacao.
@@ -437,9 +429,9 @@ HistoricoNotificacoes <-- NotificacaoService
 %% Se o prazo da turma encerrou, cancelar com Prazo acadêmico encerrado, antes de solicitar email.
 %% Se o prazo não encerrou e a consulta das notas atuais retorna nenhuma pendência, cancelar com Nenhuma nota pendente.
 %% Não chamar ignorar nesse reenvio nem criar Notificacao Ignorado ou outra tentativa; as três Falhas anteriores permanecem intactas.
-%% No cenário de notas preenchidas às 09:02, o reenvio de 09:03 é cancelado sem quarto email e sem contar o lembrete como Enviado.
-%% No cenário de prazo 31/08 às 23:59, o reenvio de 01/09 às 00:00 é cancelado, mesmo ainda havendo nota pendente.
-%% Nos dois casos, guardar o motivo no próprio Lembrete e retirar a programação, sem novo atributo, classe, método no serviço ou relação.
+%% No cenário de notas preenchidas às 09:01:00, o reenvio de 09:01:30 é cancelado sem quarto email.
+%% No cenário de prazo 31/08 às 23:59, o reenvio de 31/08 às 23:59:30 é cancelado mesmo com nota pendente.
+%% ConfiguracaoLembretes delega programarReenvio e cancelar à entidade armazenada. A rodada também grava cancelamentos sem nova tentativa.
 %% Enviado permanece protegido pela verificação inicial; Cancelado não volta a ser processado ou programado pelo fluxo.
 
 %% REAGENDAMENTO: operação de negócio do Lembrete, preservando seu id.
