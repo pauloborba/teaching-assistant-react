@@ -1,12 +1,11 @@
-# Acompanhamento conceitual do modelo DDD, sem execução da aplicação.
-# //ok DDD (regra central): regra principal descrita; não aprova o cenário inteiro.
-# //parcial DDD: há elementos representados, mas faltam regras ou informações.
-# //pendente DDD: a decisão ou garantia principal ainda não está representada.
-# As marcações após # são comentários; não acrescentam tags ou passos.
-# Nos GUI, //ok cobre as regras centrais descritas; telas e execução não são validadas.
+# Acompanhamento dos cenários de lembretes.
+# DDD (regra central representada): o modelo descreve a regra de domínio principal.
+# DDD (parcial): faltam regras ou informações no modelo.
+# DDD (pendente): a decisão ou garantia principal ainda precisa de modelagem.
+# Validação completa: a execução registrada comprovou todos os resultados esperados do cenário.
 # A listagem e a filtragem usam o histórico do único professor, sem RBAC.
-# Nos service, //ok considera as precondições do Given e processamento sequencial.
-# Evidências e lacunas: docs/arquitetura/COBERTURA-CENARIOS.md.
+# Nos cenários de serviço, a análise do DDD considera as precondições e o processamento sequencial.
+# Evidências e lacunas em docs/arquitetura/COBERTURA-CENARIOS.md.
 
 Feature: Notificações de pendências no lançamento de notas
 
@@ -18,8 +17,8 @@ Feature: Notificações de pendências no lançamento de notas
    # Cenários de GUI
 
    
-   @gui # //ok DDD (regra central)
-   # DDD: Services.consultarHistorico usa HistoricoNotificacoes.listar e devolve turma, dataHora, motivo e resultado registrados no histórico do único professor, preservando as notificações.
+   @gui
+   # DDD (regra central representada): Services.consultarHistorico usa HistoricoNotificacoes.listar e devolve turma, dataHora, motivo e resultado registrados no histórico do único professor, preservando as notificações.
    Scenario: Visualização do histórico de notificações
       Given o professor "Paulo Borba" está na tela "Turmas"
       And existe uma notificação de "Paulo Borba" para a turma "2026.2 de ESS", em "25/08/2026 às 09:00", com motivo "Notas pendentes" e status "Enviado"
@@ -31,8 +30,8 @@ Feature: Notificações de pendências no lançamento de notas
 
 
   
-   @gui # //ok DDD (regra central)
-   # DDD: A consulta por id devolve pendenciasRegistradas e prazoRegistrado da tentativa; o prazo é copiado da Class ao registrar a notificação e a lista permanece igual após o cadastro das notas.
+   @gui
+   # DDD (regra central representada): A consulta por id devolve pendenciasRegistradas e prazoRegistrado da tentativa; o prazo é copiado da Class ao registrar a notificação e a lista permanece igual após o cadastro das notas.
    Scenario: Visualização dos detalhes históricos de uma notificação
       Given o professor "Paulo Borba" está na tela "Histórico de notificações"
       And existe uma notificação de "Paulo Borba" para a turma "2026.2 de ESS", registrada em "25/08/2026 às 09:00", com motivo "Notas pendentes", status "Enviado" e prazo "31/08/2026 às 23:59"
@@ -45,8 +44,8 @@ Feature: Notificações de pendências no lançamento de notas
       And a notificação de "25/08/2026 às 09:00" apresenta "Maria Souza" sem nota cadastrada em "Projeto 1", mesmo após o cadastro da nota "9,0" em "26/08/2026 às 10:00"
 
    
-   @gui # //ok DDD (regra central)
-   # DDD: Services.filtrarHistorico coordena HistoricoNotificacoes.filtrar usando a identificação já existente em turmaRegistrada, com a disciplina e a turma selecionadas, preservando os demais registros.
+   @gui
+   # DDD (regra central representada): Services.filtrarHistorico coordena HistoricoNotificacoes.filtrar usando a identificação já existente em turmaRegistrada, com a disciplina e a turma selecionadas, preservando os demais registros.
    Scenario: Filtragem do próprio histórico por disciplina e turma
       Given o professor "Paulo Borba" está na tela "Histórico de notificações", sem filtros aplicados
       And existe uma notificação de "Paulo Borba" para a turma "2026.2 de ESS", em "25/08/2026 às 09:00", com motivo "Notas pendentes" e status "Enviado"
@@ -61,8 +60,8 @@ Feature: Notificações de pendências no lançamento de notas
 
   
    
-   @gui # //ok DDD (regra central)
-   # DDD: consultarDetalhesNotificacao usa buscar(idNotificacao) e devolve nomeDestinatario, turmaRegistrada, dataHora, motivo, resultado e descricaoFalha do registro selecionado, preservando a falha original e todos os dados.
+   @gui
+   # DDD (regra central representada): consultarDetalhesNotificacao usa buscar(idNotificacao) e devolve nomeDestinatario, turmaRegistrada, dataHora, motivo, resultado e descricaoFalha do registro selecionado, preservando a falha original e todos os dados.
    Scenario: Visualização de uma falha no próprio histórico
       Given o professor "Paulo Borba" está na tela "Histórico de notificações"
       And existe uma tentativa de envio de notificação para "Paulo Borba" da turma "2026.2 de ESS", registrada em "23/08/2026 às 09:00", com motivo "Notas pendentes", status "Falha" e descrição da falha "Tempo limite excedido no envio"
@@ -74,8 +73,9 @@ Feature: Notificações de pendências no lançamento de notas
 
 
    @lembretes-configuracao-gui
-   @gui # //ok DDD (regra central)
-   # DDD: atualizar valida o conjunto final, a quantidade e os agendamentos antes de alterar a configuração.
+   @gui
+   # DDD (regra central representada): atualizar valida o conjunto final, a quantidade e os agendamentos antes de alterar a configuração.
+   # Validação: completa (Chrome/Cucumber, perfil lembretesGui).
    Scenario: Configuração da quantidade, datas e horários dos lembretes
       Given a data atual é "19/08/2026 às 08:00"
       And há um e-mail válido cadastrado em "E-mail para as turmas"
@@ -98,8 +98,9 @@ Feature: Notificações de pendências no lançamento de notas
 
 
    @lembretes-configuracao-gui
-   @gui # //ok DDD (regra central)
-   # DDD: reagendar preserva a identidade do lembrete e a configuração das demais turmas.
+   @gui
+   # DDD (regra central representada): reagendar preserva a identidade do lembrete e a configuração das demais turmas.
+   # Validação: completa (Chrome/Cucumber, perfil lembretesGui).
    Scenario: Alteração de lembrete futuro sem afetar outra turma
       Given a data atual é "20/08/2026 às 08:00"
       And há um e-mail válido cadastrado em "E-mail para as turmas"
@@ -123,8 +124,9 @@ Feature: Notificações de pendências no lançamento de notas
 
 
    @lembretes-configuracao-gui
-   @gui # //ok DDD (regra central)
-   # DDD: Quantidade e conjunto final devem corresponder; rejeição preserva a configuração anterior.
+   @gui
+   # DDD (regra central representada): Quantidade e conjunto final devem corresponder; rejeição preserva a configuração anterior.
+   # Validação: completa (Chrome/Cucumber, perfil lembretesGui).
    Scenario: Rejeição de quantidade de datas incompatível
       Given a data atual é "20/08/2026 às 08:00"
       And há um e-mail válido cadastrado em "E-mail para as turmas"
@@ -148,8 +150,9 @@ Feature: Notificações de pendências no lançamento de notas
 
 
    @lembretes-configuracao-gui
-   @gui # //ok DDD (regra central)
-   # DDD: Novos agendamentos ou alterações após o prazo recebido são rejeitados sem alteração parcial.
+   @gui
+   # DDD (regra central representada): Novos agendamentos ou alterações após o prazo recebido são rejeitados sem alteração parcial.
+   # Validação: completa (Chrome/Cucumber, perfil lembretesGui).
    Scenario: Rejeição de lembrete após o prazo acadêmico
       Given a data atual é "20/08/2026 às 08:00"
       And há um e-mail válido cadastrado em "E-mail para as turmas"
@@ -170,8 +173,9 @@ Feature: Notificações de pendências no lançamento de notas
 
 
    @lembretes-configuracao-gui
-   @gui # //ok DDD (regra central)
-   # DDD: a GUI protege o agendamento de lembretes já enviados.
+   @gui
+   # DDD (regra central representada): a GUI protege o agendamento de lembretes já enviados.
+   # Validação: completa (Chrome/Cucumber, perfil lembretesGui).
    Scenario: Bloqueio de alteração de lembrete já enviado
       Given a data atual é "22/08/2026 às 08:00"
       And há um e-mail válido cadastrado em "E-mail para as turmas"
@@ -188,8 +192,9 @@ Feature: Notificações de pendências no lançamento de notas
 
 
    @lembretes-configuracao-gui
-   @gui  # //ok DDD (regra central)
-   # DDD: atualizar admite o conjunto ampliado válido, preservando os existentes; quantidade não é um novo atributo permanente.
+   @gui
+   # DDD (regra central representada): atualizar admite o conjunto ampliado válido, preservando os existentes; quantidade não é um novo atributo permanente.
+   # Validação: completa (Chrome/Cucumber, perfil lembretesGui).
    Scenario: Aumento da quantidade de lembretes configurados
       Given a data atual é "20/08/2026 às 08:00"
       And há um e-mail válido cadastrado em "E-mail para as turmas"
@@ -212,8 +217,9 @@ Feature: Notificações de pendências no lançamento de notas
 
 
    @lembretes-configuracao-gui
-   @gui # //ok DDD (regra central)
-   # DDD: atualizar valida o conjunto restante e preserva os lembretes enviados.
+   @gui
+   # DDD (regra central representada): atualizar valida o conjunto restante e preserva os lembretes enviados.
+   # Validação: completa (Chrome/Cucumber, perfil lembretesGui).
    Scenario: Redução da quantidade de lembretes sem excluir envios realizados
       Given a data atual é "22/08/2026 às 08:00"
       And há um e-mail válido cadastrado em "E-mail para as turmas"
@@ -235,8 +241,9 @@ Feature: Notificações de pendências no lançamento de notas
 
 
    @lembretes-configuracao-gui
-   @gui # //ok DDD (regra central)
-   # DDD: A configuração rejeita novos agendamentos anteriores a instanteAtual, preservando o conjunto anterior.
+   @gui
+   # DDD (regra central representada): A configuração rejeita novos agendamentos anteriores a instanteAtual, preservando o conjunto anterior.
+   # Validação: completa (Chrome/Cucumber, perfil lembretesGui).
    Scenario: Rejeição de criação de lembrete em data anterior à atual
       Given a data atual é "20/08/2026 às 08:00"
       And há um e-mail válido cadastrado em "E-mail para as turmas"
@@ -260,8 +267,9 @@ Feature: Notificações de pendências no lançamento de notas
    # Cenários de serviço
 
 
-   @service # //parcial DDD
-   # DDD: o serviço consulta as pendências, envia o aviso e registra o resultado da tentativa.
+   @service
+   # DDD (parcial): o serviço consulta as pendências, envia o aviso e registra o resultado da tentativa.
+   # Validação: completa (Jest, NotificacaoService.test.ts).
    Scenario: Envio de lembrete com notas pendentes
       Given há um e-mail cadastrado para as turmas no endereço "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui os alunos matriculados "João da Silva" e "Maria Souza"
@@ -281,8 +289,9 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
-   @service # //ok DDD (regra central)
-   # DDD: Sem pendências, o processamento fica Ignorado e a última tentativa de envio é preservada.
+   @service
+   # DDD (regra central representada): Sem pendências, o processamento fica Ignorado e a última tentativa de envio é preservada.
+   # Validação: completa (Jest, NotificacaoService.test.ts).
    Scenario: Ausência de envio quando todas as notas foram cadastradas
       Given há um e-mail cadastrado para as turmas no endereço "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui apenas os alunos matriculados "João da Silva" e "Maria Souza"
@@ -301,8 +310,9 @@ Feature: Notificações de pendências no lançamento de notas
 
 
   
-   @service # //ok DDD (regra central)
-   # DDD: Class consulta as metas da aba Avaliações nas matrículas e identifica as notas ainda ausentes.
+   @service
+   # DDD (regra central representada): Class consulta as metas da aba Avaliações nas matrículas e identifica as notas ainda ausentes.
+   # Validação: completa (Jest, Class.test.ts).
    Scenario: Identificação correta das notas pendentes
       Given a turma "2026.2 de ESS" possui apenas os alunos matriculados "João da Silva" e "Maria Souza"
       And as notas registradas nas metas da aba Avaliações são
@@ -320,8 +330,8 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
-   @service # //parcial DDD
-   # DDD: Busca e pendências ficam restritas à turma indicada, com o mesmo emailProfessor e contrato de EmailSender; o comentário complementar sobre processar foi dispensado pelo responsável, sem exigir alteração estrutural; classificação mantida até a conclusão da revisão do cenário.
+   @service
+   # DDD (parcial): Busca e pendências ficam restritas à turma indicada, com o mesmo emailProfessor e contrato de EmailSender; o comentário complementar sobre processar foi dispensado pelo responsável, sem exigir alteração estrutural; classificação mantida até a conclusão da revisão do cenário.
    Scenario: Envio independente de lembretes para múltiplas turmas
       Given o professor "Paulo Borba" é responsável pelas turmas "2026.2 de ESS" e "2026.2 de Introdução a Programação" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui apenas o aluno matriculado "João da Silva" e a avaliação "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
@@ -341,8 +351,9 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
-   @service # //ok DDD (regra central)
-   # DDD: processarAgendados consulta buscarLembretesPara na configuração da turma; lista vazia rejeita a solicitação sem email ou tentativa, preservando prazo, lembretes e histórico.
+   @service
+   # DDD (regra central representada): processarAgendados consulta buscarLembretesPara na configuração da turma; lista vazia rejeita a solicitação sem email ou tentativa, preservando prazo, lembretes e histórico.
+   # Validação: completa (Jest, NotificacaoService.test.ts).
    Scenario: Bloqueio de envio de lembrete não agendado
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui o aluno matriculado "João da Silva", sem nota cadastrada em "Prova de SOLID e Padrões de Projeto", realizada em "18/08/2026 às 14:00"
@@ -360,8 +371,8 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
-   @service # //ok DDD (regra central)
-   # DDD: Class.prazoEncerrado verifica o instante do serviço; configurarLembretes rejeita criação com o motivo Prazo acadêmico encerrado, sem alterar configuração, enviados ou histórico nem solicitar email.
+   @service
+   # DDD (regra central representada): Class.prazoEncerrado verifica o instante do serviço; configurarLembretes rejeita criação com o motivo Prazo acadêmico encerrado, sem alterar configuração, enviados ou histórico nem solicitar email.
    Scenario: Bloqueio de criação de novo lembrete após o prazo acadêmico
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui o aluno matriculado "João da Silva", sem nota cadastrada em "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
@@ -379,8 +390,8 @@ Feature: Notificações de pendências no lançamento de notas
 
    
    
-   @service # //ok DDD (regra central)
-   # DDD: proximoReenvioEm e programarReenvio representam a programação; processar aciona um único reenvio imediato após a primeira Falha e marcarComoEnviado limpa a programação após o sucesso; os dois passos da falha preservam o erro como descrição da falha, conforme o campo descricaoFalha.
+   @service
+   # DDD (regra central representada): proximoReenvioEm e programarReenvio representam a programação; processar aciona um único reenvio imediato após a primeira Falha e marcarComoEnviado limpa a programação após o sucesso; os dois passos da falha preservam o erro como descrição da falha, conforme o campo descricaoFalha.
    Scenario: Reenvio automático após falha temporária
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui apenas o aluno matriculado "João da Silva" e a avaliação "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
@@ -401,8 +412,8 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
-   @service # //ok DDD (regra central)
-   # DDD: jaFoiEnviado() faz processar encerrar sem novo email, notificação de tentativa ou reenvio; preserva lembrete e histórico.
+   @service
+   # DDD (regra central representada): jaFoiEnviado() faz processar encerrar sem novo email, notificação de tentativa ou reenvio; preserva lembrete e histórico.
    Scenario: Prevenção de envio duplicado por reprocessamento de lembrete já enviado
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail "paulo.borba@example.com"
       And a turma possui o aluno "João da Silva", sem nota cadastrada em "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
@@ -419,8 +430,8 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
-   @service # //ok DDD (regra central)
-   # DDD: O mesmo bloqueio preserva as duas notificações anteriores e impede uma terceira tentativa quando o estado recebido já é Enviado.
+   @service
+   # DDD (regra central representada): O mesmo bloqueio preserva as duas notificações anteriores e impede uma terceira tentativa quando o estado recebido já é Enviado.
    Scenario: Bloqueio de novo reenvio após sucesso de tentativa anterior
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma possui apenas o aluno "João da Silva", sem nota cadastrada em "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
@@ -437,8 +448,8 @@ Feature: Notificações de pendências no lançamento de notas
       And nenhum novo reenvio é programado
       And o lembrete continua contabilizado como um único envio
 
-   @service # //ok DDD (regra central)
-   # DDD: processarReenvios seleciona proximoReenvioEm preenchido e já alcançado e chama processar; a terceira Falha de 09:01 preserva as anteriores e programa 09:03 pelo cálculo existente; os dois passos de erro usam descrição da falha, conforme descricaoFalha.
+   @service
+   # DDD (regra central representada): processarReenvios seleciona proximoReenvioEm preenchido e já alcançado e chama processar; a terceira Falha de 09:01 preserva as anteriores e programa 09:03 pelo cálculo existente; os dois passos de erro usam descrição da falha, conforme descricaoFalha.
    Scenario: Reenvio progressivo após falhas persistentes
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui apenas o aluno matriculado "João da Silva" e a avaliação "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
@@ -457,8 +468,8 @@ Feature: Notificações de pendências no lançamento de notas
       And o prazo acadêmico permanece "31/08/2026 às 23:59"
 
 
-   @service # //pendente DDD
-   # DDD: Duas execuções podem observar o estado ainda não enviado. Consulta e marcação, isoladamente, não garantem um único envio ou registro.
+   @service
+   # DDD (pendente): Duas execuções podem observar o estado ainda não enviado. Consulta e marcação, isoladamente, não garantem um único envio ou registro.
    Scenario: Prevenção de envio duplicado por processamento concorrente
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma possui apenas o aluno "João da Silva", sem nota cadastrada em "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
@@ -473,8 +484,8 @@ Feature: Notificações de pendências no lançamento de notas
       And o lembrete é contabilizado como um único envio
 
 
-   @service # //ok DDD (regra central)
-   # DDD: No reenvio sem pendências, processar chama Lembrete.cancelar(Nenhuma nota pendente): estado Cancelado, motivo guardado e proximoReenvioEm vazio, sem email ou novo registro e preservando as três Falhas; os passos do histórico anterior usam descrição da falha para o erro, conforme descricaoFalha.
+   @service
+   # DDD (regra central representada): No reenvio sem pendências, processar chama Lembrete.cancelar(Nenhuma nota pendente): estado Cancelado, motivo guardado e proximoReenvioEm vazio, sem email ou novo registro e preservando as três Falhas; os passos do histórico anterior usam descrição da falha para o erro, conforme descricaoFalha.
    Scenario: Cancelamento de reenvio após resolução das pendências
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui apenas o aluno matriculado "João da Silva" e a avaliação "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
@@ -495,8 +506,8 @@ Feature: Notificações de pendências no lançamento de notas
 
 
 
-   @service # //ok DDD (regra central)
-   # DDD: No reenvio após o prazo, processar chama Lembrete.cancelar(Prazo acadêmico encerrado): estado Cancelado, motivo guardado e proximoReenvioEm vazio, sem email ou novo registro e preservando as três Falhas; os passos do histórico anterior usam descrição da falha para o erro, conforme descricaoFalha.
+   @service
+   # DDD (regra central representada): No reenvio após o prazo, processar chama Lembrete.cancelar(Prazo acadêmico encerrado): estado Cancelado, motivo guardado e proximoReenvioEm vazio, sem email ou novo registro e preservando as três Falhas; os passos do histórico anterior usam descrição da falha para o erro, conforme descricaoFalha.
    Scenario: Interrupção dos reenvios após o prazo acadêmico
       Given o professor "Paulo Borba" é responsável pela turma "2026.2 de ESS" e possui o e-mail cadastrado "paulo.borba@example.com"
       And a turma "2026.2 de ESS" possui apenas o aluno matriculado "João da Silva" e a avaliação "Prova de SOLID e Padrões de Projeto", realizada em "20/08/2026 às 14:00"
