@@ -1,0 +1,207 @@
+/* Estilos restritos ao formulário de criação de questões. */
+.question-form.question-form-modern {
+    --qf-accent: #6255bd;
+    --qf-border: #dfe4ee;
+    --qf-ink: #24304a;
+    width: 100%;
+    max-width: 1050px;
+    box-sizing: border-box;
+    margin: 1.25rem auto 2rem;
+    padding: 0;
+    border: 1px solid var(--qf-border);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 12px 36px rgba(36, 48, 74, .12), 0 2px 8px rgba(36, 48, 74, .04);
+    color: var(--qf-ink);
+    overflow: hidden;
+}
+
+.question-form-modern .qf-header {
+    padding: 1.65rem 2rem 1.4rem;
+    background: linear-gradient(120deg, #f7f7ff, #fcfcff);
+    border-bottom: 1px solid var(--qf-border);
+    border-top: 4px solid var(--qf-accent);
+}
+.question-form-modern .qf-kicker {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--qf-accent);
+}
+.question-form-modern .qf-header h2 {
+    margin: .4rem 0;
+    padding: 0;
+    font-size: 1.65rem;
+    color: var(--qf-ink);
+    background: transparent;
+    border: 0;
+}
+.question-form-modern .qf-header p,
+.question-form-modern .qf-hint {
+    margin: .35rem 0 0;
+    color: #606d84;
+    font-size: .9rem;
+    line-height: 1.5;
+}
+.question-form-modern .qf-body { padding: 1.65rem 2rem 1.8rem; }
+.question-form-modern .form-group { margin: 0 0 1.35rem; }
+.question-form-modern label {
+    display: block;
+    margin: 0 0 .5rem;
+    font-size: .88rem;
+    font-weight: 600;
+    color: #37435b;
+}
+.question-form-modern input,
+.question-form-modern textarea,
+.question-form-modern select {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: .8rem .9rem;
+    border: 1px solid #ccd4e2;
+    border-radius: 9px;
+    background: #fff;
+    color: var(--qf-ink);
+    font: inherit;
+    font-size: .95rem;
+    transition: border-color .15s, box-shadow .15s;
+}
+.question-form-modern input:focus,
+.question-form-modern textarea:focus,
+.question-form-modern select:focus {
+    outline: none;
+    border-color: var(--qf-accent);
+    box-shadow: 0 0 0 3px rgba(98, 85, 189, .14);
+}
+.question-form-modern input:disabled,
+.question-form-modern textarea:disabled,
+.question-form-modern select:disabled { opacity: .65; cursor: not-allowed; }
+.question-form-modern #question-statement {
+    min-height: 145px;
+    resize: vertical;
+    line-height: 1.6;
+    background: #fbfcff;
+}
+.question-form-modern .qf-alternatives {
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--qf-border);
+}
+.question-form-modern .qf-section-heading {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+.question-form-modern .qf-section-heading h3 { margin: 0; font-size: 1.12rem; }
+.question-form-modern .qf-count {
+    border: 1px solid #dedff0;
+    border-radius: 20px;
+    background: #f5f5fc;
+    padding: .1rem .55rem;
+    color: #5b538d;
+    font-size: .8rem;
+    font-weight: 600;
+}
+.question-form-modern .qf-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1.15rem;
+}
+.question-form-modern .qf-alternative {
+    min-width: 0;
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid var(--qf-border);
+    border-radius: 12px;
+    background: #f8f9fc;
+    box-shadow: 0 2px 5px rgba(36, 48, 74, .03);
+}
+.question-form-modern .qf-alternative-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: .65rem;
+}
+.question-form-modern .qf-alternative-header label { margin: 0; }
+.question-form-modern .qf-classification { margin: .85rem 0 0; }
+.question-form-modern .qf-classification label { font-size: .78rem; }
+.question-form-modern select.qf-true { background: #edf8f1; border-color: #bbdbc8; color: #21643d; }
+.question-form-modern select.qf-false { background: #fff1f1; border-color: #efc5c5; color: #9b3333; }
+.question-form-modern select option { background: #fff; color: var(--qf-ink); }
+.question-form-modern button.qf-remove {
+    flex: 0 0 34px;
+    min-width: 0;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid #f0d1d1;
+    border-radius: 8px;
+    background: #fff4f4;
+    color: #ac4040;
+    font-size: 1.3rem;
+    line-height: 1;
+}
+.question-form-modern button.qf-remove:hover:not(:disabled) { background: #ffe2e2; }
+.question-form-modern button.qf-add {
+    width: 100%;
+    margin-top: 1rem;
+    padding: .8rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: .6rem;
+    border: 1px dashed #b5b4dc;
+    border-radius: 10px;
+    background: #faf9ff;
+    color: #5146a4;
+    font-weight: 600;
+}
+.question-form-modern button.qf-add:hover:not(:disabled) { background: #eeebfc; }
+.question-form-modern .qf-plus { font-size: 1.35rem; line-height: 1; }
+.question-form-modern .qf-footer {
+    padding: 1.2rem 2rem;
+    border-top: 1px solid var(--qf-border);
+    background: #fafbfe;
+}
+.question-form-modern .qf-actions { display: flex; justify-content: flex-end; margin: 0; }
+.question-form-modern button.qf-save {
+    min-width: 170px;
+    padding: .85rem 1.4rem;
+    border-radius: 9px;
+    background: linear-gradient(120deg, #6575d9, #764ba2);
+    color: #fff;
+    font-weight: 600;
+}
+.question-form-modern button:focus-visible { outline: 3px solid #9184d7; outline-offset: 3px; }
+.question-form-modern .qf-error,
+.question-form-modern .qf-success {
+    margin: 0 0 1rem;
+    padding: .8rem 1rem;
+    border-radius: 8px;
+    font-size: .9rem;
+}
+.question-form-modern .qf-error { background: #fff0f0; color: #9b3333; }
+.question-form-modern .qf-success { background: #edf8f1; color: #21643d; }
+.question-form-modern .qf-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+@media (max-width: 720px) {
+    .question-form-modern .qf-grid { grid-template-columns: minmax(0, 1fr); }
+    .question-form-modern .qf-header,
+    .question-form-modern .qf-body,
+    .question-form-modern .qf-footer { padding-left: 1rem; padding-right: 1rem; }
+    .question-form-modern button.qf-save { width: 100%; }
+}

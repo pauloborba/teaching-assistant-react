@@ -66,6 +66,25 @@
           "isTrue": true
         }
       ]
+    },
+    {
+      "code": "2139f6a6-f2c1-453c-9425-7d256795f361",
+      "subject": "abc",
+      "statement": "abcde",
+      "alternatives": [
+        {
+          "text": "inline method",
+          "isTrue": true
+        },
+        {
+          "text": "extract class",
+          "isTrue": false
+        },
+        {
+          "text": "aaaaaaaa",
+          "isTrue": true
+        }
+      ]
     }
   ]
 }

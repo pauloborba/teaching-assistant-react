@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Alternative, Question } from '../types/Question';
 import { questionService } from '../services/QuestionService';
+import './QuestionForm.css';
 
 interface QuestionFormProps {
     onCreated: (question: Question) => void;
@@ -15,7 +16,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ onCreated }) => {
     ]);
 
     const [error, setError] = useState('');
-    const [success, setSucess] = useState('');
+    const [success, setSuccess] = useState('');
     const [saving, setSaving] = useState(false);
 
     // Adiciona um campo no formulário, não no backend
@@ -33,7 +34,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ onCreated }) => {
     ) => {
         setAlternatives(previous => 
             previous.map((alternative, i) =>
-                i == index
+                i === index
                 ? { ...alternative, ...changes }
                 : alternative
             )
@@ -51,7 +52,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ onCreated }) => {
         event.preventDefault();
 
         setError('');
-        setSucess('');
+        setSuccess('');
 
         if (!subject.trim()) {
             setError('É preciso definir o assunto da questão');
@@ -67,6 +68,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ onCreated }) => {
 
         if (!statement.trim()) {
             setError('É preciso definir o enunciado da questão');
+            return;
         }
 
         if (alternatives.some(a => !a.text.trim())) {
@@ -89,7 +91,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ onCreated }) => {
             setStatement('');
             setAlternatives([{ text: '', isTrue: true }]);
 
-            setSucess('Questão criada com sucesso!');
+            setSuccess('Questão criada com sucesso!');
         } catch (err) {
             setError(
                 err instanceof Error
@@ -103,100 +105,118 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ onCreated }) => {
 
     return (
         <form
-        className="student-form question-form"
-        onSubmit={handleSubmit}
+            className="student-form question-form question-form-modern"
+            onSubmit={handleSubmit}
         >
-        <h2>Criar questão</h2>
+            <header className="qf-header">
+                <span className="qf-kicker">Banco de questões</span>
+                <h2>Criar questão</h2>
+                <p>Escreva o enunciado e classifique cada alternativa da questão.</p>
+            </header>
 
-        <div className="form-group">
-            <label htmlFor="question-subject">Assunto</label>
-            <input
-            id="question-subject"
-            value={subject}
-            onChange={e => setSubject(e.target.value)}
-            disabled={saving}
-            />
-        </div>
+            <div className="qf-body">
+                <div className="form-group">
+                    <label htmlFor="question-subject">Assunto</label>
+                    <input
+                        id="question-subject"
+                        value={subject}
+                        onChange={e => setSubject(e.target.value)}
+                        placeholder="Ex.: Gerência de configuração"
+                        disabled={saving}
+                    />
+                </div>
 
-        <div className="form-group">
-            <label htmlFor="question-statement">Enunciado</label>
-            <textarea
-            id="question-statement"
-            rows={3}
-            value={statement}
-            onChange={e => setStatement(e.target.value)}
-            disabled={saving}
-            />
-        </div>
+                <div className="form-group qf-statement">
+                    <label htmlFor="question-statement">Enunciado</label>
+                    <textarea
+                        id="question-statement"
+                        rows={5}
+                        value={statement}
+                        onChange={e => setStatement(e.target.value)}
+                        placeholder="Digite o enunciado da questão..."
+                        disabled={saving}
+                    />
+                </div>
 
-        <h3>Alternativas</h3>
+                <section className="qf-alternatives" aria-labelledby="qf-alternatives-heading">
+                    <div className="qf-section-heading">
+                        <h3 id="qf-alternatives-heading">Alternativas</h3>
+                        <span className="qf-count">{alternatives.length}</span>
+                    </div>
+                    <p className="qf-hint">Adicione os itens e indique se cada um é verdadeiro ou falso.</p>
 
-        {alternatives.map((alternative, index) => (
-            <div className="question-alternative" key={index}>
-            <div className="form-group">
-                <label htmlFor={`alternative-${index}`}>
-                Alternativa {index + 1}
-                </label>
+                    <div className="qf-grid">
+                        {alternatives.map((alternative, index) => (
+                            <div className="question-alternative qf-alternative" key={index}>
+                                <div className="qf-alternative-header">
+                                    <label htmlFor={`alternative-${index}`}>
+                                        Alternativa {index + 1}
+                                    </label>
+                                    <button
+                                        type="button"
+                                        className="qf-remove"
+                                        disabled={saving}
+                                        onClick={() => removeDraftAlternative(index)}
+                                        aria-label={`Remover alternativa ${index + 1}`}
+                                        title={`Remover alternativa ${index + 1}`}
+                                    >
+                                        <span aria-hidden="true">−</span>
+                                        <span className="qf-sr-only">Remover alternativa {index + 1}</span>
+                                    </button>
+                                </div>
 
-                <input
-                id={`alternative-${index}`}
-                value={alternative.text}
-                disabled={saving}
-                onChange={e =>
-                    updateAlternative(index, {
-                    text: e.target.value
-                    })
-                }
-                />
+                                <input
+                                    id={`alternative-${index}`}
+                                    value={alternative.text}
+                                    placeholder="Digite o texto da alternativa"
+                                    disabled={saving}
+                                    onChange={e => updateAlternative(index, {
+                                        text: e.target.value
+                                    })}
+                                />
+
+                                <div className="form-group qf-classification">
+                                    <label htmlFor={`alternative-type-${index}`}>
+                                        Classificação da alternativa {index + 1}
+                                    </label>
+                                    <select
+                                        id={`alternative-type-${index}`}
+                                        className={alternative.isTrue ? 'qf-true' : 'qf-false'}
+                                        value={String(alternative.isTrue)}
+                                        disabled={saving}
+                                        onChange={e => updateAlternative(index, {
+                                            isTrue: e.target.value === 'true'
+                                        })}
+                                    >
+                                        <option value="true">Verdadeira</option>
+                                        <option value="false">Falsa</option>
+                                    </select>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <button
+                        type="button"
+                        className="qf-add"
+                        onClick={addDraftAlternative}
+                        disabled={saving}
+                    >
+                        <span className="qf-plus" aria-hidden="true">+</span>
+                        Adicionar alternativa
+                    </button>
+                </section>
             </div>
 
-            <div className="form-group">
-                <label htmlFor={`alternative-type-${index}`}>
-                Classificação da alternativa {index + 1}
-                </label>
-
-                <select
-                id={`alternative-type-${index}`}
-                value={String(alternative.isTrue)}
-                disabled={saving}
-                onChange={e =>
-                    updateAlternative(index, {
-                    isTrue: e.target.value === 'true'
-                    })
-                }
-                >
-                <option value="true">Verdadeira</option>
-                <option value="false">Falsa</option>
-                </select>
-            </div>
-
-            <button
-                type="button"
-                disabled={saving}
-                onClick={() => removeDraftAlternative(index)}
-            >
-                Remover alternativa {index + 1}
-            </button>
-            </div>
-        ))}
-
-        <div className="form-buttons">
-            <button
-            type="button"
-            onClick={addDraftAlternative}
-            disabled={saving}
-            >
-            Adicionar alternativa
-            </button>
-
-            <button type="submit" disabled={saving}>
-            {saving ? 'Salvando...' : 'Salvar questão'}
-            </button>
-        </div>
-
-        {error && <p role="alert" className="error-message">{error}</p>}
-
-        {success && <p role="status">{success}</p>}
+            <footer className="qf-footer">
+                {error && <p role="alert" className="error-message qf-error">{error}</p>}
+                {success && <p role="status" className="qf-success">{success}</p>}
+                <div className="form-buttons qf-actions">
+                    <button type="submit" className="qf-save" disabled={saving}>
+                        {saving ? 'Salvando...' : 'Salvar questão'}
+                    </button>
+                </div>
+            </footer>
         </form>
     );
 };
