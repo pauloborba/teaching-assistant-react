@@ -85,17 +85,33 @@ export class NotificacaoService {
     };
   }
 
-  iniciarVerificacaoDeLembretes(): () => void {
+  iniciarVerificacaoDeLembretes(persistirResultados?: () => boolean): () => void {
     if (this.pararVerificacao) return this.pararVerificacao;
     if (!this.lembretes) throw new Error('Processamento de lembretes não configurado');
 
+    let gravacaoPendente = false;
     const executar = async () => {
       // Se um envio ainda estiver em andamento, a próxima verificação espera outro ciclo.
       if (this.verificacaoEmAndamento) return;
       this.verificacaoEmAndamento = true;
 
       try {
-        await this.processarLembretesAteAgora();
+        // Recupera a gravação da rodada anterior antes de iniciar novos envios.
+        if (persistirResultados && gravacaoPendente) {
+          gravacaoPendente = !persistirResultados();
+          if (gravacaoPendente) return;
+        }
+
+        const quantidadeAnterior = persistirResultados ? this.historico.listar().length : 0;
+        try {
+          await this.processarLembretesAteAgora();
+        } finally {
+          // O histórico também pode ter crescido antes de um erro no meio da rodada.
+          if (persistirResultados && this.historico.listar().length > quantidadeAnterior) {
+            gravacaoPendente = true;
+            gravacaoPendente = !persistirResultados();
+          }
+        }
       } catch (erro) {
         console.error('Erro ao verificar lembretes:', erro);
       } finally {

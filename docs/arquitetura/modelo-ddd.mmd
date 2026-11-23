@@ -196,7 +196,7 @@ GradeNotification --> EmailSender
 
 %% ENVIO SMTP: lê a configuração do Gmail ao ser criado e retorna a aceitação de forma assíncrona.
 %% O campo descricaoFalha é opcional e a aceitação SMTP não confirma a entrega.
-%% A ligação do envio SMTP ao processamento de lembretes será definida em outro incremento.
+%% A inicialização do servidor injeta EmailSenderSmtp no processamento automático de lembretes.
 EmailSender ..> ResultadoEnvio : retorna
 EmailSenderSmtp ..> ResultadoEnvio : retorna
 
@@ -219,7 +219,7 @@ Notificacao --> Lembrete : origem
 %% O processamento de outros tipos de notificação será validado com a equipe, sem novas operações neste incremento.
 %% Processar um lembrete não implica envio obrigatório.
 %% Classes permite acessar as turmas, suas configurações e os lembretes.
-%% Estas associações não definem o início automático do processamento.
+%% A inicialização do servidor ativa a verificação automática quando o SMTP está configurado.
 %% A escrita invertida orienta o layout; o acesso continua de NotificacaoService para Classes.
 Classes <-- NotificacaoService
 %% A escrita invertida preserva o acesso de NotificacaoService ao Lembrete.
