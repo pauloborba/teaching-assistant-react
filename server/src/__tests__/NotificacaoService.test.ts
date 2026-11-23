@@ -154,6 +154,122 @@ describe('Processamento do lembrete de notas pendentes', () => {
     expect(turma.toJSON()).toEqual(dadosAntes);
   });
 
+  test('envia lembretes simultâneos com as pendências de cada turma', async () => {
+    const instante = new Date('2026-08-25T09:00:00-03:00');
+    const prazo = new Date('2026-08-31T23:59:00-03:00'); // Given: prazo compartilhado pelas duas turmas.
+    jest.useFakeTimers({ now: instante }); // Fixa o relógio no horário do When.
+
+    const destinatario = 'professor@example.test';
+    const classes = new Classes();
+    classes.definirEmailDasTurmas(destinatario); // Given: um endereço para as duas turmas.
+    const periodo = new PeriodoAcademico(2026, 2, prazo);
+    const lembrete = { id: 'lembrete-1', data: '2026-08-25', horario: '12:00', estado: 'Agendado' } as const;
+    const casos = [
+      { topico: 'ESS', aluno: 'Aluno ESS', cpf: '12345678901', meta: 'Design' },
+      { topico: 'Introdução a Programação', aluno: 'Aluna IP', cpf: '98765432101', meta: 'Tests' }
+    ];
+    const turmas = casos.map(({ topico, aluno, cpf, meta }) => {
+      const turma = classes.addClass(new Class(topico, periodo, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
+      const matricula = turma.addEnrollment(new Student(aluno, cpf, 'aluno@example.test'));
+      for (const metaAvaliada of EVALUATION_GOALS) {
+        if (metaAvaliada !== meta) matricula.addOrUpdateEvaluation(metaAvaliada, 'MA'); // Given: deixa só a meta escolhida sem nota.
+      }
+      turma.obterConfiguracaoLembretes().add(new Lembrete(lembrete)); // Given: agenda as duas turmas para 09h de Brasília.
+      return turma;
+    });
+    const historico = new HistoricoNotificacoes();
+    const send = jest.fn().mockResolvedValue({ aceito: true }); // Given: o transporte simulado aceita os dois envios.
+    const servico = new NotificacaoService(historico, new EmailSenderSimulado(), {
+      classes, emailSender: { send }
+    });
+
+    const registros = await servico.processarLembretesAteAgora(); // When: uma rodada processa as duas turmas.
+
+    expect(send).toHaveBeenCalledTimes(2); // Then: dois avisos foram solicitados ao transporte.
+    expect(registros).toHaveLength(2);
+    expect(historico.listar()).toEqual(registros); // Then: as duas tentativas entraram no histórico.
+    for (const { topico, aluno, meta } of casos) {
+      const nomeTurma = `2026.2 de ${topico}`;
+      expect(send).toHaveBeenCalledWith(destinatario, `Notas pendentes — ${nomeTurma}`, [
+        'Olá,',
+        '',
+        `Ainda há notas pendentes na turma ${nomeTurma}.`,
+        '',
+        `- ${aluno}: ${meta}`, // Then: o corpo completo contém apenas a pendência desta turma.
+        '',
+        'Prazo acadêmico para lançamento das notas: 31/08/2026 às 23:59 (horário de Brasília).'
+      ].join('\n'));
+      expect(registros).toContainEqual(expect.objectContaining({
+        turmaRegistrada: nomeTurma,
+        lembreteId: lembrete.id,
+        dataHora: instante,
+        prazoRegistrado: prazo,
+        nomeDestinatario: destinatario,
+        resultado: 'Enviado', // Then: a tentativa da turma foi registrada no horário esperado.
+        pendenciasRegistradas: [{ nomeAluno: aluno, meta }]
+      }));
+    }
+    for (const turma of turmas) {
+      expect(turma.obterConfiguracaoLembretes().toJSON())
+        .toEqual([expect.objectContaining({ id: lembrete.id, estado: 'Enviado' })]); // Then: cada turma tem seu próprio lembrete enviado.
+    }
+  });
+
+  test('rejeita um agendamento que não existe na turma solicitada', async () => {
+    jest.useFakeTimers({ now: new Date('2026-08-27T09:00:00-03:00') });
+
+    const destinatario = 'professor@example.test';
+    const prazo = new Date('2026-08-31T23:59:00-03:00');
+    const periodo = new PeriodoAcademico(2026, 2, prazo);
+    const classes = new Classes();
+    classes.definirEmailDasTurmas(destinatario); // Given: há um destinatário configurado.
+    const turma = classes.addClass(new Class('ESS', periodo, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
+    const outraTurma = classes.addClass(new Class('IP', periodo, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA));
+    const aluno = new Student('Aluno ESS', '12345678901', 'aluno@example.test');
+    turma.addEnrollment(aluno); // Given: há um aluno matriculado com notas pendentes.
+    outraTurma.addEnrollment(aluno);
+
+    const historico = new HistoricoNotificacoes();
+    const configuracao = turma.obterConfiguracaoLembretes();
+    const outraConfiguracao = outraTurma.obterConfiguracaoLembretes();
+    const horario = '12:00';
+    const dataSolicitada = '2026-08-27';
+    outraConfiguracao.add(new Lembrete({ id: 'outra-turma', data: dataSolicitada, horario })); // Given: só IP possui o horário solicitado.
+    for (const data of ['2026-08-20', '2026-08-25']) {
+      configuracao.add(new Lembrete({ id: data, data, horario, estado: 'Enviado' })); // Given: ESS tem dois lembretes já enviados.
+      historico.registrar(new Notificacao(
+        historico.proximoId(),
+        destinatario,
+        {
+          lembreteId: data,
+          turmaRegistrada: '2026.2 de ESS',
+          prazoRegistrado: prazo,
+          pendenciasRegistradas: [{ nomeAluno: 'Aluno ESS', meta: 'Design' }]
+        },
+        new Date(`${data}T12:00:00Z`),
+        'Enviado',
+        'Notas pendentes'
+      )); // Given: o histórico contém o envio de cada um desses lembretes.
+    }
+
+    const lembretesAntes = configuracao.toJSON();
+    const outraConfiguracaoAntes = outraConfiguracao.toJSON();
+    const historicoAntes = historico.toJSON();
+    const send = jest.fn().mockResolvedValue({ aceito: true });
+    const servico = new NotificacaoService(historico, new EmailSenderSimulado(), {
+      classes, emailSender: { send }
+    });
+
+    await expect(servico.processarAgendados(turma.getClassId(), dataSolicitada, horario)) // When: solicita 27/08 às 09h para ESS.
+      .rejects.toThrow('Não existe lembrete para o agendamento informado'); // Then: rejeita pelo motivo esperado.
+
+    expect(send).not.toHaveBeenCalled(); // Then: nenhum envio foi solicitado.
+    expect(configuracao.toJSON()).toEqual(lembretesAntes); // Then: os dois lembretes de ESS continuam enviados.
+    expect(outraConfiguracao.toJSON()).toEqual(outraConfiguracaoAntes); // O lembrete de IP também é preservado.
+    expect(historico.toJSON()).toEqual(historicoAntes); // Then: nenhuma tentativa foi acrescentada.
+    expect(turma.getPrazoAcademico()).toEqual(prazo); // Then: o prazo acadêmico permanece igual.
+  });
+
   test.each([true, false])(
     'processa o atrasado ao iniciar e aguarda o próximo horário, com aceitação inicial %s',
     async (aceito) => {
