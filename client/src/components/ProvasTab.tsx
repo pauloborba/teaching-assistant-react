@@ -10,6 +10,7 @@ const ProvasTab: React.FC = () => {
   const [section, setSection] = useState<ProvasSection>('questions');
   return (
     <div className="provas-container">
+      <h2>Provas</h2>
       <nav
         className="exam-navigation"
         aria-label="Seções de provas"

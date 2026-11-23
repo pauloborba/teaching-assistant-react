@@ -54,7 +54,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ onCreated }) => {
         setSucess('');
 
         if (!subject.trim()) {
-            setError('É  preciso definir o assunto da questão');
+            setError('É preciso definir o assunto da questão');
             return;
         }
 

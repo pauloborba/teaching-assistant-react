@@ -199,7 +199,13 @@ const CreateExam: React.FC = () => {
                 {loading ? (
                     <p>Carregando questões...</p>
                 ) : questions.length === 0 ? (
-                    <p>Não há questões cadastradas. Não é possível criar uma prova.</p>
+                    <>
+                        <p>Não há questões cadastradas. Não é possível criar uma prova.</p>
+                        
+                        {subjectFilter.trim() && (
+                            <p>Não há questões do assunto "{subjectFilter}".</p>
+                        )}
+                    </>
                 ) : filteredQuestions.length === 0 ? (
                     <p>
                         Não há questões do assunto "{subjectFilter}".

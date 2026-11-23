@@ -51,6 +51,21 @@
           "isTrue": true
         }
       ]
+    },
+    {
+      "code": "98f6bb99-2384-4575-8309-db677cae9129",
+      "subject": "Refatoração",
+      "statement": "quais abaixo são formas de refatoração",
+      "alternatives": [
+        {
+          "text": "inline method",
+          "isTrue": true
+        },
+        {
+          "text": "extract class",
+          "isTrue": true
+        }
+      ]
     }
   ]
 }
