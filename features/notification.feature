@@ -4,13 +4,13 @@ Feature: notificação de alocação de monitor e aluno
   Eu quero ser notificado sempre que a composição do meu grupo mudar
   Para que eu saiba quem são os participantes atuais do grupo sem precisar checar manualmente
 
-  Scenario: notificar grupo ao alocar monitor (serviço)
+  Scenario: notificar grupo ao alocar monitor
     Given o grupo "ESS-G3" existe com os alunos "Mariana" e "Pedro" e sem monitor definido
     When o professor aloca o monitor "joaosilva" ao grupo "ESS-G3"
     Then o sistema envia uma notificação de alocação para "Mariana", "Pedro" e "joaosilva"
     And o grupo "ESS-G3" passa a ter "joaosilva" como monitor
 
-  Scenario: notificar grupo ao adicionar aluno a grupo com monitor (serviço)
+  Scenario: notificar grupo ao adicionar aluno a grupo com monitor
     Given o grupo "ESS-G3" existe com os alunos "Mariana" e "Pedro" e o monitor "joaosilva"
     When o professor adiciona o aluno "Carla" ao grupo "ESS-G3"
     Then o sistema envia uma notificação de aviso para "Mariana", "Pedro", "Carla" e "joaosilva"
@@ -32,14 +32,19 @@ Feature: notificação de alocação de monitor e aluno
     And o grupo "ESS-G3" mantém apenas "Mariana" e "Pedro" como alunos
     
   Scenario: notificar participantes na realocação de monitor entre grupos
-    Given o monitor "joaosilva" está alocado ao grupo "ESS-G3"
+    Given o grupo "ESS-G3" existe com os alunos "Mariana" e "Pedro" e o monitor "joaosilva"
     And o grupo "ESS-G4" existe com os alunos "Lucas" e "Beatriz" e sem monitor definido
     When o professor realoca o monitor "joaosilva" do grupo "ESS-G3" para o grupo "ESS-G4"
     Then o sistema envia uma notificação de saída para os alunos do grupo "ESS-G3"
     And o sistema envia uma notificação de entrada para os alunos do grupo "ESS-G4"
-    And o grupo "ESS-G3" passa a não ter monitor definido
+    And o histórico de notificações do grupo "ESS-G3" registra a notificação de saída para "Mariana" e "Pedro"
+
+  Scenario: atualizar os grupos após a realocação de monitor entre grupos
+    Given o grupo "ESS-G3" existe com os alunos "Mariana" e "Pedro" e o monitor "joaosilva"
+    And o grupo "ESS-G4" existe com os alunos "Lucas" e "Beatriz" e sem monitor definido
+    When o professor realoca o monitor "joaosilva" do grupo "ESS-G3" para o grupo "ESS-G4"
+    Then o grupo "ESS-G3" passa a não ter monitor definido
     And o grupo "ESS-G4" passa a ter "joaosilva" como monitor
-    And o histórico de notificações do grupo "ESS-G3" registra o evento de entrada de "Carla"
 
   Scenario: alocação automática quando há apenas um monitor disponível
     Given o grupo "ESS-G5" existe com os alunos "Rafael" e "Julia" e sem monitor definido
@@ -47,8 +52,13 @@ Feature: notificação de alocação de monitor e aluno
     When o sistema de alocação automática é executado para o grupo "ESS-G5"
     Then o sistema aloca o monitor "mariaeduarda" ao grupo "ESS-G5"
     And o sistema envia uma notificação de alocação para "Rafael", "Julia" e "mariaeduarda"
-    And o sistema registra a alocação automática no relatório de monitores da disciplina
-    And o relatório de monitores da disciplina passa a não ter monitores livres disponíveis
+
+  Scenario: atualizar a lista de monitores após a alocação automática
+    Given o grupo "ESS-G5" existe com os alunos "Rafael" e "Julia" e sem monitor definido
+    And o monitor "mariaeduarda" é o único monitor livre no momento
+    When o sistema de alocação automática é executado para o grupo "ESS-G5"
+    Then a lista de monitores da disciplina mostra "mariaeduarda" como alocado ao grupo "ESS-G5" por alocação automática
+    And a lista de monitores da disciplina não mostra monitores livres
 
   Scenario: notificar alunos quando monitor é removido do grupo sem realocação
     Given o grupo "ESS-G3" existe com os alunos "Mariana" e "Pedro" e o monitor "joaosilva"
@@ -72,7 +82,7 @@ Feature: notificação de alocação de monitor e aluno
 
   Scenario: notificar monitor quando é designado como responsável por múltiplos grupos
     Given o monitor "joaosilva" já está alocado ao grupo "ESS-G3"
-    And o grupo "ESS-G7" existe sem monitor definido
+    And o grupo "ESS-G7" existe com os alunos "Ana" e "Bruno" e sem monitor definido
     When o professor aloca o monitor "joaosilva" também ao grupo "ESS-G7"
     Then o sistema envia uma notificação para os alunos do grupo "ESS-G7"
     And o sistema envia uma notificação para "joaosilva" informando o acúmulo de grupos
