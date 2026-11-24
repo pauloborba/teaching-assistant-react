@@ -12,7 +12,7 @@ const servidor = app.listen(PORT, () => {
   try {
     // O diretório de execução do backend contém o .env e os dados locais.
     if (existsSync('.env')) process.loadEnvFile('.env');
-    emailSender = new EmailSenderSmtp();
+    emailSender = new EmailSenderSmtp(process.env);
   } catch {
     console.warn('Lembretes automáticos desativados. Verifique o .env e as variáveis GMAIL_USER e GMAIL_APP_PASSWORD.');
     return;

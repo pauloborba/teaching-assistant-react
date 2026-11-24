@@ -69,7 +69,8 @@ const saveDataToFile = (
       students: studentSet.getAllStudents().map(student => ({
         name: student.name,
         cpf: student.getCPF(),
-        email: student.email
+        email: student.email,
+        lastGradeNotificationDate: student.lastGradeNotificationDate
       })),
       classes: classes.getAllClasses().map(classObj => ({
         topic: classObj.getTopic(),
@@ -149,6 +150,7 @@ const loadDataFromFile = (): void => {
             studentData.cpf,
             studentData.email
           );
+          student.lastGradeNotificationDate = studentData.lastGradeNotificationDate ?? null;
           
           try {
             studentSet.addStudent(student);
@@ -369,7 +371,7 @@ app.post('/api/students', (req: Request, res: Response) => {
   try {
     const { name, cpf, email } = req.body;
     
-    if (!name || !cpf || !email) {
+    if (!name || !cpf || email === undefined || email === null) {
       return res.status(400).json({ error: 'Name, CPF, and email are required' });
     }
 
@@ -389,7 +391,7 @@ app.put('/api/students/:cpf', (req: Request, res: Response) => {
     const { cpf } = req.params;
     const { name, email } = req.body;
     
-    if (!name || !email) {
+    if (!name || email === undefined || email === null) {
       return res.status(400).json({ error: 'Name and email are required for update' });
     }
     
@@ -677,7 +679,7 @@ app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 });
 
 // PUT /api/classes/:classId/enrollments/:studentCPF/evaluation - Update evaluation for an enrolled student
-app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
+app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', async (req: Request, res: Response) => {
   try {
     const { classId, studentCPF } = req.params;
     const { goal, grade } = req.body;
@@ -708,8 +710,15 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
       enrollment.addOrUpdateEvaluation(goal, grade);
     }
 
+    const emailResult = await services.gradeNotificationService.notify(
+      enrollment.getStudent(),
+      goal,
+      grade,
+      classObj.getTopic()
+    );
+
     triggerSave(); // Save to file after evaluation update
-    res.json(enrollment.toJSON());
+    res.json(emailResult.emailAlert ? { ...enrollment.toJSON(), emailAlert: emailResult.emailAlert } : enrollment.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
