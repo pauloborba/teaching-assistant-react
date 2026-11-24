@@ -6,6 +6,8 @@ import { Evaluation } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import { Report } from './models/Report';
+import { RoteiroService } from './services/RoteiroService';
+import { Roteiro } from './models/Roteiro';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
@@ -26,6 +28,7 @@ app.use(express.json());
 // In-memory storage with file persistence
 const studentSet = new StudentSet();
 const classes = new Classes();
+const roteiroService = new RoteiroService();
 const dataFile = path.resolve('./data/app-data.json');
 
 // Persistence functions
@@ -53,13 +56,14 @@ const saveDataToFile = (): void => {
           studentCPF: enrollment.getStudent().getCPF(),
           evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
         }))
-      }))
+      })),
+      roteiros: roteiroService.getRoteiroList().getAll().map(roteiro => roteiro.toJSON())
     };
     
     ensureDataDirectory();
     fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
-    console.error('Error saving students to file:', error);
+    console.error('Error saving data to file:', error);
   }
 };
 
@@ -73,7 +77,6 @@ const loadDataFromFile = (): void => {
       // Load students
       if (data.students && Array.isArray(data.students)) {
         data.students.forEach((studentData: any) => {
-          // Create student with basic info only - evaluations handled through enrollments
           const student = new Student(
             studentData.name,
             studentData.cpf,
@@ -110,16 +113,16 @@ const loadDataFromFile = (): void => {
                     });
                   }
                     
-                    // Load medias and attendance status if provided in the data file
-                    if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
-                      enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
-                    }
-                    if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
-                      enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
-                    }
-                    if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
-                      enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
-                    }
+                  // Load medias and attendance status if provided in the data file
+                  if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
+                    enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
+                  }
+                  if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
+                    enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
+                  }
+                  if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
+                    enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
+                  }
                 } else {
                   console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
                 }
@@ -127,6 +130,18 @@ const loadDataFromFile = (): void => {
             }
           } catch (error) {
             console.error(`Error adding class ${classData.topic}:`, error);
+          }
+        });
+      }
+
+      // Load roteiros
+      if (data.roteiros && Array.isArray(data.roteiros)) {
+        data.roteiros.forEach((roteiroData: any) => {
+          try {
+            const roteiro = Roteiro.fromJSON(roteiroData);
+            roteiroService.getRoteiroList().add(roteiro);
+          } catch (error) {
+            console.error(`Error loading roteiro ${roteiroData?.titulo}:`, error);
           }
         });
       }
@@ -179,10 +194,9 @@ app.post('/api/students', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Name, CPF, and email are required' });
     }
 
-    // Create student with basic information only - evaluations handled through enrollments
     const student = new Student(name, cpf, email);
     const addedStudent = studentSet.addStudent(student);
-    triggerSave(); // Save to file after adding
+    triggerSave();
     res.status(201).json(addedStudent.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -199,10 +213,9 @@ app.put('/api/students/:cpf', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Name and email are required for update' });
     }
     
-    // Create a Student object for update - evaluations handled through enrollments
     const updatedStudent = new Student(name, cpf, email);
     const result = studentSet.updateStudent(updatedStudent);
-    triggerSave(); // Save to file after updating
+    triggerSave();
     res.json(result.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -220,50 +233,12 @@ app.delete('/api/students/:cpf', (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Student not found' });
     }
     
-    triggerSave(); // Save to file after deleting
+    triggerSave();
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
 });
-
-// PUT /api/students/:cpf/evaluation - Update a specific evaluation
-// DEPRECATED: Evaluations are now handled through class enrollments
-/*
-app.put('/api/students/:cpf/evaluation', (req: Request, res: Response) => {
-  try {
-    const { cpf } = req.params;
-    const { goal, grade } = req.body;
-    
-    if (!goal) {
-      return res.status(400).json({ error: 'Goal is required' });
-    }
-    
-    const cleanedCPF = cleanCPF(cpf);
-    const student = studentSet.findStudentByCPF(cleanedCPF);
-    
-    if (!student) {
-      return res.status(404).json({ error: 'Student not found' });
-    }
-    
-    if (grade === '' || grade === null || grade === undefined) {
-      // Remove evaluation
-      student.removeEvaluation(goal);
-    } else {
-      // Add or update evaluation
-      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
-        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
-      }
-      student.addOrUpdateEvaluation(goal, grade);
-    }
-    
-    triggerSave(); // Save to file after evaluation update
-    res.json(student.toJSON());
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
-  }
-});
-*/
 
 // GET /api/students/:cpf - Get a specific student
 app.get('/api/students/:cpf', (req: Request, res: Response) => {
@@ -303,7 +278,7 @@ app.post('/api/classes', (req: Request, res: Response) => {
 
     const classObj = new Class(topic, semester, year, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA);
     const newClass = classes.addClass(classObj);
-    triggerSave(); // Save to file after adding class
+    triggerSave();
     res.status(201).json(newClass.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -325,12 +300,11 @@ app.put('/api/classes/:id', (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Class not found' });
     }
 
-    // Update the class directly using setters
     existingClass.setTopic(topic);
     existingClass.setSemester(semester);
     existingClass.setYear(year);
     
-    triggerSave(); // Save to file after updating class
+    triggerSave();
     res.json(existingClass.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -347,7 +321,7 @@ app.delete('/api/classes/:id', (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Class not found' });
     }
     
-    triggerSave(); // Save to file after deleting class
+    triggerSave();
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -375,7 +349,7 @@ app.post('/api/classes/:classId/enroll', (req: Request, res: Response) => {
     }
 
     const enrollment = classObj.addEnrollment(student);
-    triggerSave(); // Save to file after enrolling student
+    triggerSave();
     res.status(201).json(enrollment.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -399,7 +373,7 @@ app.delete('/api/classes/:classId/enroll/:studentCPF', (req: Request, res: Respo
       return res.status(404).json({ error: 'Student not enrolled in this class' });
     }
     
-    triggerSave(); // Save to file after unenrolling student
+    triggerSave();
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -474,17 +448,15 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
     }
 
     if (grade === '' || grade === null || grade === undefined) {
-      // Remove evaluation
       enrollment.removeEvaluation(goal);
     } else {
-      // Add or update evaluation
       if (!['MANA', 'MPA', 'MA'].includes(grade)) {
         return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
       }
       enrollment.addOrUpdateEvaluation(goal, grade);
     }
 
-    triggerSave(); // Save to file after evaluation update
+    triggerSave();
     res.json(enrollment.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -492,9 +464,6 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 });
 
 // POST api/classes/gradeImport/:classId, usado na feature de importacao de grades
-// Vai ser usado em 2 fluxos(poderia ter divido em 2 endpoints mas preferi deixar em apenas 1)
-// [Front] Upload → [Back] lê só o cabeçalho e retorna colunas da planilha e os goals da 'classId'
-// [Front] Mapeia colunas da planilha para os goals → [Back] faz parse completo (stream)
 app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (req: express.Request, res: express.Response) => {
   res.status(501).json({ error: "Endpoint ainda não implementado." });
 });
@@ -516,9 +485,63 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
   }
 });
 
+// GET /api/roteiros - Get all roteiros (optional ?turma= filter)
+app.get('/api/roteiros', (req: Request, res: Response) => {
+  try {
+    const turma = typeof req.query.turma === 'string' ? req.query.turma : undefined;
+    const lista = turma
+      ? roteiroService.getRoteiroList().listByTitulo(turma)
+      : roteiroService.getRoteiroList().getAll();
+    res.json(lista.map(r => r.toJSON()));
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch roteiros' });
+  }
+});
+
+// POST /api/roteiros - Create a new roteiro
+app.post('/api/roteiros', (req: Request, res: Response) => {
+  try {
+    const novoRoteiro = roteiroService.inserirRoteiro(req.body);
+    triggerSave();
+    res.status(201).json(novoRoteiro.toJSON());
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// PUT /api/roteiros/:id - Update an existing roteiro
+app.put('/api/roteiros/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const atualizado = roteiroService.atualizarRoteiro(id, req.body);
+    triggerSave();
+    res.json(atualizado.toJSON());
+  } catch (error) {
+    const message = (error as Error).message;
+    const status = message === 'Roteiro não encontrado' ? 404 : 400;
+    res.status(status).json({ error: message });
+  }
+});
+
+// DELETE /api/roteiros/:id - Delete a roteiro
+app.delete('/api/roteiros/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const removido = roteiroService.removerRoteiro(id);
+    if (!removido) {
+      return res.status(404).json({ error: 'Roteiro não encontrado' });
+    }
+    triggerSave();
+    res.status(204).send();
+  } catch (error) {
+    const message = (error as Error).message;
+    const status = message === 'Roteiro não encontrado' ? 404 : 400;
+    res.status(status).json({ error: message });
+  }
+});
 
 // Export the app for testing
-export { app, studentSet, classes };
+export { app, studentSet, classes, roteiroService };
 
 // Only start the server if this file is run directly (not imported for testing)
 if (require.main === module) {
