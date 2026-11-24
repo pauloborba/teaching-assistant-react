@@ -1051,6 +1051,25 @@ tbody tr:last-child td {
   font-size: 1.1rem;
 }
 
+.grade-notification-alert {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  color: #78350f;
+  background-color: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-left-width: 5px;
+  border-radius: 8px;
+}
+
+.grade-notification-alert strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.grade-notification-alert p {
+  margin: 0;
+}
+
 .evaluation-matrix {
   overflow-x: auto;
   border-radius: 12px;

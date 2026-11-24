@@ -38,13 +38,13 @@ export class GradeNotification {
       return { aceito: false, ignored: true };
     }
 
-    const gradeChange = grade ? `updated to ${grade}` : 'removed';
+    const gradeChange = grade ? 'updated' : 'removed';
     this.notificationsInProgress.add(studentCPF);
     try {
       const sendResult: SendResult = await this.emailSender.send(
         student.email,
         `Grade update: ${topic}`,
-        `Hello ${student.name}, your grade for ${goal} in ${topic} has been ${gradeChange}.`
+        `Hello ${student.name}, your grade for ${goal} in ${topic} has been ${gradeChange}. Please check the course system to see the latest grade.`
       );
 
       if (sendResult.aceito) {

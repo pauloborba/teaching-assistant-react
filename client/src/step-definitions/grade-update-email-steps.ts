@@ -253,8 +253,11 @@ Then("{string}'s grade is updated to {string} in the system",
 
 Then('a grade update email is sent to {string}', (name: string) => {
   const recipient = student(name).email;
-  assert(testSender().enviados.slice(emailsBeforeUpdate)
-    .some(email => email.destinatario === recipient));
+  const email = testSender().enviados.slice(emailsBeforeUpdate)
+    .find(message => message.destinatario === recipient);
+  assert(email, `Expected a grade update email for ${name}`);
+  assert.match(email.conteudo, /Please check the course system to see the latest grade\./);
+  assert.doesNotMatch(email.conteudo, /updated to (MANA|MPA|MA)/);
 });
 
 Then('no additional grade update email is sent to {string}', (name: string) => {

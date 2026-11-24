@@ -96,7 +96,16 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   return (
     <div className="evaluation-section">
       <h3>Evaluations</h3>
-      {emailAlert && <p role="alert">{emailAlert}</p>}
+      {emailAlert && (
+        <div className="grade-notification-alert" role="alert">
+          <strong>Grade saved, but no email notification was sent.</strong>
+          <p>
+            {emailAlert === 'No email address registered for this student'
+              ? 'This student has no email address registered. Add one in the Students tab to receive future grade notifications.'
+              : emailAlert}
+          </p>
+        </div>
+      )}
       
       {/* Class Selection */}
       <div className="class-selection-container">
