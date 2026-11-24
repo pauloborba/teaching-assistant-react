@@ -1,6 +1,9 @@
 node_modules/
 server/dist/
 client/build/
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
 
 # Cucumber test reports
 client/reports/

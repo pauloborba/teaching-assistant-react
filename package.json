@@ -16,7 +16,11 @@
     "test:cucumber": "npm run test:cucumber --prefix client"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@badeball/cypress-cucumber-preprocessor": "^28.0.1",
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.8",
+    "concurrently": "^8.2.2",
+    "typescript": "^7.0.2",
+    "webpack": "^5.112.2"
   },
   "keywords": [
     "react",

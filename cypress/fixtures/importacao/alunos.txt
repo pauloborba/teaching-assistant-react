@@ -1,0 +1,3 @@
+name,email,cpf
+Norman Osborn,no@cin.ufpe.br,123.433.444-10
+Otto Octavius,oo@cin.ufpe.br,123.533.444-10
