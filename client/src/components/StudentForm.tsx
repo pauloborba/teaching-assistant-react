@@ -182,7 +182,6 @@ const StudentForm: React.FC<StudentFormProps> = ({
           name="email"
           value={formData.email}
           onChange={handleInputChange}
-          required
           placeholder={editingStudent ? "Student's email address" : "student@example.com"}
         />
       </div>

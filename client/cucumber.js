@@ -1,3 +1,8 @@
+process.env.TS_NODE_COMPILER_OPTIONS = JSON.stringify({
+  module: 'CommonJS',
+  target: 'ES2020'
+});
+
 module.exports = {
   default: {
     require: [

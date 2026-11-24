@@ -142,8 +142,6 @@ describe('Student Class', () => {
         'user.@domain.com',       // Ending with dot before @
         'user@.domain.com',       // Starting domain with dot
         'user@domain.com.',       // Ending domain with dot
-        '',                       // Empty string
-        '   ',                    // Only spaces
         'user@',                  // Incomplete
         '@',                      // Just @
         'user@domain.',           // Ending with dot

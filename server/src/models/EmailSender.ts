@@ -37,15 +37,23 @@ const ENDERECO_EMAIL = /^[^\s@<>,;:"()]+@[^\s@<>,;:"()]+$/u;
 /**
  * Envia mensagens em texto simples pelo Gmail SMTP.
  *
- * Carregue GMAIL_USER e GMAIL_APP_PASSWORD no ambiente do backend
- * antes de instanciar a classe. O construtor lança um erro se faltar
- * uma dessas variáveis. Reutilize a instância para enviar mensagens.
+ * Reutilize a instância para enviar mensagens. Quando recebe um ambiente
+ * explícito, configura o transporte imediatamente; sem ele, lê as credenciais
+ * do ambiente no primeiro envio.
  */
 export class EmailSenderSmtp {
-  private readonly remetente: string;
-  private readonly transporte: Transporter<SMTPSentMessageInfo, SMTPTransportOptions>;
+  private remetente: string | undefined;
+  private transporte: Transporter<SMTPSentMessageInfo, SMTPTransportOptions> | undefined;
+  private readonly ambiente: NodeJS.ProcessEnv | undefined;
 
-  constructor(ambiente: NodeJS.ProcessEnv = process.env) {
+  constructor(ambiente?: NodeJS.ProcessEnv) {
+    this.ambiente = ambiente;
+    if (ambiente) this.configurarTransporte(ambiente);
+  }
+
+  private configurarTransporte(ambiente: NodeJS.ProcessEnv = process.env): void {
+    if (this.transporte) return;
+
     const remetente = ambiente.GMAIL_USER?.trim();
     const senha = ambiente.GMAIL_APP_PASSWORD?.replace(/\s/g, ''); // Aceita a senha de app copiada em grupos separados por espaços.
     if (!remetente) {
@@ -81,6 +89,11 @@ export class EmailSenderSmtp {
     }
 
     try {
+      this.configurarTransporte(this.ambiente);
+      if (!this.remetente || !this.transporte) {
+        throw new Error('Não foi possível configurar o transporte SMTP.');
+      }
+
       const resultado = await this.transporte.sendMail({
         from: this.remetente,
         to: { address: endereco, name: '' },
@@ -104,6 +117,9 @@ export class EmailSenderSmtp {
       }
       if (erro instanceof Error && 'command' in erro && erro.command === 'RCPT TO') {
         return { aceito: false, descricaoFalha: 'O servidor SMTP não aceitou o destinatário.' };
+      }
+      if (erro instanceof Error && erro.message.startsWith('Configure GMAIL_')) {
+        return { aceito: false, descricaoFalha: erro.message };
       }
       return { aceito: false, descricaoFalha: 'Falha ao enviar a mensagem pelo servidor SMTP.' };
     }

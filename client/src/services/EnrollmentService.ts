@@ -57,7 +57,7 @@ class EnrollmentService {
     }
   }
 
-  static async updateEvaluation(classId: string, studentCPF: string, goal: string, grade: string): Promise<Enrollment> {
+  static async updateEvaluation(classId: string, studentCPF: string, goal: string, grade: string): Promise<Enrollment & { emailAlert?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/api/classes/${classId}/enrollments/${studentCPF}/evaluation`, {
         method: 'PUT',

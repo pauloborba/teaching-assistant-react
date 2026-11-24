@@ -1,5 +1,6 @@
 import { DomainError } from './DomainError';
-import { EmailSender, EmailSenderSimulado } from './EmailSender';
+import { EmailSender, EmailSenderSimulado, EmailSenderSmtp } from './EmailSender';
+import { GradeNotification } from './GradeNotification';
 import { Grupo } from './Grupo';
 import { Grupos } from './Grupos';
 import { HistoricoNotificacoes } from './HistoricoNotificacoes';
@@ -29,14 +30,20 @@ export interface SituacaoMonitor {
  */
 export class Services {
   readonly notificacaoService: NotificacaoService;
+  readonly gradeNotificationService: GradeNotification;
+  readonly gradeNotificationSender: EmailSender | Pick<EmailSenderSmtp, 'send'>;
 
   constructor(
     readonly grupos: Grupos = new Grupos(),
     readonly monitores: Monitores = new Monitores(),
     readonly historico: HistoricoNotificacoes = new HistoricoNotificacoes(),
-    emailSender: EmailSender = new EmailSenderSimulado()
+    emailSender: EmailSender = new EmailSenderSimulado(),
+    gradeNotificationSender: EmailSender | Pick<EmailSenderSmtp, 'send'> =
+      process.env.NODE_ENV === 'test' ? emailSender : new EmailSenderSmtp()
   ) {
     this.notificacaoService = new NotificacaoService(historico, emailSender);
+    this.gradeNotificationSender = gradeNotificationSender;
+    this.gradeNotificationService = new GradeNotification(gradeNotificationSender);
   }
 
   criarGrupo(nome: string, alunos: string[] = []): Grupo {

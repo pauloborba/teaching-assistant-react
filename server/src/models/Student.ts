@@ -1,6 +1,8 @@
 import { Evaluation } from './Evaluation';
 
 export class Student {
+  lastGradeNotificationDate: string | null = null;
+
   constructor(
     public name: string,
     public cpf: string,
@@ -24,7 +26,8 @@ export class Student {
   private validateEmail(email: string): void {
     // Check for empty or whitespace-only strings
     if (!email || email.trim().length === 0) {
-      throw new Error('Invalid email format');
+      this.email = '';
+      return;
     }
 
     // Check for any whitespace in the email (including leading/trailing)

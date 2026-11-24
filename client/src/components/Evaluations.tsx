@@ -17,6 +17,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   });
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailAlert, setEmailAlert] = useState('');
 
   // Predefined evaluation goals
   const evaluationGoals = [
@@ -72,7 +73,8 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     }
 
     try {
-      await EnrollmentService.updateEvaluation(selectedClass.id, studentCPF, goal, grade);
+      const updatedEnrollment = await EnrollmentService.updateEvaluation(selectedClass.id, studentCPF, goal, grade);
+      setEmailAlert(updatedEnrollment.emailAlert ?? '');
       // Reload classes to get updated enrollment data
       await loadClasses();
     } catch (error) {
@@ -94,6 +96,16 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   return (
     <div className="evaluation-section">
       <h3>Evaluations</h3>
+      {emailAlert && (
+        <div className="grade-notification-alert" role="alert">
+          <strong>Grade saved, but no email notification was sent.</strong>
+          <p>
+            {emailAlert === 'No email address registered for this student'
+              ? 'This student has no email address registered. Add one in the Students tab to receive future grade notifications.'
+              : emailAlert}
+          </p>
+        </div>
+      )}
       
       {/* Class Selection */}
       <div className="class-selection-container">
