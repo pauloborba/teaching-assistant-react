@@ -101,10 +101,14 @@ When('abro a seção de provas criadas', () => {
 });
 
 When('visualizo a prova {string}', name => {
-  cy.contains('.exam-question-item', name)
+  cy.contains('.exl-exam-item', name)
     .contains('button', 'Visualizar prova')
     .click();
+
   cy.wait('@getExamDetail');
+
+  cy.get('[data-testid="exam-details-modal"]')
+    .should('be.visible');
 });
 
 Then('vejo a mensagem de ausência de questões cadastradas', () => {
@@ -166,14 +170,48 @@ Then('vejo a prova {string}', name => {
 });
 
 Then('vejo as questões e assuntos da prova', () => {
-  cy.get('.exam-history').within(() => {
-    cy.contains('Quais abaixo são funcionalidades não operacionais?').should('be.visible');
-    cy.contains('Quais ações entre as seguintes podem dar conflito textual?').should('be.visible');
-    cy.contains('Assuntos abordados:')
-      .parent()
-      .should('contain.text', 'requisitos')
-      .and('contain.text', 'gerência de configuração');
-  });
+  cy.get('[data-testid="exam-details-modal"]')
+    .should('be.visible')
+    .within(() => {
+
+      // Verifica o nome da prova
+      cy.contains('h3', 'Prova E2E')
+        .should('be.visible');
+
+      // Verifica os assuntos
+      cy.get('.exl-subjects-line')
+        .should('contain.text', 'requisitos')
+        .and('contain.text', 'gerência de configuração');
+
+      // Verifica a quantidade de questões
+      cy.get('.exl-question-card')
+        .should('have.length', 2);
+
+      // Verifica os enunciados
+      cy.contains(
+        '.exl-question-card',
+        'Quais abaixo são funcionalidades não operacionais?'
+      ).should('be.visible');
+
+      cy.contains(
+        '.exl-question-card',
+        'Quais ações entre as seguintes podem dar conflito textual?'
+      ).should('be.visible');
+
+      // Verifica as alternativas verdadeiras
+      cy.get('.exl-alternative-true')
+        .should('have.length', 2)
+        .each($alternative => {
+          expect($alternative.text()).to.contain('Verdadeira');
+        });
+
+      // Verifica as alternativas falsas
+      cy.get('.exl-alternative-false')
+        .should('have.length', 2)
+        .each($alternative => {
+          expect($alternative.text()).to.contain('Falsa');
+        });
+    });
 });
 
 Then('vejo o aviso de nome de prova repetido', () => {
@@ -183,4 +221,13 @@ Then('vejo o aviso de nome de prova repetido', () => {
 
 Then('o nome da prova continua preenchido como {string}', name => {
   cy.get('[data-testid="exam-name"]').should('have.value', name);
+});
+
+Then('consigo fechar os detalhes da prova', () => {
+  cy.get('[data-testid="exam-details-modal"]')
+    .contains('button', 'Fechar')
+    .click();
+
+  cy.get('[data-testid="exam-details-modal"]')
+    .should('not.exist');
 });

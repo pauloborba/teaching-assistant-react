@@ -22,6 +22,8 @@ const CreateExam: React.FC = () => {
     // Estado da pesquisa e da seleção
     const [subjectFilter, setSubjectFilter] = useState('');
     const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
+    const [expandedCodes, setExpandedCodes] = useState<string[]>([]);
+
 
     // Dados do formulário
     const [name, setName] = useState('');
@@ -94,6 +96,14 @@ const CreateExam: React.FC = () => {
 
         setSelectedCodes(previous => [...previous, question.code]);
         setFeedback(null);
+    };
+
+    const toggleAlternatives = (code: string) => {
+        setExpandedCodes(previous =>
+            previous.includes(code)
+                ? previous.filter(c => c !== code)
+                : [...previous, code]
+        );
     };
 
     // Permite retirar uma questão antes de salvar
@@ -215,26 +225,82 @@ const CreateExam: React.FC = () => {
                         {filteredQuestions.map(question => (
                             <li
                                 key={question.code}
-                                className="exam-question-item"
+                                className="exam-question-item exam-available-question"
                             >
-                                <div>
-                                    <strong>{question.statement}</strong>
-                                    <p>Assunto: {question.subject}</p>
+                                <div className="exam-question-header">
+                                    <div className="exam-question-info">
+                                        <strong>{question.statement}</strong>
+
+                                        <p>Assunto: {question.subject}</p>
+
+                                        {selectedCodes.includes(question.code) && (
+                                            <span className="exam-selected-label">
+                                                Já selecionada
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        data-testid={`select-question-${question.code}`}
+                                        onClick={() => handleSelect(question)}
+                                        aria-pressed={
+                                            selectedCodes.includes(question.code)
+                                        }
+                                    >
+                                        Selecionar
+                                    </button>
                                 </div>
 
                                 <button
                                     type="button"
-                                    data-testid={`select-question-${question.code}`}
-                                    onClick={() => handleSelect(question)}
-                                    aria-pressed={selectedCodes.includes(question.code)}
+                                    className="exam-toggle-alternatives"
+                                    data-testid={`view-alternatives-${question.code}`}
+                                    aria-expanded={
+                                        expandedCodes.includes(question.code)
+                                    }
+                                    onClick={() => toggleAlternatives(question.code)}
                                 >
-                                    Selecionar
+                                    <span aria-hidden="true">
+                                        {expandedCodes.includes(question.code)
+                                            ? '▴'
+                                            : '▾'}
+                                    </span>
+
+                                    {expandedCodes.includes(question.code)
+                                        ? 'Ocultar alternativas'
+                                        : 'Ver alternativas'}
+
+                                    {' '}({question.alternatives.length})
                                 </button>
 
-                                {selectedCodes.includes(question.code) && (
-                                    <span className="exam-selected-label">
-                                        Já selecionada
-                                    </span>
+                                {expandedCodes.includes(question.code) && (
+                                    <ul className="exam-alternatives-preview">
+                                        {question.alternatives.map((alternative, index) => (
+                                            <li
+                                                key={index}
+                                                className={
+                                                    alternative.isTrue
+                                                        ? 'exam-alternative-true'
+                                                        : 'exam-alternative-false'
+                                                }
+                                            >
+                                                <span className="exam-alternative-letter">
+                                                    {String.fromCharCode(65 + index)}.
+                                                </span>
+
+                                                <span className="exam-alternative-text">
+                                                    {alternative.text}
+                                                </span>
+
+                                                <span className="exam-alternative-classification">
+                                                    {alternative.isTrue
+                                                        ? '✓ Verdadeira'
+                                                        : '× Falsa'}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 )}
                             </li>
                         ))}

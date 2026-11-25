@@ -85,6 +85,25 @@
           "isTrue": true
         }
       ]
+    },
+    {
+      "code": "e8b9d12e-46cc-4544-9013-e7d69ef19495",
+      "subject": "Refatoeação",
+      "statement": "quais os métodos",
+      "alternatives": [
+        {
+          "text": "1",
+          "isTrue": true
+        },
+        {
+          "text": "2",
+          "isTrue": false
+        },
+        {
+          "text": "3",
+          "isTrue": false
+        }
+      ]
     }
   ]
 }

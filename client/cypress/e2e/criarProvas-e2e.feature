@@ -40,6 +40,7 @@ Feature: Criação e consulta de provas pela interface
     Then vejo a prova "Prova E2E"
     When visualizo a prova "Prova E2E"
     Then vejo as questões e assuntos da prova
+    And consigo fechar os detalhes da prova
 
   Scenario: Professor tenta criar prova com nome já existente
     Given existem questões disponíveis para criar provas

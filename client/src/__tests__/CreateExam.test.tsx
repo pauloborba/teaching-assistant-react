@@ -260,4 +260,38 @@ describe('CreateExam', () => {
       name: 'Questões selecionadas (1)'
     })).toBeInTheDocument();
   });
+
+  test('permite visualizar e ocultar as alternativas de uma questão', async () => {
+      const user = userEvent.setup();
+
+      render(<CreateExam />);
+
+      const toggleButton = await screen.findByTestId(
+          'view-alternatives-q-003'
+      );
+
+      // Inicialmente, as alternativas estão ocultas.
+      expect(screen.queryByText('merge')).not.toBeInTheDocument();
+
+      // Expande a questão.
+      await user.click(toggleButton);
+
+      expect(screen.getByText('merge')).toBeInTheDocument();
+      expect(screen.getByText('log')).toBeInTheDocument();
+
+      expect(toggleButton).toHaveAttribute(
+          'aria-expanded',
+          'true'
+      );
+
+      // Oculta novamente.
+      await user.click(toggleButton);
+
+      expect(screen.queryByText('merge')).not.toBeInTheDocument();
+
+      expect(toggleButton).toHaveAttribute(
+          'aria-expanded',
+          'false'
+      );
+  });
 });
