@@ -85,35 +85,3 @@ Feature: Cobertura complementar da criação de provas
     And tento salvar uma prova sem selecionar questões
     Then vejo mensagem impedindo prova sem questões
     And não houve tentativa de POST para a API de provas
-
-  # Os 4 cenários seguintes pertencem ao arquivo original.
-  # Não estão implementados: dependem da aba "Geração de PDFs".
-  # @skip garante que NÃO sejam relatados como aprovados.
-
-  @skip @pendente_pdf
-  Scenario: Professor finaliza com uma questão e não havia provas no histórico de PDFs
-    Given estou na página de geração de PDFs sem provas criadas
-    When crio uma prova com uma questão de requisitos
-    Then a nova prova aparece no histórico da página de geração de PDFs
-    And consigo visualizar sua questão e assunto
-
-  @skip @pendente_pdf
-  Scenario: Professor finaliza com duas questões e não havia provas no histórico de PDFs
-    Given estou na página de geração de PDFs sem provas criadas
-    When crio uma prova com questões de requisitos e configuração
-    Then a nova prova aparece no histórico da página de geração de PDFs
-    And consigo visualizar ambas as questões e assuntos
-
-  @skip @pendente_pdf
-  Scenario: Professor finaliza com uma questão quando já havia provas no histórico de PDFs
-    Given estou na página de geração de PDFs com uma prova já cadastrada
-    When crio uma segunda prova com uma questão de requisitos
-    Then o histórico da página de geração de PDFs mostra as duas provas
-    And a nova prova mantém sua questão e assunto
-
-  @skip @pendente_pdf
-  Scenario: Professor tenta usar nome já existente sem modificar o histórico de PDFs
-    Given estou na página de geração de PDFs com a prova "Prova de requisitos"
-    When tento cadastrar outra prova também chamada "Prova de requisitos"
-    Then recebo mensagem de nome repetido e mantenho minha seleção
-    And o histórico da página de geração de PDFs preserva a prova anterior

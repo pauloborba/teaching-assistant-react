@@ -1,8 +1,8 @@
 import * as fs from 'fs';
-import * as path from 'path';
 
 import { Exam } from '../models/Exam';
 import { ExamBank } from '../models/ExamBank';
+import { atomicWriteJson } from './atomicWriteJson';
 
 // Verifica se um valor é um objeto JSON
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -24,16 +24,7 @@ export class JsonExamRepository {
             )
         };
 
-        // Garante que a pasta de destino existe
-        fs.mkdirSync(path.dirname(this.filePath), {
-            recursive: true
-        });
-
-        fs.writeFileSync(
-            this.filePath,
-            JSON.stringify(data, null, 2),
-            'utf8'
-        );
+        atomicWriteJson(this.filePath, data);
     }
 
     // Recupera as provas salvas anteriormente

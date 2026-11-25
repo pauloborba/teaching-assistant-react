@@ -66,11 +66,13 @@ describe('ExamBank', () => {
         )).toThrow('Não é possível criar uma prova sem questões');
     });
 
-    test('rejeita prova sem questões', () => {
+    test('rejeita questão repetida na mesma prova', () => {
         expect(() => new Exam(
             'Prova de Requisitos',
-            []
-        )).toThrow('Não é possível criar uma prova sem questões');
+            [question1.code, question1.code]
+        )).toThrow(
+            'Uma questão não pode aparecer duas vezes na mesma prova'
+        );
     });
 
     test('rejeita questão inexistente', () => {

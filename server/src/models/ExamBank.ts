@@ -10,7 +10,15 @@ export class ExamBank {
         private readonly questionBank: QuestionBank
     ) {}
 
-    addExam(exam: Exam): Exam {
+    addExam(
+        exam: Exam,
+        onChanged: () => void = () => {}
+    ): Exam {
+        if (this.findExamByCode(exam.code)) {
+            throw new DomainError(
+                'Já existe uma prova com esse código'
+            );
+        }
         // Verifica se o nome já foi utilizado
         const alreadyExists = this.exams.some(
             existing => existing.name == exam.name
@@ -40,6 +48,15 @@ export class ExamBank {
 
         // Registra a prova
         this.exams.push(exam);
+
+        try {
+            onChanged();
+        } catch (error) {
+            // Desfaz a inclusão caso a persistência falhe.
+            this.exams.pop();
+
+            throw error;
+        }
 
         return exam;
     }

@@ -27,10 +27,10 @@ export function questionRoutes(
             alternatives
         );
 
-        const addedQuestion = questionBank.addQuestion(question);
-
-        // Solicita a persistência após um cadastro válido
-        onQuestionsChanged();
+        const addedQuestion = questionBank.addQuestion(
+            question,
+            onQuestionsChanged
+        );
 
         res.status(201).json(addedQuestion.toJSON());
     });

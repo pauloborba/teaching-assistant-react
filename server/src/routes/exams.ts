@@ -24,10 +24,11 @@ export function examRoutes(
 
         const exam = new Exam(name, questionCodes);
         
-        const addedExam = examBank.addExam(exam);
-
-        onExamsChanged();
-
+        const addedExam = examBank.addExam(
+            exam,
+            onExamsChanged
+        );
+        
         res.status(201).json(addedExam.toJSON());
     });
 

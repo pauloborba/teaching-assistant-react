@@ -1,19 +1,21 @@
 import * as fs from 'fs';
-import * as path from 'path';
 
 import { Question, Alternative } from '../models/Question';
 import { QuestionBank } from '../models/QuestionBank';
+import { atomicWriteJson } from './atomicWriteJson';
 
 export class JsonQuestionRepository {
     constructor(private readonly filePath: string) {}
 
     // Salva as questões no arquivo JSON
     save(questionBank: QuestionBank): void {
-        const data = { questions: questionBank.getAllQuestions().map(question => question.toJSON()) };
+        const data = {
+            questions: questionBank.getAllQuestions().map(
+                question => question.toJSON()
+            )
+        };
 
-        fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-
-        fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2), 'utf-8');
+        atomicWriteJson(this.filePath, data);
     }
 
     // Recupera as questões do arquivo JSON

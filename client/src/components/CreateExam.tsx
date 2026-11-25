@@ -89,7 +89,7 @@ const CreateExam: React.FC = () => {
         if (selectedCodes.includes(question.code)) {
             setFeedback({
                 type: 'error',
-                message: 'A questão ' + question.statement + 'já está selecionada'
+                message: 'A questão ' + question.statement + ' já está selecionada'
             });
             return;
         }
@@ -239,7 +239,8 @@ const CreateExam: React.FC = () => {
                                             </span>
                                         )}
                                     </div>
-
+                                    
+                                    disabled={saving}
                                     <button
                                         type="button"
                                         data-testid={`select-question-${question.code}`}
@@ -332,7 +333,7 @@ const CreateExam: React.FC = () => {
                                         <strong>{question.statement}</strong>
                                         <p>Assunto: {question.subject}</p>
                                     </div>
-
+                                    disabled={saving}
                                     <button
                                         type="button"
                                         onClick={() => handleRemove(question.code)}
@@ -350,7 +351,7 @@ const CreateExam: React.FC = () => {
                 <h3>Finalizar prova</h3>
 
                 <label htmlFor="exam-name">Nome da prova</label>
-
+                disabled={saving}
                 <input
                     id="exam-name"
                     data-testid="exam-name"

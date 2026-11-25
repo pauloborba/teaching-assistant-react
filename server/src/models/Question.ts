@@ -10,7 +10,7 @@ export class Question {
     readonly code: string;
     readonly subject: string;
     readonly statement: string;
-    readonly alternatives: Alternative [];
+    private readonly _alternatives: Alternative [];
 
     constructor(
         subject: string,
@@ -44,10 +44,14 @@ export class Question {
         this.code = code;
         this.subject = subject.trim();
         this.statement = statement.trim();
-        this.alternatives = alternatives.map(a => ({
+        this._alternatives = alternatives.map(a => ({
             text: a.text.trim(),
             isTrue: a.isTrue
-        }))
+        }));
+    }
+
+    get alternatives(): Alternative[] {
+        return this._alternatives.map(a => ({ ...a }));
     }
 
     toJSON() {
@@ -55,8 +59,8 @@ export class Question {
             code: this.code,
             subject: this.subject,
             statement: this.statement,
-            alternatives: this.alternatives.map(a => ({ ...a }))
-        }
+            alternatives: this.alternatives
+        };
     }
 }
 

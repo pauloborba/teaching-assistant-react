@@ -3,7 +3,7 @@ suas turmas.
 
 # -------------------------------------------------------------------------------------- # 
 
-Feature: Geração de provas
+Feature: Criação de provas
     Como um professor responsável por uma disciplina
     Eu posso selecionar as questões para uma prova
     Para que posteriormente eu possa aplicar essa prova para a turma
@@ -21,8 +21,6 @@ Scenario: Professor inicia seleção de questões para uma prova mas não há qu
     Then eu vejo a mensagem de que não é possível realizar essa operação pois não há questões existentes
 
 # -------------------------------------------------------------------------------------- #
-
-Scenarios
 
 Scenario: Professor procura por questões de um assunto
     Given eu estou na página "criação de provas"
@@ -118,4 +116,9 @@ Scenario: Professor seleciona questão de assunto diferente para a prova que já
     And eu vejo que a conjunto aborda questões de "requisitos"
     And eu vejo que a conjunto aborda questões de "gerência de configuração"
 
+Scenario: Professor finaliza escolha de questões com nenhuma questão
+    Given eu estou na página "criação de provas"
+    And eu não vejo questões selecionadas
+    When eu finalizo a escolha de questões
+    Then eu vejo a mensagem de que não foi possível criar o conjunto de questões para a prova pois não há questões selecionadas
 # ---------------------------------------------------------------------------------------------------------- # 

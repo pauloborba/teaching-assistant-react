@@ -4,7 +4,16 @@ import { DomainError } from './DomainError';
 export class QuestionBank {
     private questions: Question[] = [];
 
-    addQuestion(question: Question): Question {
+    addQuestion(
+        question: Question,
+        onChanged: () => void = () => {}
+    ): Question {
+        if (this.findQuestionByCode(question.code)) {
+            throw new DomainError(
+                'Já existe uma questão com esse código'
+            );
+        }
+
         const alreadyExists = this.questions.some(
             existing =>
                 this.getSignature(existing) === this.getSignature(question)
@@ -17,6 +26,16 @@ export class QuestionBank {
         }
 
         this.questions.push(question);
+
+        try {
+            onChanged();
+        } catch (error) {
+            // Desfaz a inclusão caso a persistência falhe
+            this.questions.pop();
+
+            throw error;
+        }
+
         return question;
     }
 
