@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Class } from '../types/Class';
 import ClassService from '../services/ClassService';
 import EnrollmentService from '../services/EnrollmentService';
+import { formatarMedia } from '../services/ResultadoService';
 
 import { ImportGradeComponent } from './ImportGrade';
 
@@ -18,6 +19,8 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [emailAlert, setEmailAlert] = useState('');
+  // Aviso do e-mail de atualização enviado quando um resultado já enviado muda
+  const [avisoResultado, setAvisoResultado] = useState<{ tipo: 'sucesso' | 'erro'; texto: string } | null>(null);
 
   // Predefined evaluation goals
   const evaluationGoals = [
@@ -75,6 +78,17 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
     try {
       const updatedEnrollment = await EnrollmentService.updateEvaluation(selectedClass.id, studentCPF, goal, grade);
       setEmailAlert(updatedEnrollment.emailAlert ?? '');
+      const atualizacao = updatedEnrollment.atualizacaoResultado;
+      if (atualizacao?.enviado) {
+        setAvisoResultado({ tipo: 'sucesso', texto: `Resultado atualizado e e-mail de atualização enviado para ${atualizacao.aluno}` });
+      } else if (atualizacao) {
+        setAvisoResultado({
+          tipo: 'erro',
+          texto: `O resultado de ${atualizacao.aluno} mudou para "${atualizacao.resultadoNovo}", mas o e-mail de atualização não foi enviado porque ${atualizacao.motivoFalha}. Tente novamente na aba Resultados Finais.`
+        });
+      } else {
+        setAvisoResultado(null);
+      }
       // Reload classes to get updated enrollment data
       await loadClasses();
     } catch (error) {
@@ -96,6 +110,15 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
   return (
     <div className="evaluation-section">
       <h3>Evaluations</h3>
+      {avisoResultado && (
+        <div
+          className={avisoResultado.tipo === 'sucesso' ? 'result-update-success' : 'grade-notification-alert'}
+          role="alert"
+          data-cy="aviso-atualizacao-resultado"
+        >
+          {avisoResultado.texto}
+        </div>
+      )}
       {emailAlert && (
         <div className="grade-notification-alert" role="alert">
           <strong>Grade saved, but no email notification was sent.</strong>
@@ -170,6 +193,8 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                   {evaluationGoals.map(goal => (
                     <th key={goal} className="goal-header">{goal}</th>
                   ))}
+                  <th className="goal-header">Média</th>
+                  <th className="goal-header">Resultado</th>
                 </tr>
               </thead>
               <tbody>
@@ -191,6 +216,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                         return (
                           <td key={goal} className="evaluation-cell">
                             <select
+                              data-cy={`conceito-${goal}`}
                               value={currentGrade}
                               onChange={(e) => handleEvaluationChange(student.cpf, goal, e.target.value)}
                               className={`evaluation-select ${currentGrade ? `grade-${currentGrade.toLowerCase()}` : ''}`}
@@ -203,6 +229,8 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                           </td>
                         );
                       })}
+                      <td className="evaluation-cell" data-cy="media-aluno">{formatarMedia(enrollment.mediaPreFinal)}</td>
+                      <td className="evaluation-cell" data-cy="resultado-aluno">{enrollment.resultadoFinal ?? 'Notas pendentes'}</td>
                     </tr>
                   );
                 })}

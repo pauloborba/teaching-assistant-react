@@ -7,6 +7,9 @@ export interface Enrollment {
   mediaPreFinal?: number;
   mediaPosFinal?: number;
   reprovadoPorFalta?: boolean;
+  notaProvaFinal?: number | null;
+  resultadoFinal?: string | null;
+  envioResultado?: { status: string; resultadoEnviado: string | null; motivoFalha: string | null };
 }
 
 export interface CreateEnrollmentRequest {

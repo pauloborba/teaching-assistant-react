@@ -1,4 +1,5 @@
 import { Enrollment } from '../types/Enrollment';
+import { AtualizacaoDeResultado } from './ResultadoService';
 
 const API_BASE_URL = 'http://localhost:3005';
 
@@ -57,7 +58,7 @@ class EnrollmentService {
     }
   }
 
-  static async updateEvaluation(classId: string, studentCPF: string, goal: string, grade: string): Promise<Enrollment & { emailAlert?: string }> {
+  static async updateEvaluation(classId: string, studentCPF: string, goal: string, grade: string): Promise<Enrollment & { emailAlert?: string; atualizacaoResultado?: AtualizacaoDeResultado | null }> {
     try {
       const response = await fetch(`${API_BASE_URL}/api/classes/${classId}/enrollments/${studentCPF}/evaluation`, {
         method: 'PUT',

@@ -1,12 +1,15 @@
 import { existsSync } from 'node:fs';
 import { EmailSenderSimulado, EmailSenderSmtp } from './models/EmailSender';
 import { NotificacaoService } from './models/NotificacaoService';
-import { app, classes, historicoLembretes, saveDataToFile } from './server';
+import { app, classes, historicoLembretes, iniciarEnvioAutomaticoDeResultados, saveDataToFile } from './server';
 
 const PORT = 3005;
 
 const servidor = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+
+  // Ao fim do período de correção, envia os resultados finais ainda não enviados.
+  servidor.once('close', iniciarEnvioAutomaticoDeResultados());
 
   let emailSender: EmailSenderSmtp;
   try {

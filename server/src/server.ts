@@ -12,6 +12,9 @@ import { ConfiguracaoLembretes } from './models/ConfiguracaoLembretes';
 import { LembreteProposto } from './models/Lembrete';
 import { Services } from './models/Services';
 import { grupoRoutes } from './routes/grupos';
+import { resultadosRoutes } from './routes/resultados';
+import { EnviadorDeEmail, RelatorioEnvio, ResultadosService } from './models/ResultadosService';
+import { EmailSenderSimulado, EmailSenderSmtp } from './models/EmailSender';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
@@ -35,6 +38,22 @@ const classes = new Classes();
 const historicoLembretes = new HistoricoNotificacoes(); // Histórico das turmas, separado do fluxo de grupos.
 const periodosAcademicos = new Map<string, PeriodoAcademico>(); // Mantém um período por identificação, como 2026.2, mesmo sem turmas cadastradas.
 const dataFile = path.resolve('./data/app-data.json');
+
+// E-mails de resultado final: Gmail SMTP quando GMAIL_USER e GMAIL_APP_PASSWORD estão configurados;
+// sem configuração, um envio simulado que apenas mostra a mensagem no console do servidor.
+const smtpResultados = new EmailSenderSmtp();
+const simuladoResultados = new EmailSenderSimulado();
+const enviadorSimuladoComLog: EnviadorDeEmail = {
+  send(destinatario, assunto, conteudo) {
+    console.log(`[e-mail simulado] Para: ${destinatario}\nAssunto: ${assunto}\n${conteudo}\n`);
+    return simuladoResultados.send(destinatario, assunto, conteudo);
+  }
+};
+// Em modo de teste (NODE_ENV=test) nenhum e-mail real é enviado.
+const resultadosService = new ResultadosService(() => {
+  if (process.env.NODE_ENV === 'test') return simuladoResultados;
+  return process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD ? smtpResultados : enviadorSimuladoComLog;
+});
 
 const obterOuCriarPeriodoAcademico = (ano: number, semestre: number): PeriodoAcademico => {
   const identificador = `${ano}.${semestre}`;
@@ -76,13 +95,17 @@ const saveDataToFile = (
         topic: classObj.getTopic(),
         semester: classObj.getSemester(),
         year: classObj.getYear(),
+        professor: classObj.getProfessor(),
         especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
         configuracaoLembretes: (
           configuracoesParaSalvar.get(classObj.getClassId()) ?? classObj.obterConfiguracaoLembretes()
         ).toJSON(), // Grava a proposta da turma ou sua configuração atual usando o método do modelo.
         enrollments: classObj.getEnrollments().map(enrollment => ({
           studentCPF: enrollment.getStudent().getCPF(),
-          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
+          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+          notaProvaFinal: enrollment.getNotaProvaFinal(),
+          reprovadoPorFalta: Boolean(enrollment.getReprovadoPorFalta()),
+          envioResultado: enrollment.getEnvioResultado()
         }))
       }))
     };
@@ -166,6 +189,7 @@ const loadDataFromFile = (): void => {
           try {
             const periodo = obterOuCriarPeriodoAcademico(Number(classData.year), Number(classData.semester));
             const classObj = new Class(classData.topic, periodo, EspecificacaoDoCalculoDaMedia.fromJSON(classData.especificacaoDoCalculoDaMedia)); // Associa a turma ao período já recuperado, sem copiar seu prazo.
+            if (classData.professor) classObj.definirProfessor(classData.professor);
 
             configuracoesSalvas[index].listar().forEach(lembrete =>
               classObj.obterConfiguracaoLembretes().add(lembrete)); // Recupera identidades, estados e agendamentos históricos.
@@ -188,15 +212,15 @@ const loadDataFromFile = (): void => {
                   }
                     
                     // Load medias and attendance status if provided in the data file
-                    if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
-                      enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
-                    }
+                    // A média antes da final é recalculada a partir das notas carregadas acima.
                     if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
                       enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
                     }
                     if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
                       enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
                     }
+                    enrollment.restaurarNotaProvaFinal(enrollmentData.notaProvaFinal ?? null);
+                    enrollment.restaurarEnvioResultado(enrollmentData.envioResultado);
                 } else {
                   console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
                 }
@@ -505,7 +529,7 @@ app.get('/api/classes', (req: Request, res: Response) => {
 // POST /api/classes - Add a new class
 app.post('/api/classes', (req: Request, res: Response) => {
   try {
-    const { topic, semester, year, prazoAcademico } = req.body; // O prazo é recebido apenas para rejeitar a antiga edição por turma.
+    const { topic, semester, year, prazoAcademico, professor } = req.body; // O prazo é recebido apenas para rejeitar a antiga edição por turma.
     
     if (!topic || !semester || !year) {
       return res.status(400).json({ error: 'Topic, semester, and year are required' });
@@ -523,6 +547,7 @@ app.post('/api/classes', (req: Request, res: Response) => {
 
     const periodo = obterOuCriarPeriodoAcademico(Number(year), Number(semester));
     const classObj = new Class(topic, periodo, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA);
+    if (professor !== undefined) classObj.definirProfessor(professor);
     const newClass = classes.addClass(classObj); // Registra a turma somente após validar os dados fornecidos.
     triggerSave(); // Save to file after adding class
     res.status(201).json(newClass.toJSON());
@@ -535,7 +560,7 @@ app.post('/api/classes', (req: Request, res: Response) => {
 app.put('/api/classes/:id', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { topic, semester, year, prazoAcademico } = req.body; // A edição da turma não define um prazo independente do período.
+    const { topic, semester, year, prazoAcademico, professor } = req.body; // A edição da turma não define um prazo independente do período.
     
     if (!topic || !semester || !year) {
       return res.status(400).json({ error: 'Topic, semester, and year are required' });
@@ -554,6 +579,7 @@ app.put('/api/classes/:id', (req: Request, res: Response) => {
     const periodo = periodosAcademicos.get(candidato.getIdentificador()) ?? candidato;
     existingClass.definirPeriodoAcademico(periodo); // Altera ano e semestre juntos, após conferir a compatibilidade dos lembretes existentes.
     existingClass.setTopic(topic);
+    if (professor !== undefined) existingClass.definirProfessor(professor);
     periodosAcademicos.set(periodo.getIdentificador(), periodo); // Registra um período novo somente após aceitar a troca.
     
     triggerSave(); // Save to file after updating class
@@ -717,8 +743,15 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', async (req: 
       classObj.getTopic()
     );
 
+    // Resultado já enviado que mudou com esta nota: envia automaticamente um e-mail de atualização.
+    const atualizacaoResultado = await resultadosService.notificarMudancaDeResultado(classObj, enrollment);
+
     triggerSave(); // Save to file after evaluation update
-    res.json(emailResult.emailAlert ? { ...enrollment.toJSON(), emailAlert: emailResult.emailAlert } : enrollment.toJSON());
+    res.json({
+      ...enrollment.toJSON(),
+      ...(emailResult.emailAlert ? { emailAlert: emailResult.emailAlert } : {}),
+      atualizacaoResultado
+    });
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
@@ -754,8 +787,61 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
 const services = new Services();
 app.use('/api', grupoRoutes(services));
 
+// Final results sent by e-mail
+app.use('/api', resultadosRoutes(classes, resultadosService, triggerSave));
+
+// Rotas usadas só pelos testes de GUI (Cypress) dos resultados finais. Existem apenas com
+// NODE_ENV=test, modo em que o servidor não lê nem grava o arquivo de dados.
+if (isTestMode) {
+  app.post('/api/test/resultados/reset', (_req: Request, res: Response) => {
+    classes.getAllClasses().forEach(turma => classes.removeClass(turma.getClassId()));
+    studentSet.getAllStudents().forEach(aluno => studentSet.removeStudent(aluno.getCPF()));
+    simuladoResultados.enviados.length = 0;
+    classes.definirEmailDasTurmas('professor@example.com'); // Necessário para cadastrar turmas.
+    res.status(204).send();
+  });
+
+  // E-mails de resultado "enviados" pelo serviço simulado
+  app.get('/api/test/resultados/emails', (_req: Request, res: Response) => {
+    res.json(simuladoResultados.enviados);
+  });
+}
+
+/**
+ * Verifica periodicamente se o período de correção de alguma turma terminou e, nesse caso,
+ * envia os resultados definidos que ainda não foram enviados. Devolve a função que para a verificação.
+ */
+const iniciarEnvioAutomaticoDeResultados = (intervaloMs = 60_000): (() => void) => {
+  let emExecucao = false;
+  const verificar = async () => {
+    if (emExecucao) return;
+    emExecucao = true;
+    try {
+      let houveEnvio = false;
+      for (const turma of classes.getAllClasses()) {
+        const relatorio: RelatorioEnvio | null = await resultadosService.verificarEnvioAutomatico(turma, new Date());
+        if (relatorio) {
+          houveEnvio = true;
+          console.log(`Envio automático de resultados (${turma.getClassId()}): ${relatorio.enviados.length} enviado(s), ${relatorio.falhas.length} falha(s).`);
+        }
+      }
+      if (houveEnvio) triggerSave();
+    } catch (error) {
+      console.error('Erro no envio automático de resultados:', error);
+    } finally {
+      emExecucao = false;
+    }
+  };
+  void verificar();
+  const temporizador = setInterval(() => void verificar(), intervaloMs);
+  return () => clearInterval(temporizador);
+};
+
 // Export the app for testing
-export { app, studentSet, classes, periodosAcademicos, services, historicoLembretes, saveDataToFile };
+export {
+  app, studentSet, classes, periodosAcademicos, services, historicoLembretes, saveDataToFile,
+  resultadosService, iniciarEnvioAutomaticoDeResultados
+};
 
 // Only start the server if this file is run directly (not imported for testing)
 if (require.main === module) {

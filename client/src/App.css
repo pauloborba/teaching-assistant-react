@@ -1262,3 +1262,14 @@ tbody tr:last-child td {
   background-color: #fecaca;
   color: #991b1b;
 }
+
+/* Aviso de e-mail de atualização de resultado enviado (aba Evaluations) */
+.result-update-success {
+  background: #f0fff4;
+  border: 1px solid #9ae6b4;
+  color: #276749;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}

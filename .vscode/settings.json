@@ -1,0 +1,8 @@
+{
+  // Usa no editor o mesmo TypeScript (4.9) que compila o projeto, em vez da versão embutida no VS Code.
+  // A versão embutida (6.x) marca como obsoletos o "target": "es5" e o "moduleResolution": "node",
+  // que o react-scripts exige no client/tsconfig.json.
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "js/ts.tsdk.path": "node_modules/typescript/lib"
+}

@@ -1,3 +1,5 @@
+import { EVALUATION_GOALS } from './Evaluation';
+
 export type Grade = 'MANA' | 'MPA' | 'MA';
 type Meta = string;
 
@@ -36,6 +38,12 @@ export class EspecificacaoDoCalculoDaMedia {
         }
 
         return somaTotal / this.somaDosPesosDasMetas;
+    }
+
+    // Metas consideradas no cálculo
+    getMetas(): Meta[]
+    {
+        return Array.from(this.pesosDasMetas.keys());
     }
 
     // Exporta dados apenas em formato serializável
@@ -82,14 +90,13 @@ export class EspecificacaoDoCalculoDaMedia {
 const DEFAULT_PESOS_DOS_CONCEITOS = new Map<Grade, number>([
   ['MA', 10],
   ['MPA', 7],
-  ['MANA', 0],
+  ['MANA', 4],
 ]);
 
-const DEFAULT_PESOS_DAS_METAS = new Map<Meta, number>([
-  ['Gerência de Configuração', 1],
-  ['Gerência de Projeto', 1],
-  ['Qualidade de Software', 1],
-]);
+// Mesmas metas da aba Avaliações, todas com o mesmo peso.
+const DEFAULT_PESOS_DAS_METAS = new Map<Meta, number>(
+  EVALUATION_GOALS.map(meta => [meta, 1] as [Meta, number])
+);
 
 export const DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA = new EspecificacaoDoCalculoDaMedia(
   DEFAULT_PESOS_DOS_CONCEITOS,

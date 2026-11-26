@@ -1,0 +1,74 @@
+/* Aba Resultados Finais: estilos com prefixo rf- para não afetar as outras abas. */
+.resultados { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.rf-titulo h2 { font-size: 1.6rem; color: #2d3748; }
+.rf-titulo p { color: #718096; font-size: 0.95rem; }
+
+.rf-turma { display: flex; align-items: center; gap: 0.75rem; }
+.rf-turma label { font-weight: 600; color: #4a5568; }
+.rf-turma select {
+  padding: 0.5rem 0.75rem; border: 1px solid #cbd5e0; border-radius: 6px;
+  font-size: 0.95rem; min-width: 320px; background: #fff;
+}
+
+/* Mensagens */
+.rf-mensagem {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;
+  padding: 0.85rem 1rem; border-radius: 8px; font-size: 0.95rem;
+}
+.rf-mensagem p, .rf-mensagem ul { margin: 0; }
+.rf-mensagem ul { padding-left: 1.2rem; }
+.rf-mensagem--sucesso { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+.rf-mensagem--erro { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+.rf-mensagem--alerta { background: #fffaf0; color: #975a16; border: 1px solid #fbd38d; }
+.rf-avisos { color: #975a16; }
+.rf-detalhes summary { cursor: pointer; font-weight: 600; }
+.rf-detalhes ul { margin-top: 0.4rem; }
+
+/* Dados da turma */
+.rf-info { display: flex; flex-wrap: wrap; gap: 0.75rem 2rem; margin: 0; }
+.rf-info dt { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #718096; }
+.rf-info dd { margin: 0; font-weight: 600; color: #2d3748; }
+.rf-nota { color: #718096; font-size: 0.85rem; margin: 0; }
+.rf-vazio { color: #a0aec0; font-style: italic; }
+
+/* Botões */
+.rf-acoes { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.rf-btn {
+  border: none; border-radius: 6px; padding: 0.55rem 1rem; font-size: 0.9rem;
+  font-weight: 600; cursor: pointer; transition: opacity 0.15s ease;
+}
+.rf-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.rf-btn--primario { background: #667eea; color: #fff; }
+.rf-btn--secundario { background: #edf2f7; color: #2d3748; border: 1px solid #cbd5e0; }
+.rf-btn--pequeno { padding: 0.3rem 0.6rem; font-size: 0.8rem; background: #edf2f7; color: #2d3748; }
+.rf-btn--pequeno.rf-btn--primario { background: #667eea; color: #fff; }
+
+/* Tabela */
+.rf-tabela { width: 100%; border-collapse: collapse; background: #fff; font-size: 0.9rem; }
+.rf-tabela th {
+  text-align: left; padding: 0.6rem; background: #f7fafc; color: #4a5568;
+  border-bottom: 2px solid #e2e8f0; font-size: 0.8rem; text-transform: uppercase;
+}
+.rf-tabela td { padding: 0.6rem; border-bottom: 1px solid #edf2f7; vertical-align: middle; }
+.rf-linha { display: flex; align-items: center; gap: 0.4rem; }
+.rf-sub { display: block; color: #a0aec0; font-size: 0.75rem; }
+.rf-pendente { color: #975a16; font-size: 0.85rem; }
+.rf-nota-final { width: 4.5rem; padding: 0.25rem 0.4rem; border: 1px solid #cbd5e0; border-radius: 4px; }
+
+.rf-status { display: inline-block; border-radius: 999px; padding: 0.1rem 0.6rem; font-size: 0.8rem; font-weight: 600; }
+.rf-status--enviado { background: #c6f6d5; color: #22543d; }
+.rf-status--pendente { background: #fed7d7; color: #822727; }
+.rf-status--nao-enviado { background: #edf2f7; color: #4a5568; }
+
+/* Pré-visualização */
+.rf-previa {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; background: #fff;
+}
+.rf-previa h3 { margin: 0; color: #2d3748; }
+.rf-previa label { font-size: 0.85rem; color: #4a5568; }
+.rf-previa textarea {
+  width: 100%; box-sizing: border-box; font-family: inherit; font-size: 0.9rem;
+  padding: 0.6rem; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical;
+}

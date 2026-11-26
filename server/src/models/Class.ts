@@ -5,11 +5,15 @@ import { ConfiguracaoLembretes } from './ConfiguracaoLembretes';
 import { PeriodoAcademico } from './PeriodoAcademico';
 import { EVALUATION_GOALS } from './Evaluation';
 
+/** Professor responsável quando a turma não informa outro (o sistema tem um único professor). */
+export const PROFESSOR_PADRAO = 'Paulo Borba';
+
 export class Class {
   private topic: string;
   private periodoAcademico: PeriodoAcademico; // Referencia o período compartilhado pelas turmas do mesmo ano e semestre.
   private readonly especificacaoDoCalculoDaMedia: EspecificacaoDoCalculoDaMedia;
   private enrollments: Enrollment[];
+  private professor: string = PROFESSOR_PADRAO; // Professor da turma: corrige, assina e libera o envio dos resultados.
   private readonly configuracaoLembretes = new ConfiguracaoLembretes(); // Cria uma configuração exclusiva da turma; readonly impede substituir essa referência.
 
   constructor(topic: string, periodoAcademico: PeriodoAcademico, especificacaoDoCalculoDaMedia: EspecificacaoDoCalculoDaMedia, enrollments: Enrollment[] = []) {
@@ -46,6 +50,16 @@ export class Class {
 
   getEnrollments(): Enrollment[] {
     return [...this.enrollments]; // Return copy to prevent external modification
+  }
+
+  getProfessor(): string {
+    return this.professor;
+  }
+
+  definirProfessor(nome: string): void {
+    const professor = typeof nome === 'string' ? nome.trim() : '';
+    if (!professor) throw new Error('Informe o nome do professor da turma');
+    this.professor = professor;
   }
 
   // Generate unique class ID
@@ -135,6 +149,7 @@ export class Class {
       topic: this.topic,
       semester: this.getSemester(),
       year: this.getYear(),
+      professor: this.professor,
       prazoAcademico: this.getPrazoAcademico()?.toISOString() ?? null, // Informação calculada para leitura; não é um prazo editável da turma.
       especificacaoDoCalculoDaMedia: this.especificacaoDoCalculoDaMedia.toJSON(),
       enrollments: this.enrollments.map(enrollment => enrollment.toJSON())
@@ -149,6 +164,7 @@ export class Class {
     especificacaoDoCalculoDaMedia: any;
     enrollments: any[];
     prazoAcademico?: string | null; // Pode existir em uma resposta antiga; o período informado é a fonte do prazo.
+    professor?: string;
   }, allStudents: Student[], periodoAcademico: PeriodoAcademico): Class {
     if (data.year !== periodoAcademico.getAno() || data.semester !== periodoAcademico.getSemestre()) {
       throw new Error('Período acadêmico incompatível com a turma'); // Impede reconstruir uma turma vinculada ao ano ou semestre errado.
@@ -166,6 +182,8 @@ export class Class {
     // Novo carregamento do EspecificacaoDoCalculoDaMedia
     const especificacaoDoCalculoDaMedia = EspecificacaoDoCalculoDaMedia.fromJSON(data.especificacaoDoCalculoDaMedia);
 
-    return new Class(data.topic, periodoAcademico, especificacaoDoCalculoDaMedia, enrollments); // Reutiliza o período resolvido pelo chamador e preserva as matrículas.
+    const turma = new Class(data.topic, periodoAcademico, especificacaoDoCalculoDaMedia, enrollments);
+    if (data.professor) turma.definirProfessor(data.professor);
+    return turma; // Reutiliza o período resolvido pelo chamador e preserva as matrículas.
   }
 }
