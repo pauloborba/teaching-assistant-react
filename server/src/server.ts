@@ -6,6 +6,7 @@ import { Evaluation } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import { Report } from './models/Report';
+import { ResponseTimeReport, StudentResponseData } from './models/ResponseTimeReport';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
@@ -497,6 +498,23 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 // [Front] Mapeia colunas da planilha para os goals → [Back] faz parse completo (stream)
 app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (req: express.Request, res: express.Response) => {
   res.status(501).json({ error: "Endpoint ainda não implementado." });
+});
+
+// POST /api/response-time-report - Generate statistics for one roteiro
+app.post('/api/response-time-report', (req: Request, res: Response) => {
+  try {
+    const { responses } = req.body || {};
+
+    if (!Array.isArray(responses)) {
+      return res.status(400).json({ error: 'Responses must be an array' });
+    }
+
+    // A lista recebida representa as respostas de um único roteiro.
+    const report = new ResponseTimeReport(responses as StudentResponseData[]);
+    res.json(report.generate());
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
 });
 
 // GET /api/classes/:classId/report - Generate statistics report for a class
