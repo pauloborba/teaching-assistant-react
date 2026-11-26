@@ -7,9 +7,10 @@ import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
+import ResponseTimeReport from './components/ResponseTimeReport';
 import './App.css';
 
-type TabType = 'students' | 'evaluations' | 'classes';
+type TabType = 'students' | 'evaluations' | 'classes' | 'response-time-report';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -146,6 +147,13 @@ const App: React.FC = () => {
           >
             Classes
           </button>
+          <button
+            className={`tab-button ${activeTab === 'response-time-report' ? 'active' : ''}`}
+            onClick={() => setActiveTab('response-time-report')}
+            data-testid="response-time-report-tab"
+          >
+            Response Time Report
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -215,6 +223,8 @@ const App: React.FC = () => {
               onError={handleError}
             />
           )}
+
+          {activeTab === 'response-time-report' && <ResponseTimeReport />}
         </div>
       </main>
     </div>
