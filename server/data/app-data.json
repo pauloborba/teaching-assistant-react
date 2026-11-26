@@ -1,73 +1,31 @@
 {
-  "historicoLembretes": [],
-  "emailDasTurmas": null,
-  "periodosAcademicos": [
-    {
-      "ano": 2025,
-      "semestre": 1,
-      "prazoAcademico": null
-    },
-    {
-      "ano": 2025,
-      "semestre": 2,
-      "prazoAcademico": null
-    },
-    {
-      "ano": 2026,
-      "semestre": 1,
-      "prazoAcademico": "2026-12-31T00:59:00.000Z"
-    }
-  ],
   "students": [
     {
       "name": "Paulo Borba",
       "cpf": "11111111111",
-      "email": "phmb@cin.ufpe.br",
-      "lastGradeNotificationDate": null
+      "email": "phmb@cin.ufpe.br"
     },
     {
       "name": "Maria Modularidade",
       "cpf": "22222222222",
-      "email": "mm@cin.ufpe.br",
-      "lastGradeNotificationDate": null
+      "email": "mm@cin.ufpe.br"
     },
     {
       "name": "João Elegância",
       "cpf": "33333333333",
-      "email": "je@cin.ufpe.br",
-      "lastGradeNotificationDate": null
+      "email": "je@cin.ufpe.br"
     },
     {
       "name": "Joana Refatoração",
       "cpf": "55555555555",
-      "email": "jr@gmail.com",
-      "lastGradeNotificationDate": null
-    },
-    {
-      "name": "luany",
-      "cpf": "11111111132",
-      "email": "lua@gmail.com",
-      "lastGradeNotificationDate": null
-    },
-    {
-      "name": "joãozinho das neves",
-      "cpf": "89225982534",
-      "email": "joaozinhodasnevesdev@gmail.com",
-      "lastGradeNotificationDate": null
-    },
-    {
-      "name": "luany reis ",
-      "cpf": "23233242434",
-      "email": "lbr@cin.ufpe.br",
-      "lastGradeNotificationDate": null
+      "email": "jr@gmail.com"
     }
   ],
   "classes": [
     {
       "topic": "Engenharia de Software e Sistemas",
       "semester": 1,
-      "year": 2026,
-      "professor": "Paulo Borba",
+      "year": 2025,
       "especificacaoDoCalculoDaMedia": {
         "pesosDosConceitos": {
           "MA": 10,
@@ -80,7 +38,6 @@
           "Qualidade de Software": 1
         }
       },
-      "configuracaoLembretes": [],
       "enrollments": [
         {
           "studentCPF": "11111111111",
@@ -109,14 +66,7 @@
               "goal": "Refactoring",
               "grade": "MA"
             }
-          ],
-          "notaProvaFinal": null,
-          "reprovadoPorFalta": false,
-          "envioResultado": {
-            "status": "Enviado",
-            "resultadoEnviado": "Aprovado",
-            "motivoFalha": null
-          }
+          ]
         },
         {
           "studentCPF": "55555555555",
@@ -145,14 +95,7 @@
               "goal": "Tests",
               "grade": "MPA"
             }
-          ],
-          "notaProvaFinal": null,
-          "reprovadoPorFalta": false,
-          "envioResultado": {
-            "status": "Não enviado",
-            "resultadoEnviado": null,
-            "motivoFalha": null
-          }
+          ]
         },
         {
           "studentCPF": "22222222222",
@@ -169,86 +112,7 @@
               "goal": "Project Management",
               "grade": "MPA"
             }
-          ],
-          "notaProvaFinal": null,
-          "reprovadoPorFalta": false,
-          "envioResultado": {
-            "status": "Não enviado",
-            "resultadoEnviado": null,
-            "motivoFalha": null
-          }
-        },
-        {
-          "studentCPF": "11111111132",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MANA"
-            }
-          ],
-          "notaProvaFinal": null,
-          "reprovadoPorFalta": false,
-          "envioResultado": {
-            "status": "Não enviado",
-            "resultadoEnviado": null,
-            "motivoFalha": null
-          }
-        },
-        {
-          "studentCPF": "23233242434",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MA"
-            }
-          ],
-          "notaProvaFinal": null,
-          "reprovadoPorFalta": false,
-          "envioResultado": {
-            "status": "Enviado",
-            "resultadoEnviado": "Aprovado",
-            "motivoFalha": null
-          }
+          ]
         }
       ]
     },
@@ -256,7 +120,6 @@
       "topic": "Engenharia de Software e Sistemas",
       "semester": 2,
       "year": 2025,
-      "professor": "Paulo Borba",
       "especificacaoDoCalculoDaMedia": {
         "pesosDosConceitos": {
           "MA": 10,
@@ -269,7 +132,6 @@
           "Qualidade de Software": 1
         }
       },
-      "configuracaoLembretes": [],
       "enrollments": [
         {
           "studentCPF": "22222222222",
@@ -298,14 +160,7 @@
               "goal": "Tests",
               "grade": "MA"
             }
-          ],
-          "notaProvaFinal": null,
-          "reprovadoPorFalta": false,
-          "envioResultado": {
-            "status": "Não enviado",
-            "resultadoEnviado": null,
-            "motivoFalha": null
-          }
+          ]
         },
         {
           "studentCPF": "33333333333",
@@ -334,25 +189,7 @@
               "goal": "Refactoring",
               "grade": "MA"
             }
-          ],
-          "notaProvaFinal": null,
-          "reprovadoPorFalta": false,
-          "envioResultado": {
-            "status": "Não enviado",
-            "resultadoEnviado": null,
-            "motivoFalha": null
-          }
-        },
-        {
-          "studentCPF": "89225982534",
-          "evaluations": [],
-          "notaProvaFinal": null,
-          "reprovadoPorFalta": false,
-          "envioResultado": {
-            "status": "Não enviado",
-            "resultadoEnviado": null,
-            "motivoFalha": null
-          }
+          ]
         }
       ]
     }
