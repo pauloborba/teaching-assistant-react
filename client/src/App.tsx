@@ -7,9 +7,10 @@ import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
+import Roteiros from './components/Roteiros';
 import './App.css';
 
-type TabType = 'students' | 'evaluations' | 'classes';
+type TabType = 'students' | 'evaluations' | 'classes' | 'roteiros';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -48,11 +49,10 @@ const App: React.FC = () => {
   }, []);
 
   const updateSelectedClass = useCallback((classesData: Class[]) => {
-    // Update selectedClass if it exists to reflect new enrollments
     if (selectedClass) {
-      const updatedSelectedClass = classesData.find(c => 
-        c.topic === selectedClass.topic && 
-        c.year === selectedClass.year && 
+      const updatedSelectedClass = classesData.find(c =>
+        c.topic === selectedClass.topic &&
+        c.year === selectedClass.year &&
         c.semester === selectedClass.semester
       );
       if (updatedSelectedClass) {
@@ -61,40 +61,39 @@ const App: React.FC = () => {
     }
   }, [selectedClass]);
 
-  // Load students and classes on component mount
   useEffect(() => {
     loadStudents();
     loadClasses();
   }, [loadStudents, loadClasses]);
 
   const handleStudentAdded = async () => {
-    loadStudents(); // Reload the list when a new student is added
-    const updatedClasses = await loadClasses(); // Also reload classes to update enrollment info
-    updateSelectedClass(updatedClasses); // Update selected class with new data
+    loadStudents();
+    const updatedClasses = await loadClasses();
+    updateSelectedClass(updatedClasses);
   };
 
   const handleStudentDeleted = async () => {
-    loadStudents(); // Reload the list when a student is deleted
-    const updatedClasses = await loadClasses(); // Also reload classes to update enrollment info
-    updateSelectedClass(updatedClasses); // Update selected class with new data
+    loadStudents();
+    const updatedClasses = await loadClasses();
+    updateSelectedClass(updatedClasses);
   };
 
   const handleStudentUpdated = () => {
     setEditingStudent(null);
-    loadStudents(); // Reload the list when a student is updated
+    loadStudents();
   };
 
   const handleClassAdded = () => {
-    loadClasses(); // Reload classes when a new class is added
+    loadClasses();
   };
 
   const handleClassUpdated = () => {
-    loadClasses(); // Reload classes when a class is updated
+    loadClasses();
   };
 
   const handleClassDeleted = () => {
-    loadClasses(); // Reload classes when a class is deleted
-    setSelectedClass(null); // Clear selection if deleted class was selected
+    loadClasses();
+    setSelectedClass(null);
   };
 
   const handleEditClick = (student: Student) => {
@@ -146,6 +145,13 @@ const App: React.FC = () => {
           >
             Classes
           </button>
+          <button
+            className={`tab-button ${activeTab === 'roteiros' ? 'active' : ''}`}
+            onClick={() => setActiveTab('roteiros')}
+            data-testid="roteiros-tab"
+          >
+            Roteiros
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -171,7 +177,7 @@ const App: React.FC = () => {
                 >
                   <option value="">All Students</option>
                   {classes.map((classObj) => (
-                    <option 
+                    <option
                       key={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
                       value={`${classObj.topic}-${classObj.year}-${classObj.semester}`}
                     >
@@ -201,7 +207,7 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'evaluations' && (
-            <Evaluations 
+            <Evaluations
               onError={handleError}
             />
           )}
@@ -214,6 +220,10 @@ const App: React.FC = () => {
               onClassDeleted={handleClassDeleted}
               onError={handleError}
             />
+          )}
+
+          {activeTab === 'roteiros' && (
+            <Roteiros onError={handleError} />
           )}
         </div>
       </main>
