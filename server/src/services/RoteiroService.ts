@@ -1,24 +1,37 @@
-import { Roteiro, RoteiroProps, RespostaAluno } from '../models/Roteiro';
+import { Roteiro, RoteiroProps } from '../models/Roteiro';
 import { RoteiroList } from '../models/RoteiroList';
-import { Atividade } from '../models/Atividade';
+import { Questao } from '../models/Questao';
+import { QuestaoList } from '../models/QuestaoList';
 
 export interface InserirRoteiroInput {
   titulo: string;
   descricao?: string;
-  turma: string;
   dataAbertura: string;
   prazoEntrega: string;
-  atividades?: (Atividade | string)[] | string;
-  respostas?: RespostaAluno[];
+  questaoIds?: string[];
+  turmaIds?: string[];
+  // Campos legados enviados pela GUI atual: convertidos para turmaIds e questaoIds
+  turma?: string;
+  atividades?: string[] | string;
 }
 
 export interface AtualizarRoteiroInput {
   titulo?: string;
   descricao?: string;
-  turma?: string;
   dataAbertura?: string;
   prazoEntrega?: string;
-  atividades?: (Atividade | string)[] | string;
+  questaoIds?: string[];
+  turmaIds?: string[];
+  // Campos legados enviados pela GUI atual: convertidos para turmaIds e questaoIds
+  turma?: string;
+  atividades?: string[] | string;
+}
+
+export interface RoteiroServiceOpcoes {
+  // Verifica se o id de turma existe (o server.ts consulta Classes)
+  turmaExiste?: (turmaId: string) => boolean;
+  // Verifica se algum aluno já respondeu o roteiro (ligado à feature de responder roteiros)
+  possuiRespostas?: (roteiroId: string) => boolean;
 }
 
 function parseDataPtBrOuIso(dataStr: string): number | null {
@@ -47,34 +60,46 @@ function parseDataPtBrOuIso(dataStr: string): number | null {
   return Number.isNaN(timestamp) ? null : timestamp;
 }
 
-function normalizarAtividades(
-  atividades?: (Atividade | string)[] | string
-): Atividade[] {
-  if (!atividades) return [];
+// Converte a data recebida (DD/MM/YYYY ou ISO) para ISO 8601, formato do contrato.
+// DD/MM/YYYY: abertura às 00:00 e prazo às 23:59 daquele dia.
+// Valores vazios ou inválidos são mantidos como vieram.
+function normalizarData(dataStr: string, fimDoDia: boolean): string {
+  const limpo = (dataStr ?? '').trim();
+  const timestamp = parseDataPtBrOuIso(limpo);
+  if (timestamp === null) return limpo;
 
-  if (typeof atividades === 'string') {
-    return atividades
-      .split(';')
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0)
-      .map((desc) => new Atividade(desc));
+  const data = new Date(timestamp);
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(limpo) && fimDoDia) {
+    data.setHours(23, 59, 0, 0);
   }
+  return data.toISOString();
+}
 
-  return atividades
-    .map((item) => (item instanceof Atividade ? item.getDescricao() : String(item).trim()))
-    .filter((desc) => desc.length > 0)
-    .map((desc) => new Atividade(desc));
+function gerarId(prefixo: string): string {
+  return `${prefixo}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export class RoteiroService {
   private roteiroList: RoteiroList;
+  private questaoList: QuestaoList;
+  private opcoes: RoteiroServiceOpcoes;
 
-  constructor(roteiroList: RoteiroList = new RoteiroList()) {
+  constructor(
+    roteiroList: RoteiroList = new RoteiroList(),
+    questaoList: QuestaoList = new QuestaoList(),
+    opcoes: RoteiroServiceOpcoes = {}
+  ) {
     this.roteiroList = roteiroList;
+    this.questaoList = questaoList;
+    this.opcoes = opcoes;
   }
 
   public getRoteiroList(): RoteiroList {
     return this.roteiroList;
+  }
+
+  public getQuestaoList(): QuestaoList {
+    return this.questaoList;
   }
 
   private validarDatas(dataAbertura: string, prazoEntrega: string): void {
@@ -86,31 +111,88 @@ export class RoteiroService {
     }
   }
 
+  // turmaIds do contrato ou, na falta, a turma única enviada pela GUI atual
+  private resolverTurmaIds(dados: AtualizarRoteiroInput): string[] | undefined {
+    let ids: string[] | undefined;
+    if (dados.turmaIds !== undefined) {
+      ids = dados.turmaIds;
+    } else if (dados.turma !== undefined) {
+      ids = [dados.turma];
+    }
+    if (ids === undefined) return undefined;
+
+    const limpos = ids.map((id) => String(id).trim()).filter((id) => id.length > 0);
+    const turmaExiste = this.opcoes.turmaExiste;
+    const inexistente = turmaExiste ? limpos.find((id) => !turmaExiste(id)) : undefined;
+    if (inexistente) {
+      throw new Error(`Turma não encontrada: ${inexistente}`);
+    }
+    return limpos;
+  }
+
+  // questaoIds do contrato ou, na falta, as atividades da GUI atual, que viram
+  // questões do tipo 'texto' no banco. Reaproveita a questão que o roteiro já
+  // tem com o mesmo enunciado, para que editar não duplique questões no banco.
+  private resolverQuestaoIds(
+    dados: AtualizarRoteiroInput,
+    questaoIdsAtuais: string[] = []
+  ): string[] | undefined {
+    if (dados.questaoIds !== undefined) {
+      const inexistente = dados.questaoIds.find((id) => !this.questaoList.findById(id));
+      if (inexistente) {
+        throw new Error(`Questão não encontrada: ${inexistente}`);
+      }
+      return [...dados.questaoIds];
+    }
+    if (dados.atividades === undefined) return undefined;
+
+    const descricoes = (
+      typeof dados.atividades === 'string' ? dados.atividades.split(';') : dados.atividades
+    )
+      .map((item) => String(item).trim())
+      .filter((item) => item.length > 0);
+
+    return descricoes.map((descricao) => {
+      const existente = questaoIdsAtuais
+        .map((id) => this.questaoList.findById(id))
+        .find((questao) => questao?.getEnunciado() === descricao);
+      if (existente) return existente.getId();
+      return this.questaoList.add(new Questao(gerarId('q'), descricao, 'texto')).getId();
+    });
+  }
+
+  private verificarTituloDuplicado(titulo: string, turmaIds: string[], idIgnorado?: string): void {
+    turmaIds.forEach((turmaId) => {
+      const conflito = this.roteiroList.findByTitulo(titulo, turmaId);
+      if (conflito && conflito.id !== idIgnorado) {
+        throw new Error(`Já existe um roteiro com o título "${titulo}" na turma "${turmaId}"`);
+      }
+    });
+  }
+
   public inserirRoteiro(dados: InserirRoteiroInput): Roteiro {
     const titulo = (dados?.titulo ?? '').trim();
     if (!titulo) {
       throw new Error('O título do roteiro é obrigatório');
     }
 
-    const turma = (dados?.turma ?? '').trim();
+    const turmaIds = this.resolverTurmaIds(dados) ?? [];
     const dataAbertura = (dados?.dataAbertura ?? '').trim();
     const prazoEntrega = (dados?.prazoEntrega ?? '').trim();
 
     this.validarDatas(dataAbertura, prazoEntrega);
+    this.verificarTituloDuplicado(titulo, turmaIds);
 
-    const duplicado = this.roteiroList.findByTitulo(titulo, turma);
-    if (duplicado) {
-      throw new Error(`Já existe um roteiro com o título "${titulo}" na turma "${turma}"`);
-    }
+    // Por último: criar questões grava no banco, então só depois das demais validações
+    const questaoIds = this.resolverQuestaoIds(dados) ?? [];
 
     const props: RoteiroProps = {
       titulo,
       descricao: dados?.descricao ?? '',
-      turma,
-      dataAbertura,
-      prazoEntrega,
-      atividades: normalizarAtividades(dados?.atividades),
-      respostas: dados?.respostas ?? [],
+      dataAbertura: normalizarData(dataAbertura, false),
+      prazoEntrega: normalizarData(prazoEntrega, true),
+      questaoIds,
+      turmaIds,
     };
 
     const novoRoteiro = new Roteiro(props);
@@ -132,8 +214,7 @@ export class RoteiroService {
       novoTitulo = tituloLimpo;
     }
 
-    const novaTurma =
-      dados.turma !== undefined ? String(dados.turma).trim() : existente.getTurma();
+    const novasTurmaIds = this.resolverTurmaIds(dados) ?? existente.getTurmaIds();
     const novaDataAbertura =
       dados.dataAbertura !== undefined
         ? String(dados.dataAbertura).trim()
@@ -144,13 +225,9 @@ export class RoteiroService {
         : existente.getPrazoEntrega();
 
     this.validarDatas(novaDataAbertura, novoPrazoEntrega);
+    this.verificarTituloDuplicado(novoTitulo, novasTurmaIds, existente.id);
 
-    const conflitoTitulo = this.roteiroList.findByTitulo(novoTitulo, novaTurma);
-    if (conflitoTitulo && conflitoTitulo.id !== existente.id) {
-      throw new Error(
-        `Já existe um roteiro com o título "${novoTitulo}" na turma "${novaTurma}"`
-      );
-    }
+    const novasQuestaoIds = this.resolverQuestaoIds(dados, existente.getQuestaoIds());
 
     if (dados.titulo !== undefined) {
       existente.setTitulo(novoTitulo);
@@ -158,17 +235,17 @@ export class RoteiroService {
     if (dados.descricao !== undefined) {
       existente.setDescricao(String(dados.descricao));
     }
-    if (dados.turma !== undefined) {
-      existente.setTurma(novaTurma);
+    if (dados.turmaIds !== undefined || dados.turma !== undefined) {
+      existente.setTurmaIds(novasTurmaIds);
     }
     if (dados.dataAbertura !== undefined) {
-      existente.setDataAbertura(novaDataAbertura);
+      existente.setDataAbertura(normalizarData(novaDataAbertura, false));
     }
     if (dados.prazoEntrega !== undefined) {
-      existente.setPrazoEntrega(novoPrazoEntrega);
+      existente.setPrazoEntrega(normalizarData(novoPrazoEntrega, true));
     }
-    if (dados.atividades !== undefined) {
-      existente.setAtividades(normalizarAtividades(dados.atividades));
+    if (novasQuestaoIds !== undefined) {
+      existente.setQuestaoIds(novasQuestaoIds);
     }
 
     return this.roteiroList.update(existente);
@@ -180,7 +257,7 @@ export class RoteiroService {
       throw new Error('Roteiro não encontrado');
     }
 
-    if (existente.possuiRespostas()) {
+    if (this.opcoes.possuiRespostas?.(id)) {
       throw new Error(
         'Não é possível remover o roteiro pois ele já possui respostas de alunos'
       );
