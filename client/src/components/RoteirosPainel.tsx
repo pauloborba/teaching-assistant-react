@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Class } from '../types/Class';
 import Roteiros from './Roteiros';
+import RelatorioRoteiro from './RelatorioRoteiro';
 import './Roteiros.css';
 
 interface RoteirosPainelProps {
@@ -39,9 +40,7 @@ const RoteirosPainel: React.FC<RoteirosPainelProps> = ({ turmas, onError }) => {
       {subAba === 'cadastro' && <Roteiros turmas={turmas} onError={onError} />}
 
       {/* Os relatórios entram no merge com as branches de relatório */}
-      {subAba === 'desempenho' && (
-        <p className="roteiros-empty">O relatório de desempenho será integrado em breve.</p>
-      )}
+      {subAba === 'desempenho' && <RelatorioRoteiro classes={turmas} />}
       {subAba === 'comparacao' && (
         <p className="roteiros-empty">O relatório de comparação será integrado em breve.</p>
       )}

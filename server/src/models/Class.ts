@@ -93,6 +93,11 @@ export class Class {
     return this.enrollments.map(enrollment => enrollment.getStudent());
   }
 
+  // Nome da turma como aparece no relatório, ex.: "ESS - 2026.2"
+  getNome(): string {
+    return `${this.topic} - ${this.year}.${this.semester}`;
+  }
+
   // Convert to JSON for API responses
   toJSON() {
     return {

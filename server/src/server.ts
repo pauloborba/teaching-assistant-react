@@ -12,6 +12,7 @@ import { Roteiro } from './models/Roteiro';
 import { RoteiroList } from './models/RoteiroList';
 import { Questao } from './models/Questao';
 import { QuestaoList } from './models/QuestaoList';
+import { ComparacaoService } from './models/ComparacaoService';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
@@ -44,6 +45,7 @@ const roteiroService = new RoteiroService(new RoteiroList(), questaoList, {
 const roteiroList = roteiroService.getRoteiroList();
 const questaoService = new QuestaoService(questaoList, roteiroList);
 const roteiroAlunoService = new RoteiroAlunoService(roteiroList, roteiroAlunoList, classes);
+const comparacaoService = new ComparacaoService(classes, roteiroList, roteiroAlunoList);
 const dataFile = path.resolve('./data/app-data.json');
 
 // Persistence functions
@@ -145,6 +147,7 @@ const loadDataFromFile = (): void => {
                 }
               });
             }
+
           } catch (error) {
             console.error(`Error adding class ${classData.topic}:`, error);
           }
@@ -671,6 +674,27 @@ app.delete('/api/questoes/:id', (req: Request, res: Response) => {
     res.status(status).json({ error: message });
   }
 });
+
+// ---------- Relatório de desempenho do roteiro ----------
+
+// GET /api/relatorio-roteiro?turmaAtual=...&roteiro=...&passadas=...&passadas=...
+// As turmas vão pelo id (topic-year-semester) e o roteiro pelo título, que identifica
+// o "mesmo roteiro" em turmas de semestres diferentes
+// Compara o desempenho da turma atual no roteiro com a média das turmas passadas
+app.get('/api/relatorio-roteiro', (req: Request, res: Response) => {
+  try {
+    const turmaAtual = String(req.query.turmaAtual || '');
+    const roteiro = String(req.query.roteiro || '');
+    const passadasParam = req.query.passadas;
+    const passadas = passadasParam === undefined ? [] : ([] as any[]).concat(passadasParam).map(String);
+
+    const linhas = comparacaoService.comparar(turmaAtual, roteiro, passadas);
+    res.json(linhas);
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
 
 // Export the app for testing
 export { app, studentSet, classes, roteiroService, questaoList, roteiroList, roteiroAlunoList };
