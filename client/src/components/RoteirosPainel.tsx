@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Class } from '../types/Class';
 import Roteiros from './Roteiros';
+import ResponseTimeReport from './ResponseTimeReport';
 import './Roteiros.css';
 
 interface RoteirosPainelProps {
@@ -8,7 +9,7 @@ interface RoteirosPainelProps {
   onError?: (message: string) => void;
 }
 
-type RoteirosSubAba = 'cadastro' | 'desempenho' | 'comparacao';
+type RoteirosSubAba = 'cadastro' | 'desempenho' | 'correlacao';
 
 // Aba "Roteiros" do professor, com sub-abas para o cadastro e os relatórios
 const RoteirosPainel: React.FC<RoteirosPainelProps> = ({ turmas, onError }) => {
@@ -17,7 +18,7 @@ const RoteirosPainel: React.FC<RoteirosPainelProps> = ({ turmas, onError }) => {
   const abas: { id: RoteirosSubAba; label: string }[] = [
     { id: 'cadastro', label: 'Cadastro e acompanhamento' },
     { id: 'desempenho', label: 'Relatório de desempenho' },
-    { id: 'comparacao', label: 'Relatório de comparação' },
+    { id: 'correlacao', label: 'Relatório de correlação' },
   ];
 
   return (
@@ -38,13 +39,11 @@ const RoteirosPainel: React.FC<RoteirosPainelProps> = ({ turmas, onError }) => {
 
       {subAba === 'cadastro' && <Roteiros turmas={turmas} onError={onError} />}
 
-      {/* Os relatórios entram no merge com as branches de relatório */}
+      {/* O relatório de desempenho entra no merge com a branch relatorio-desempenho-roteiro */}
       {subAba === 'desempenho' && (
         <p className="roteiros-empty">O relatório de desempenho será integrado em breve.</p>
       )}
-      {subAba === 'comparacao' && (
-        <p className="roteiros-empty">O relatório de comparação será integrado em breve.</p>
-      )}
+      {subAba === 'correlacao' && <ResponseTimeReport turmas={turmas} />}
     </div>
   );
 };

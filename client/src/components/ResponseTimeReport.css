@@ -1,0 +1,25 @@
+.response-time-report { color: #374151; }
+.response-report-heading h2 { margin-top: 0; color: #1f2937; }
+.response-report-heading p { color: #6b7280; }
+.response-report-notice { margin: 1rem 0; padding: 0.9rem 1rem; background: #eff6ff; border-left: 4px solid #667eea; border-radius: 4px; color: #374151; }
+.response-report-table-wrapper { width: 100%; overflow-x: auto; }
+.response-report-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.response-report-table th, .response-report-table td { padding: 0.7rem; border-bottom: 1px solid #e5e7eb; text-align: left; }
+.response-report-table th { background: #f8fafc; white-space: nowrap; }
+.response-report-table input { width: 100%; min-width: 75px; box-sizing: border-box; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 4px; }
+.response-report-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0; }
+.response-report-actions button, .response-remove-button { padding: 0.65rem 1rem; border: 0; border-radius: 5px; cursor: pointer; }
+.response-report-actions button:disabled { opacity: 0.6; cursor: wait; }
+.response-report-actions .response-secondary-button { background: #e5e7eb; color: #374151; }
+.response-report-table .response-remove-button { background: #fee2e2; color: #991b1b; white-space: nowrap; }
+.response-report-error { margin: 1rem 0; padding: 0.8rem 1rem; background: #fef2f2; color: #991b1b; border-radius: 5px; }
+.response-report-results { margin-top: 2rem; }
+.response-report-results h3 { color: #1f2937; }
+.response-report-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; }
+.response-report-metric { display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 7px; }
+.response-report-metric span { color: #6b7280; font-size: 0.9rem; }
+.response-report-metric strong { color: #1f2937; overflow-wrap: anywhere; }
+.response-report-selecao { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem 1rem; margin: 1rem 0; }
+.response-report-selecao label { display: flex; flex-direction: column; gap: 0.35rem; font-weight: 500; color: #374151; }
+.response-report-selecao select { min-width: 240px; padding: 0.55rem; border: 1px solid #d1d5db; border-radius: 4px; background: #fff; }
+.response-report-selecao button { padding: 0.65rem 1rem; border: 0; border-radius: 5px; cursor: pointer; }

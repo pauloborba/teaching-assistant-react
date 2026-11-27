@@ -12,6 +12,7 @@ import { Roteiro } from './models/Roteiro';
 import { RoteiroList } from './models/RoteiroList';
 import { Questao } from './models/Questao';
 import { QuestaoList } from './models/QuestaoList';
+import { ResponseTimeReport, StudentResponseData } from './models/ResponseTimeReport';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
@@ -549,6 +550,61 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 // POST api/classes/gradeImport/:classId, usado na feature de importacao de grades
 app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (req: express.Request, res: express.Response) => {
   res.status(501).json({ error: "Endpoint ainda não implementado." });
+});
+
+// POST /api/response-time-report - Generate statistics for one roteiro
+app.post('/api/response-time-report', (req: Request, res: Response) => {
+  try {
+    const { responses } = req.body || {};
+
+    if (!Array.isArray(responses)) {
+      return res.status(400).json({ error: 'Responses must be an array' });
+    }
+
+    // A lista recebida representa as respostas de um único roteiro.
+    const report = new ResponseTimeReport(responses as StudentResponseData[]);
+    res.json(report.generate());
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /api/roteiros/:id/respostas-tempo-nota?turmaId= - Dados de entrada do relatório de correlação
+// Monta, a partir das respostas reais (roteirosAlunos), a nota (média das notas das questões,
+// de 0 a 10) e o tempo (soma dos tempos das questões, em minutos) de cada aluno.
+// Entram apenas roteiros respondidos ou enviados com todas as questões corrigidas.
+app.get('/api/roteiros/:id/respostas-tempo-nota', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const turmaId = typeof req.query.turmaId === 'string' ? req.query.turmaId : undefined;
+
+    const roteiro = roteiroList.findById(id);
+    if (!roteiro) {
+      return res.status(404).json({ error: 'Roteiro não encontrado' });
+    }
+
+    const questaoIds = roteiro.getQuestaoIds();
+    const dados: StudentResponseData[] = roteiroAlunoList
+      .getAll()
+      .filter(ra => ra.getRoteiroId() === id && (!turmaId || ra.getTurmaId() === turmaId))
+      .filter(ra => ra.getStatus() === 'respondido' || ra.getStatus() === 'enviado')
+      .filter(ra => questaoIds.length > 0 && questaoIds.every(qId => ra.findResposta(qId)?.getNota() != null))
+      .map(ra => {
+        const respostas = questaoIds.map(qId => ra.findResposta(qId)!);
+        const somaNotas = respostas.reduce((total, r) => total + (r.getNota() as number), 0);
+        const somaSegundos = respostas.reduce((total, r) => total + r.getTempo(), 0);
+        return {
+          studentId: ra.getCpfAluno(),
+          name: studentSet.findStudentByCPF(ra.getCpfAluno())?.name ?? ra.getCpfAluno(),
+          grade: Math.round((somaNotas / respostas.length) * 100) / 100,
+          responseTime: Math.round((somaSegundos / 60) * 100) / 100
+        };
+      });
+
+    res.json(dados);
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
 });
 
 // GET /api/classes/:classId/report - Generate statistics report for a class
