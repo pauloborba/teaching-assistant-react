@@ -7,7 +7,7 @@ import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import Evaluations from './components/Evaluations';
 import Classes from './components/Classes';
-import Roteiros from './components/Roteiros';
+import RoteirosPainel from './components/RoteirosPainel';
 import './App.css';
 
 type TabType = 'students' | 'evaluations' | 'classes' | 'roteiros';
@@ -223,7 +223,7 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'roteiros' && (
-            <Roteiros onError={handleError} />
+            <RoteirosPainel turmas={classes} onError={handleError} />
           )}
         </div>
       </main>
