@@ -86,6 +86,11 @@ export class Classes {
     return this.classes.find(c => c.getClassId() === classId);
   }
 
+  // Find class by name, ex.: "ESS - 2026.2" (TurmaList.findByNome do DDD do relatório de roteiros)
+  findByNome(nome: string): Class | undefined {
+    return this.classes.find(c => c.getNome() === nome.trim());
+  }
+
   // Get all classes
   getAllClasses(): Class[] {
     return [...this.classes]; // Return a copy to prevent external modification

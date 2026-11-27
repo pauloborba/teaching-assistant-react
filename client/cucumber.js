@@ -1,3 +1,6 @@
+// Usa o tsconfig de testes (módulos commonjs) para os step definitions poderem importar arquivos locais
+process.env.TS_NODE_PROJECT = 'tsconfig.test.json';
+
 module.exports = {
   default: {
     require: [

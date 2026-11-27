@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Class } from '../types/Class';
 import Roteiros from './Roteiros';
 import ResponseTimeReport from './ResponseTimeReport';
+import RelatorioRoteiro from './RelatorioRoteiro';
 import './Roteiros.css';
 
 interface RoteirosPainelProps {
@@ -39,10 +40,7 @@ const RoteirosPainel: React.FC<RoteirosPainelProps> = ({ turmas, onError }) => {
 
       {subAba === 'cadastro' && <Roteiros turmas={turmas} onError={onError} />}
 
-      {/* O relatório de desempenho entra no merge com a branch relatorio-desempenho-roteiro */}
-      {subAba === 'desempenho' && (
-        <p className="roteiros-empty">O relatório de desempenho será integrado em breve.</p>
-      )}
+      {subAba === 'desempenho' && <RelatorioRoteiro classes={turmas} />}
       {subAba === 'correlacao' && <ResponseTimeReport turmas={turmas} />}
     </div>
   );

@@ -463,6 +463,36 @@
       "turmaIds": [
         "Estruturas de Dados-2026-2"
       ]
+    },
+    {
+      "id": "r5",
+      "titulo": "Roteiro 1 - Gerência de Configuração",
+      "descricao": "Branches, merge e rebase.",
+      "dataAbertura": "2025-09-01T08:00:00-03:00",
+      "prazoEntrega": "2025-09-15T23:59:00-03:00",
+      "questaoIds": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "turmaIds": [
+        "Engenharia de Software e Sistemas-2025-2"
+      ]
+    },
+    {
+      "id": "r6",
+      "titulo": "Roteiro 1 - Gerência de Configuração",
+      "descricao": "Branches, merge e rebase.",
+      "dataAbertura": "2026-09-01T08:00:00-03:00",
+      "prazoEntrega": "2026-09-15T23:59:00-03:00",
+      "questaoIds": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "turmaIds": [
+        "Engenharia de Software e Sistemas-2026-2"
+      ]
     }
   ],
   "roteirosAlunos": [
@@ -599,6 +629,126 @@
           "tempo": 60,
           "status": "respondida",
           "nota": null
+        }
+      ]
+    },
+    {
+      "roteiroId": "r5",
+      "cpfAluno": "22222222222",
+      "turmaId": "Engenharia de Software e Sistemas-2025-2",
+      "status": "respondido",
+      "dataEnvio": "2025-09-05T20:10:00-03:00",
+      "respostas": [
+        {
+          "questaoId": "q1",
+          "valor": "Merge cria um commit de junção; rebase reaplica os commits.",
+          "tempo": 200,
+          "status": "respondida",
+          "nota": 10
+        },
+        {
+          "questaoId": "q2",
+          "valor": "B",
+          "tempo": 30,
+          "status": "respondida",
+          "nota": 10
+        },
+        {
+          "questaoId": "q3",
+          "valor": "uploads/respostas/r5/22222222222/q3.png",
+          "tempo": 260,
+          "status": "respondida",
+          "nota": 6
+        }
+      ]
+    },
+    {
+      "roteiroId": "r5",
+      "cpfAluno": "33333333333",
+      "turmaId": "Engenharia de Software e Sistemas-2025-2",
+      "status": "enviado",
+      "dataEnvio": "2025-09-15T23:59:00-03:00",
+      "respostas": [
+        {
+          "questaoId": "q1",
+          "valor": "São iguais.",
+          "tempo": 60,
+          "status": "respondida",
+          "nota": 5
+        },
+        {
+          "questaoId": "q2",
+          "valor": null,
+          "tempo": 20,
+          "status": "nao_respondida",
+          "nota": 0
+        },
+        {
+          "questaoId": "q3",
+          "valor": null,
+          "tempo": 0,
+          "status": "nao_respondida",
+          "nota": 0
+        }
+      ]
+    },
+    {
+      "roteiroId": "r6",
+      "cpfAluno": "22222222222",
+      "turmaId": "Engenharia de Software e Sistemas-2026-2",
+      "status": "respondido",
+      "dataEnvio": "2026-09-03T18:30:00-03:00",
+      "respostas": [
+        {
+          "questaoId": "q1",
+          "valor": "Merge preserva o histórico; rebase o reescreve.",
+          "tempo": 150,
+          "status": "respondida",
+          "nota": 10
+        },
+        {
+          "questaoId": "q2",
+          "valor": "A",
+          "tempo": 25,
+          "status": "respondida",
+          "nota": 6
+        },
+        {
+          "questaoId": "q3",
+          "valor": "uploads/respostas/r6/22222222222/q3.png",
+          "tempo": 300,
+          "status": "respondida",
+          "nota": 10
+        }
+      ]
+    },
+    {
+      "roteiroId": "r6",
+      "cpfAluno": "33333333333",
+      "turmaId": "Engenharia de Software e Sistemas-2026-2",
+      "status": "respondido",
+      "dataEnvio": "2026-09-10T21:00:00-03:00",
+      "respostas": [
+        {
+          "questaoId": "q1",
+          "valor": "Rebase muda a base da branch.",
+          "tempo": 120,
+          "status": "respondida",
+          "nota": 6
+        },
+        {
+          "questaoId": "q2",
+          "valor": "B",
+          "tempo": 40,
+          "status": "respondida",
+          "nota": 10
+        },
+        {
+          "questaoId": "q3",
+          "valor": "uploads/respostas/r6/33333333333/q3.png",
+          "tempo": 280,
+          "status": "respondida",
+          "nota": 3
         }
       ]
     }
