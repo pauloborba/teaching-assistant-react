@@ -209,8 +209,332 @@
   border-radius: 10px;
 }
 
+/* Campos de texto longo e seleção, no mesmo estilo dos inputs */
+.roteiro-field textarea,
+.roteiro-field select {
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: #ffffff;
+  color: #0f172a;
+  resize: vertical;
+}
+
+.roteiro-field textarea:focus,
+.roteiro-field select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Sub-abas da aba Roteiros */
+.roteiros-subabas {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.roteiros-painel .roteiros-subaba {
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  min-width: auto;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.roteiros-painel .roteiros-subaba:hover {
+  color: #334155;
+  background-color: #f8fafc;
+}
+
+.roteiros-painel .roteiros-subaba.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+/* Seleção de várias turmas */
+.turmas-select {
+  position: relative;
+}
+
+.roteiros-section .turmas-select-trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #0f172a;
+  text-align: left;
+}
+
+.turmas-select-resumo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.turmas-select-seta {
+  color: #64748b;
+}
+
+.turmas-select-opcoes {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  padding: 6px;
+}
+
+.turmas-select-opcao {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #334155;
+  cursor: pointer;
+}
+
+.turmas-select-opcao:hover {
+  background-color: #f1f5f9;
+}
+
+.turmas-select-vazio {
+  padding: 8px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Caixa de questões do formulário */
+.roteiro-questoes-box {
+  position: relative;
+  min-height: 72px;
+  padding: 12px 48px 12px 12px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.roteiro-questoes-lista,
+.questoes-selecionadas-lista {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.92rem;
+  color: #0f172a;
+}
+
+.roteiro-questoes-lista li + li {
+  margin-top: 4px;
+}
+
+.roteiro-questoes-editar {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+}
+
+.questoes-vazio {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.roteiros-section .roteiro-icon-btn {
+  min-width: auto;
+  padding: 4px 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1;
+  color: #334155;
+}
+
+.roteiros-section .roteiro-icon-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.roteiro-turmas-cell {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Pop-ups */
+.roteiro-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(15, 23, 42, 0.45);
+}
+
+.roteiro-modal-overlay-topo {
+  z-index: 1100;
+}
+
+.roteiro-modal {
+  width: 92%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.3);
+}
+
+.roteiro-modal-questoes {
+  max-width: 960px;
+}
+
+.roteiro-modal-pequeno {
+  max-width: 480px;
+}
+
+.roteiro-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.roteiro-modal-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+.roteiros-section .roteiro-modal-fechar {
+  min-width: auto;
+  padding: 0 6px;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: #64748b;
+}
+
+.questoes-modal-corpo {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.questoes-selecionadas,
+.questoes-banco {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+
+.questoes-selecionadas {
+  border-right: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.questoes-selecionadas h4,
+.questoes-banco h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.questoes-selecionadas-lista {
+  flex: 1;
+}
+
+.questoes-selecionadas-lista li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.questoes-banco {
+  position: relative;
+  padding-bottom: 64px;
+}
+
+.questoes-banco-tabela {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.roteiros-section .roteiro-fab {
+  position: absolute;
+  right: 20px;
+  bottom: 14px;
+  width: 40px;
+  height: 40px;
+  min-width: auto;
+  padding: 0;
+  border-radius: 50%;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.roteiros-section .roteiro-fab:hover {
+  background-color: #1d4ed8;
+}
+
+.questao-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+}
+
+.questao-contador {
+  align-self: flex-end;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.questao-form-actions {
+  display: flex;
+  justify-content: center;
+}
+
 @media (max-width: 720px) {
   .roteiro-form {
+    grid-template-columns: 1fr;
+  }
+
+  .questoes-modal-corpo {
     grid-template-columns: 1fr;
   }
 

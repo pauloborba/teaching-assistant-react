@@ -1,24 +1,35 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { RoteiroItem } from '../types/Roteiro';
+import { QuestaoItem } from '../types/Questao';
+import { Class } from '../types/Class';
 import { roteiroService } from '../services/RoteiroService';
+import { questaoService } from '../services/QuestaoService';
+import TurmasSelect, { nomeDaTurma } from './TurmasSelect';
+import QuestoesRoteiroModal from './QuestoesRoteiroModal';
 import './Roteiros.css';
 
 interface RoteirosProps {
-  defaultTurma?: string;
+  turmas: Class[];
   onError?: (message: string) => void;
 }
 
-const Roteiros: React.FC<RoteirosProps> = ({
-  defaultTurma = 'ESS - 2026.2',
-  onError,
-}) => {
+// Converte a data ISO gravada no servidor para DD/MM/AAAA (formato do formulário e da tabela)
+const isoParaDataBR = (iso: string): string => {
+  if (!iso) return '';
+  const data = new Date(iso);
+  return Number.isNaN(data.getTime()) ? iso : data.toLocaleDateString('pt-BR');
+};
+
+const Roteiros: React.FC<RoteirosProps> = ({ turmas, onError }) => {
   const [roteiros, setRoteiros] = useState<RoteiroItem[]>([]);
+  const [questoes, setQuestoes] = useState<QuestaoItem[]>([]);
   const [titulo, setTitulo] = useState<string>('');
   const [descricao, setDescricao] = useState<string>('');
-  const [turma, setTurma] = useState<string>(defaultTurma);
+  const [turmaIds, setTurmaIds] = useState<string[]>([]);
   const [dataAbertura, setDataAbertura] = useState<string>('');
   const [prazoEntrega, setPrazoEntrega] = useState<string>('');
-  const [atividadesTexto, setAtividadesTexto] = useState<string>('');
+  const [questaoIds, setQuestaoIds] = useState<string[]>([]);
+  const [modalQuestoesAberto, setModalQuestoesAberto] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string>('');
@@ -39,17 +50,38 @@ const Roteiros: React.FC<RoteirosProps> = ({
     }
   }, [onError]);
 
+  const carregarQuestoes = useCallback(async () => {
+    try {
+      setQuestoes(await questaoService.getAllQuestoes());
+    } catch (err) {
+      const msg = (err as Error).message || 'Erro ao carregar questões';
+      setErrorMessage(msg);
+      if (onError) onError(msg);
+    }
+  }, [onError]);
+
   useEffect(() => {
     carregarRoteiros();
-  }, [carregarRoteiros]);
+    carregarQuestoes();
+  }, [carregarRoteiros, carregarQuestoes]);
+
+  const tituloDaQuestao = (id: string) => questoes.find((q) => q.id === id)?.titulo ?? id;
+
+  const nomesDasTurmas = (ids: string[]) =>
+    ids
+      .map((id) => {
+        const turma = turmas.find((t) => t.id === id);
+        return turma ? nomeDaTurma(turma) : id;
+      })
+      .join('; ');
 
   const limparFormulario = () => {
     setTitulo('');
     setDescricao('');
-    setTurma(defaultTurma);
+    setTurmaIds([]);
     setDataAbertura('');
     setPrazoEntrega('');
-    setAtividadesTexto('');
+    setQuestaoIds([]);
     setEditingId(null);
   };
 
@@ -58,30 +90,25 @@ const Roteiros: React.FC<RoteirosProps> = ({
     setFeedbackMessage('');
     setErrorMessage('');
 
-    const atividadesLista = atividadesTexto
-      .split(';')
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0);
-
     try {
       if (editingId) {
         await roteiroService.updateRoteiro(editingId, {
           titulo,
           descricao,
-          turma,
+          turmaIds,
           dataAbertura,
           prazoEntrega,
-          atividades: atividadesLista,
+          questaoIds,
         });
         setFeedbackMessage('Roteiro atualizado com sucesso');
       } else {
         await roteiroService.createRoteiro({
           titulo,
           descricao,
-          turma,
+          turmaIds,
           dataAbertura,
           prazoEntrega,
-          atividades: atividadesLista,
+          questaoIds,
         });
         setFeedbackMessage('Roteiro inserido com sucesso');
       }
@@ -101,10 +128,10 @@ const Roteiros: React.FC<RoteirosProps> = ({
     setEditingId(roteiro.id);
     setTitulo(roteiro.titulo);
     setDescricao(roteiro.descricao);
-    setTurma(roteiro.turma);
-    setDataAbertura(roteiro.dataAbertura);
-    setPrazoEntrega(roteiro.prazoEntrega);
-    setAtividadesTexto(roteiro.atividades.map((a) => a.descricao).join('; '));
+    setTurmaIds(roteiro.turmaIds);
+    setDataAbertura(isoParaDataBR(roteiro.dataAbertura));
+    setPrazoEntrega(isoParaDataBR(roteiro.prazoEntrega));
+    setQuestaoIds(roteiro.questaoIds);
   };
 
   const handleSolicitarExclusao = (id: string) => {
@@ -168,15 +195,8 @@ const Roteiros: React.FC<RoteirosProps> = ({
         </div>
 
         <div className="roteiro-field">
-          <label htmlFor="roteiro-turma">Turma:</label>
-          <input
-            id="roteiro-turma"
-            name="turma"
-            type="text"
-            value={turma}
-            onChange={(e) => setTurma(e.target.value)}
-            data-testid="roteiro-turma-input"
-          />
+          <label htmlFor="roteiro-turmas">Turmas associadas:</label>
+          <TurmasSelect turmas={turmas} selecionadas={turmaIds} onChange={setTurmaIds} />
         </div>
 
         <div className="roteiro-field roteiro-field-full">
@@ -218,15 +238,28 @@ const Roteiros: React.FC<RoteirosProps> = ({
         </div>
 
         <div className="roteiro-field roteiro-field-full">
-          <label htmlFor="roteiro-atividades">Atividades (separadas por ponto e vírgula):</label>
-          <input
-            id="roteiro-atividades"
-            name="atividades"
-            type="text"
-            value={atividadesTexto}
-            onChange={(e) => setAtividadesTexto(e.target.value)}
-            data-testid="roteiro-atividades-input"
-          />
+          <label>Questões:</label>
+          <div className="roteiro-questoes-box" data-testid="roteiro-questoes-box">
+            {questaoIds.length === 0 ? (
+              <p className="questoes-vazio">Nenhuma questão adicionada.</p>
+            ) : (
+              <ol className="roteiro-questoes-lista">
+                {questaoIds.map((id) => (
+                  <li key={id}>{tituloDaQuestao(id)}</li>
+                ))}
+              </ol>
+            )}
+            <button
+              type="button"
+              className="roteiro-icon-btn roteiro-questoes-editar"
+              onClick={() => setModalQuestoesAberto(true)}
+              title="Escolher questões"
+              aria-label="Escolher questões"
+              data-testid="roteiro-editar-questoes-button"
+            >
+              ✎
+            </button>
+          </div>
         </div>
 
         <div className="roteiro-form-actions">
@@ -266,11 +299,10 @@ const Roteiros: React.FC<RoteirosProps> = ({
             <thead>
               <tr>
                 <th>Título</th>
-                <th>Turma</th>
                 <th>Abertura</th>
-                <th>Prazo</th>
-                <th>Atividades</th>
-                <th>Respostas</th>
+                <th>Fim</th>
+                <th>Turmas associadas</th>
+                <th>Qtd. Questões</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -278,11 +310,12 @@ const Roteiros: React.FC<RoteirosProps> = ({
               {roteiros.map((roteiro) => (
                 <tr key={roteiro.id} data-testid={`roteiro-row-${roteiro.titulo}`}>
                   <td>{roteiro.titulo}</td>
-                  <td>{roteiro.turma}</td>
-                  <td>{roteiro.dataAbertura}</td>
-                  <td>{roteiro.prazoEntrega}</td>
-                  <td>{roteiro.atividades.map((a) => a.descricao).join('; ')}</td>
-                  <td>{roteiro.respostas.map((r) => r.alunoNome).join(', ')}</td>
+                  <td>{isoParaDataBR(roteiro.dataAbertura) || '—'}</td>
+                  <td>{isoParaDataBR(roteiro.prazoEntrega) || '—'}</td>
+                  <td className="roteiro-turmas-cell" title={nomesDasTurmas(roteiro.turmaIds)}>
+                    {nomesDasTurmas(roteiro.turmaIds) || '—'}
+                  </td>
+                  <td>{roteiro.questaoIds.length}</td>
                   <td>
                     <div className="roteiro-actions-cell">
                       <button
@@ -329,6 +362,19 @@ const Roteiros: React.FC<RoteirosProps> = ({
             </tbody>
           </table>
         </div>
+      )}
+
+      {modalQuestoesAberto && (
+        <QuestoesRoteiroModal
+          questoes={questoes}
+          selecionadasIniciais={questaoIds}
+          onConfirmar={(ids) => {
+            setQuestaoIds(ids);
+            setModalQuestoesAberto(false);
+          }}
+          onFechar={() => setModalQuestoesAberto(false)}
+          onBancoAlterado={carregarQuestoes}
+        />
       )}
     </div>
   );
