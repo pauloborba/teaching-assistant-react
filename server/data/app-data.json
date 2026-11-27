@@ -19,6 +19,11 @@
       "name": "Joana Refatoração",
       "cpf": "55555555555",
       "email": "jr@gmail.com"
+    },
+    {
+      "name": "Maria Silva",
+      "cpf": "77777777777",
+      "email": "ms@cin.ufpe.br"
     }
   ],
   "classes": [
@@ -190,6 +195,410 @@
               "grade": "MA"
             }
           ]
+        }
+      ]
+    },
+    {
+      "topic": "Engenharia de Software e Sistemas",
+      "semester": 2,
+      "year": 2026,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Gerência de Configuração": 1,
+          "Gerência de Projeto": 1,
+          "Qualidade de Software": 1
+        }
+      },
+      "enrollments": [
+        {
+          "studentCPF": "22222222222",
+          "evaluations": []
+        },
+        {
+          "studentCPF": "33333333333",
+          "evaluations": []
+        }
+      ]
+    },
+    {
+      "topic": "Estruturas de Dados",
+      "semester": 2,
+      "year": 2026,
+      "especificacaoDoCalculoDaMedia": {
+        "pesosDosConceitos": {
+          "MA": 10,
+          "MPA": 7,
+          "MANA": 0
+        },
+        "pesosDasMetas": {
+          "Gerência de Configuração": 1,
+          "Gerência de Projeto": 1,
+          "Qualidade de Software": 1
+        }
+      },
+      "enrollments": [
+        {
+          "studentCPF": "77777777777",
+          "evaluations": []
+        },
+        {
+          "studentCPF": "11111111111",
+          "evaluations": []
+        },
+        {
+          "studentCPF": "33333333333",
+          "evaluations": []
+        }
+      ]
+    }
+  ],
+  "questoes": [
+    {
+      "id": "q1",
+      "titulo": "Merge x rebase",
+      "enunciado": "Explique a diferença entre git merge e git rebase.",
+      "tipo": "texto",
+      "alternativas": null
+    },
+    {
+      "id": "q2",
+      "titulo": "Criar branch",
+      "enunciado": "Qual comando cria uma nova branch e já muda para ela?",
+      "tipo": "multipla",
+      "alternativas": [
+        {
+          "id": "A",
+          "texto": "git branch -m nova"
+        },
+        {
+          "id": "B",
+          "texto": "git switch -c nova"
+        },
+        {
+          "id": "C",
+          "texto": "git checkout nova"
+        },
+        {
+          "id": "D",
+          "texto": "git init nova"
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "titulo": "Grafo de commits",
+      "enunciado": "Desenhe o grafo de commits após um merge com conflito resolvido.",
+      "tipo": "imagem",
+      "alternativas": null
+    },
+    {
+      "id": "q4",
+      "titulo": "Dependências Node",
+      "enunciado": "Qual arquivo define as dependências de um projeto Node?",
+      "tipo": "multipla",
+      "alternativas": [
+        {
+          "id": "A",
+          "texto": "tsconfig.json"
+        },
+        {
+          "id": "B",
+          "texto": "package.json"
+        },
+        {
+          "id": "C",
+          "texto": ".tool-versions"
+        },
+        {
+          "id": "D",
+          "texto": "jest.config.json"
+        }
+      ]
+    },
+    {
+      "id": "q5",
+      "titulo": "Servidor rodando",
+      "enunciado": "Anexe um print do servidor rodando na porta 3005.",
+      "tipo": "imagem",
+      "alternativas": null
+    },
+    {
+      "id": "q6",
+      "titulo": "Fator de balanceamento",
+      "enunciado": "O que é um fator de balanceamento?",
+      "tipo": "texto",
+      "alternativas": null
+    },
+    {
+      "id": "q7",
+      "titulo": "Altura da AVL",
+      "enunciado": "Qual a altura máxima de uma árvore AVL com n nós?",
+      "tipo": "multipla",
+      "alternativas": [
+        {
+          "id": "A",
+          "texto": "O(n)"
+        },
+        {
+          "id": "B",
+          "texto": "O(log n)"
+        },
+        {
+          "id": "C",
+          "texto": "O(n log n)"
+        },
+        {
+          "id": "D",
+          "texto": "O(1)"
+        }
+      ]
+    },
+    {
+      "id": "q8",
+      "titulo": "Inserção em AVL",
+      "enunciado": "Desenhe a árvore AVL resultante da inserção de 10, 20, 30.",
+      "tipo": "imagem",
+      "alternativas": null
+    },
+    {
+      "id": "q9",
+      "titulo": "Rotação dupla",
+      "enunciado": "Quando é necessária uma rotação dupla?",
+      "tipo": "texto",
+      "alternativas": null
+    },
+    {
+      "id": "q10",
+      "titulo": "Efeito da rotação",
+      "enunciado": "Qual o efeito de uma rotação sobre a subárvore desbalanceada?",
+      "tipo": "texto",
+      "alternativas": null
+    },
+    {
+      "id": "q11",
+      "titulo": "Árvore B x AVL",
+      "enunciado": "Em que caso uma árvore B é preferível a uma AVL?",
+      "tipo": "texto",
+      "alternativas": null
+    },
+    {
+      "id": "q12",
+      "titulo": "Ordem da árvore B",
+      "enunciado": "Defina a ordem de uma árvore B.",
+      "tipo": "texto",
+      "alternativas": null
+    },
+    {
+      "id": "q13",
+      "titulo": "Hook de pre-commit",
+      "enunciado": "O que é um hook de pre-commit?",
+      "tipo": "texto",
+      "alternativas": null
+    }
+  ],
+  "roteiros": [
+    {
+      "id": "r1",
+      "titulo": "Roteiro 1 - Gerência de Configuração",
+      "descricao": "Branches, merge e rebase.",
+      "dataAbertura": "2025-04-01T08:00:00-03:00",
+      "prazoEntrega": "2025-04-15T23:59:00-03:00",
+      "questaoIds": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "turmaIds": [
+        "Engenharia de Software e Sistemas-2025-1"
+      ]
+    },
+    {
+      "id": "r2",
+      "titulo": "Roteiro 0 - Ambiente de desenvolvimento",
+      "descricao": "Configuração de Git e Node, usada nas duas disciplinas.",
+      "dataAbertura": "2026-11-10T08:00:00-03:00",
+      "prazoEntrega": "2026-12-05T23:59:00-03:00",
+      "questaoIds": [
+        "q4",
+        "q2",
+        "q5"
+      ],
+      "turmaIds": [
+        "Engenharia de Software e Sistemas-2026-2",
+        "Estruturas de Dados-2026-2"
+      ]
+    },
+    {
+      "id": "r3",
+      "titulo": "Roteiro 3 - Árvores AVL",
+      "descricao": "Balanceamento e rotações.",
+      "dataAbertura": "2026-11-18T08:00:00-03:00",
+      "prazoEntrega": "2026-11-25T23:59:00-03:00",
+      "questaoIds": [
+        "q6",
+        "q7",
+        "q8",
+        "q9",
+        "q10"
+      ],
+      "turmaIds": [
+        "Estruturas de Dados-2026-2"
+      ]
+    },
+    {
+      "id": "r4",
+      "titulo": "Roteiro 4 - Árvores B",
+      "descricao": "Ainda não aberto.",
+      "dataAbertura": "2026-12-01T08:00:00-03:00",
+      "prazoEntrega": "2026-12-10T23:59:00-03:00",
+      "questaoIds": [
+        "q11",
+        "q12"
+      ],
+      "turmaIds": [
+        "Estruturas de Dados-2026-2"
+      ]
+    }
+  ],
+  "roteirosAlunos": [
+    {
+      "roteiroId": "r1",
+      "cpfAluno": "11111111111",
+      "turmaId": "Engenharia de Software e Sistemas-2025-1",
+      "status": "respondido",
+      "dataEnvio": "2025-04-10T21:14:00-03:00",
+      "respostas": [
+        {
+          "questaoId": "q1",
+          "valor": "Merge preserva o histórico com um commit de junção; rebase reescreve os commits sobre a base.",
+          "tempo": 180,
+          "status": "respondida",
+          "nota": 10
+        },
+        {
+          "questaoId": "q2",
+          "valor": "B",
+          "tempo": 25,
+          "status": "respondida",
+          "nota": 10
+        },
+        {
+          "questaoId": "q3",
+          "valor": "uploads/respostas/r1/11111111111/q3-grafo.png",
+          "tempo": 240,
+          "status": "respondida",
+          "nota": 7
+        }
+      ]
+    },
+    {
+      "roteiroId": "r1",
+      "cpfAluno": "55555555555",
+      "turmaId": "Engenharia de Software e Sistemas-2025-1",
+      "status": "enviado",
+      "dataEnvio": "2025-04-15T23:59:00-03:00",
+      "respostas": [
+        {
+          "questaoId": "q1",
+          "valor": "Rebase junta as branches.",
+          "tempo": 95,
+          "status": "respondida",
+          "nota": 3
+        },
+        {
+          "questaoId": "q2",
+          "valor": null,
+          "tempo": 15,
+          "status": "nao_respondida",
+          "nota": 0
+        },
+        {
+          "questaoId": "q3",
+          "valor": null,
+          "tempo": 0,
+          "status": "nao_respondida",
+          "nota": 0
+        }
+      ]
+    },
+    {
+      "roteiroId": "r2",
+      "cpfAluno": "22222222222",
+      "turmaId": "Engenharia de Software e Sistemas-2026-2",
+      "status": "respondido",
+      "dataEnvio": "2026-11-12T19:40:00-03:00",
+      "respostas": [
+        {
+          "questaoId": "q4",
+          "valor": "B",
+          "tempo": 20,
+          "status": "respondida",
+          "nota": null
+        },
+        {
+          "questaoId": "q2",
+          "valor": "B",
+          "tempo": 18,
+          "status": "respondida",
+          "nota": null
+        },
+        {
+          "questaoId": "q5",
+          "valor": "uploads/respostas/r2/22222222222/q5-servidor.png",
+          "tempo": 75,
+          "status": "respondida",
+          "nota": null
+        }
+      ]
+    },
+    {
+      "roteiroId": "r2",
+      "cpfAluno": "33333333333",
+      "turmaId": "Engenharia de Software e Sistemas-2026-2",
+      "status": "em_andamento",
+      "dataEnvio": null,
+      "respostas": [
+        {
+          "questaoId": "q4",
+          "valor": "B",
+          "tempo": 30,
+          "status": "respondida",
+          "nota": null
+        },
+        {
+          "questaoId": "q2",
+          "valor": null,
+          "tempo": 15,
+          "status": "nao_respondida",
+          "nota": null
+        }
+      ]
+    },
+    {
+      "roteiroId": "r3",
+      "cpfAluno": "77777777777",
+      "turmaId": "Estruturas de Dados-2026-2",
+      "status": "em_andamento",
+      "dataEnvio": null,
+      "respostas": [
+        {
+          "questaoId": "q6",
+          "valor": "É a diferença de altura entre as subárvores.",
+          "tempo": 42,
+          "status": "respondida",
+          "nota": null
+        },
+        {
+          "questaoId": "q7",
+          "valor": "B",
+          "tempo": 60,
+          "status": "respondida",
+          "nota": null
         }
       ]
     }

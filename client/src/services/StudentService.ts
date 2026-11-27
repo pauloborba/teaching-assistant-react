@@ -31,6 +31,29 @@ export class StudentService {
     }
   }
 
+  // Identify a student by CPF and email (área do aluno)
+  async login(cpf: string, email: string): Promise<Student> {
+    try {
+      const response = await fetch(`${this.baseUrl}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cpf, email }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to identify student: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error identifying student:', error);
+      throw error;
+    }
+  }
+
   // Create a new student
   async createStudent(student: CreateStudentRequest): Promise<Student> {
     try {

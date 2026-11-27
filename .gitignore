@@ -10,4 +10,4 @@ cucumber-report.*
 coverage/
 
 # multer folder
-tmp_data/
+tmp_data/.DS_Store

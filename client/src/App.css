@@ -1193,3 +1193,141 @@ tbody tr:last-child td {
   background-color: #fecaca;
   color: #991b1b;
 }
+
+
+/* ===== Área do aluno ===== */
+
+/* Login Modal (reuses the enrollment modal structure) */
+.login-modal {
+  max-width: 440px;
+}
+
+.login-hint {
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+.login-modal .error-message {
+  margin-bottom: 0;
+}
+
+.login-form .form-group:last-of-type {
+  margin-bottom: 0;
+}
+
+.login-form .form-buttons button[type="submit"] {
+  width: 100%;
+}
+
+/* Identified student bar */
+.aluno-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.aluno-bar-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.aluno-bar-nome {
+  color: #2d3748;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.aluno-bar-detalhe {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+/* Roteiros List */
+.roteiros-list {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.roteiros-list h2 {
+  background-color: #f8fafc;
+  padding: 1.5rem 2rem;
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.25rem;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.no-roteiros {
+  padding: 3rem 2rem;
+  text-align: center;
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+.roteiro-titulo {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.roteiro-descricao {
+  color: #718096;
+  font-size: 0.85rem;
+}
+
+.roteiro-nowrap {
+  white-space: nowrap;
+}
+
+/* Situation badges (same pill style as .enrolled-badge) */
+.situacao-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+}
+
+.situacao-nao_iniciado {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.situacao-em_andamento {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.situacao-respondido,
+.situacao-enviado {
+  background-color: #10b981;
+}
+
+.situacao-ainda_nao_aberto {
+  background-color: #a0aec0;
+}
+
+.situacao-prazo_encerrado {
+  background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+}
+
+@media (max-width: 768px) {
+  .aluno-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .roteiros-list h2 {
+    padding: 1rem;
+  }
+}
