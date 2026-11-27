@@ -28,19 +28,18 @@ export class RoteiroList {
     return this.roteiros.find((r) => r.id === id);
   }
 
-  public findByTitulo(titulo: string, turma: string): Roteiro | undefined {
+  public findByTitulo(titulo: string, turmaId: string): Roteiro | undefined {
     const tituloNormalizado = titulo.trim().toLowerCase();
-    const turmaNormalizada = turma.trim().toLowerCase();
     return this.roteiros.find(
       (r) =>
         r.getTitulo().trim().toLowerCase() === tituloNormalizado &&
-        r.getTurma().trim().toLowerCase() === turmaNormalizada
+        r.usadoPelaTurma(turmaId)
     );
   }
 
   public listByTitulo(turma?: string): Roteiro[] {
     const lista = turma
-      ? this.roteiros.filter((r) => r.getTurma().trim().toLowerCase() === turma.trim().toLowerCase())
+      ? this.roteiros.filter((r) => r.usadoPelaTurma(turma))
       : [...this.roteiros];
 
     return lista.sort((a, b) =>
