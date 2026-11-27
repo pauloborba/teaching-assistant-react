@@ -9,7 +9,7 @@ Feature: Gerenciamento de Roteiros
     And que estou na página de gerenciamento de roteiros
 
      # --- INSERÇÃO ---
-
+@gui
   Scenario: Inserir um novo roteiro completo com sucesso
     Given que não existe roteiro "Tutorial de Git" na turma "ESS - 2026.2"
     When eu insiro o roteiro com os seguintes dados:
@@ -26,13 +26,13 @@ Feature: Gerenciamento de Roteiros
   Scenario: Inserir roteiro sem título, com os demais dados preenchidos
     Given que a turma "ESS - 2026.2" tem apenas o roteiro "Introdução ao GitHub"
     When eu tento inserir um roteiro sem título, com descrição "Prática de commits"
-      e prazo de entrega "17/11/2026"
+      And prazo de entrega "17/11/2026"
     Then devo ver uma mensagem de erro sobre a obrigatoriedade do título
     And a turma "ESS - 2026.2" continua com apenas o roteiro "Introdução ao GitHub"
 
   Scenario: Inserir roteiro com prazo anterior à data de abertura
     When eu tento inserir o roteiro "Tutorial de Git" com data de abertura "17/11/2026"
-      e prazo de entrega "10/11/2026"
+      And prazo de entrega "10/11/2026"
     Then devo ver uma mensagem de erro sobre prazo inválido
     And o roteiro "Tutorial de Git" não está armazenado no sistema
 
@@ -46,9 +46,9 @@ Feature: Gerenciamento de Roteiros
 
   Scenario: Atualizar prazo e atividades preservando os demais dados
     Given que existe o roteiro "Tutorial de Git" com prazo "17/11/2026"
-      e atividades "Criar repositório" e "Criar branch"
+      And atividades "Criar repositório" e "Criar branch"
     When eu altero o prazo do roteiro "Tutorial de Git" para "24/11/2026"
-      e adiciono a atividade "Resolver conflito"
+      And adiciono a atividade "Resolver conflito"
     Then devo ver uma mensagem de sucesso
     And o roteiro "Tutorial de Git" tem prazo "24/11/2026" e 3 atividades
     And o título e a descrição do roteiro "Tutorial de Git" continuam os mesmos
@@ -67,7 +67,7 @@ Feature: Gerenciamento de Roteiros
 
   Scenario: Atualizar roteiro usando título já existente
     Given que a turma "ESS - 2026.2" tem os roteiros "Tutorial de Git"
-      e "Introdução ao GitHub"
+      And "Introdução ao GitHub"
     When eu tento alterar o título do roteiro "Introdução ao GitHub" para "Tutorial de Git"
     Then devo ver uma mensagem de erro sobre título duplicado
     And o roteiro "Introdução ao GitHub" continua com o título "Introdução ao GitHub"
