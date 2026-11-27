@@ -8,6 +8,9 @@ import { Class } from './models/Class';
 import { Report } from './models/Report';
 import { RoteiroService } from './services/RoteiroService';
 import { Roteiro } from './models/Roteiro';
+import { RoteiroList } from './models/RoteiroList';
+import { Questao } from './models/Questao';
+import { QuestaoList } from './models/QuestaoList';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
@@ -28,7 +31,10 @@ app.use(express.json());
 // In-memory storage with file persistence
 const studentSet = new StudentSet();
 const classes = new Classes();
-const roteiroService = new RoteiroService();
+const questaoList = new QuestaoList();
+const roteiroService = new RoteiroService(new RoteiroList(), questaoList, {
+  turmaExiste: (turmaId) => classes.findClassById(turmaId) !== undefined
+});
 const dataFile = path.resolve('./data/app-data.json');
 
 // Persistence functions
@@ -57,6 +63,7 @@ const saveDataToFile = (): void => {
           evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
         }))
       })),
+      questoes: questaoList.getAll().map(questao => questao.toJSON()),
       roteiros: roteiroService.getRoteiroList().getAll().map(roteiro => roteiro.toJSON())
     };
     
@@ -130,6 +137,17 @@ const loadDataFromFile = (): void => {
             }
           } catch (error) {
             console.error(`Error adding class ${classData.topic}:`, error);
+          }
+        });
+      }
+
+      // Load question bank (before roteiros, which reference questions by id)
+      if (data.questoes && Array.isArray(data.questoes)) {
+        data.questoes.forEach((questaoData: any) => {
+          try {
+            questaoList.add(Questao.fromJSON(questaoData));
+          } catch (error) {
+            console.error(`Error loading question ${questaoData?.id}:`, error);
           }
         });
       }
@@ -485,6 +503,18 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
   }
 });
 
+// Adaptador TEMPORÁRIO: devolve, além do contrato, os campos antigos que a GUI de roteiros usa
+// (turma, atividades e respostas). O app-data.json grava apenas roteiro.toJSON().
+// Remover quando a GUI passar a usar turmaIds e questaoIds.
+const roteiroParaGUI = (roteiro: Roteiro) => ({
+  ...roteiro.toJSON(),
+  turma: roteiro.getTurmaIds().join(', '),
+  atividades: roteiro.getQuestaoIds().map(id => ({
+    descricao: questaoList.findById(id)?.getEnunciado() ?? id
+  })),
+  respostas: []
+});
+
 // GET /api/roteiros - Get all roteiros (optional ?turma= filter)
 app.get('/api/roteiros', (req: Request, res: Response) => {
   try {
@@ -492,7 +522,7 @@ app.get('/api/roteiros', (req: Request, res: Response) => {
     const lista = turma
       ? roteiroService.getRoteiroList().listByTitulo(turma)
       : roteiroService.getRoteiroList().getAll();
-    res.json(lista.map(r => r.toJSON()));
+    res.json(lista.map(r => roteiroParaGUI(r)));
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch roteiros' });
   }
@@ -503,7 +533,7 @@ app.post('/api/roteiros', (req: Request, res: Response) => {
   try {
     const novoRoteiro = roteiroService.inserirRoteiro(req.body);
     triggerSave();
-    res.status(201).json(novoRoteiro.toJSON());
+    res.status(201).json(roteiroParaGUI(novoRoteiro));
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
@@ -515,7 +545,7 @@ app.put('/api/roteiros/:id', (req: Request, res: Response) => {
     const { id } = req.params;
     const atualizado = roteiroService.atualizarRoteiro(id, req.body);
     triggerSave();
-    res.json(atualizado.toJSON());
+    res.json(roteiroParaGUI(atualizado));
   } catch (error) {
     const message = (error as Error).message;
     const status = message === 'Roteiro não encontrado' ? 404 : 400;
@@ -541,7 +571,7 @@ app.delete('/api/roteiros/:id', (req: Request, res: Response) => {
 });
 
 // Export the app for testing
-export { app, studentSet, classes, roteiroService };
+export { app, studentSet, classes, roteiroService, questaoList };
 
 // Only start the server if this file is run directly (not imported for testing)
 if (require.main === module) {
