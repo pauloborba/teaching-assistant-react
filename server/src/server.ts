@@ -7,6 +7,7 @@ import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import { Report } from './models/Report';
 import { RoteiroService } from './services/RoteiroService';
+import { QuestaoService } from './services/QuestaoService';
 import { Roteiro } from './models/Roteiro';
 import { RoteiroList } from './models/RoteiroList';
 import { Questao } from './models/Questao';
@@ -35,6 +36,7 @@ const questaoList = new QuestaoList();
 const roteiroService = new RoteiroService(new RoteiroList(), questaoList, {
   turmaExiste: (turmaId) => classes.findClassById(turmaId) !== undefined
 });
+const questaoService = new QuestaoService(questaoList, roteiroService.getRoteiroList());
 const dataFile = path.resolve('./data/app-data.json');
 
 // Persistence functions
@@ -503,18 +505,6 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
   }
 });
 
-// Adaptador TEMPORÁRIO: devolve, além do contrato, os campos antigos que a GUI de roteiros usa
-// (turma, atividades e respostas). O app-data.json grava apenas roteiro.toJSON().
-// Remover quando a GUI passar a usar turmaIds e questaoIds.
-const roteiroParaGUI = (roteiro: Roteiro) => ({
-  ...roteiro.toJSON(),
-  turma: roteiro.getTurmaIds().join(', '),
-  atividades: roteiro.getQuestaoIds().map(id => ({
-    descricao: questaoList.findById(id)?.getEnunciado() ?? id
-  })),
-  respostas: []
-});
-
 // GET /api/roteiros - Get all roteiros (optional ?turma= filter)
 app.get('/api/roteiros', (req: Request, res: Response) => {
   try {
@@ -522,7 +512,7 @@ app.get('/api/roteiros', (req: Request, res: Response) => {
     const lista = turma
       ? roteiroService.getRoteiroList().listByTitulo(turma)
       : roteiroService.getRoteiroList().getAll();
-    res.json(lista.map(r => roteiroParaGUI(r)));
+    res.json(lista.map(r => r.toJSON()));
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch roteiros' });
   }
@@ -533,7 +523,7 @@ app.post('/api/roteiros', (req: Request, res: Response) => {
   try {
     const novoRoteiro = roteiroService.inserirRoteiro(req.body);
     triggerSave();
-    res.status(201).json(roteiroParaGUI(novoRoteiro));
+    res.status(201).json(novoRoteiro.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
@@ -545,7 +535,7 @@ app.put('/api/roteiros/:id', (req: Request, res: Response) => {
     const { id } = req.params;
     const atualizado = roteiroService.atualizarRoteiro(id, req.body);
     triggerSave();
-    res.json(roteiroParaGUI(atualizado));
+    res.json(atualizado.toJSON());
   } catch (error) {
     const message = (error as Error).message;
     const status = message === 'Roteiro não encontrado' ? 404 : 400;
@@ -566,6 +556,55 @@ app.delete('/api/roteiros/:id', (req: Request, res: Response) => {
   } catch (error) {
     const message = (error as Error).message;
     const status = message === 'Roteiro não encontrado' ? 404 : 400;
+    res.status(status).json({ error: message });
+  }
+});
+
+// GET /api/questoes - Get the question bank (optional ?busca= filter by title)
+app.get('/api/questoes', (req: Request, res: Response) => {
+  try {
+    const busca = typeof req.query.busca === 'string' ? req.query.busca : undefined;
+    res.json(questaoService.listarQuestoes(busca).map(q => q.toJSON()));
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch questions' });
+  }
+});
+
+// POST /api/questoes - Create a new question in the bank
+app.post('/api/questoes', (req: Request, res: Response) => {
+  try {
+    const novaQuestao = questaoService.inserirQuestao(req.body);
+    triggerSave();
+    res.status(201).json(novaQuestao.toJSON());
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// PUT /api/questoes/:id - Update a question of the bank
+app.put('/api/questoes/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const atualizada = questaoService.atualizarQuestao(id, req.body);
+    triggerSave();
+    res.json(atualizada.toJSON());
+  } catch (error) {
+    const message = (error as Error).message;
+    const status = message === 'Questão não encontrada' ? 404 : 400;
+    res.status(status).json({ error: message });
+  }
+});
+
+// DELETE /api/questoes/:id - Delete a question not used by any roteiro
+app.delete('/api/questoes/:id', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    questaoService.removerQuestao(id);
+    triggerSave();
+    res.status(204).send();
+  } catch (error) {
+    const message = (error as Error).message;
+    const status = message === 'Questão não encontrada' ? 404 : 400;
     res.status(status).json({ error: message });
   }
 });
