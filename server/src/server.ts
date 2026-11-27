@@ -9,6 +9,13 @@ import { Report } from './models/Report';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
+import { Questao } from './models/Questao';
+import { QuestaoList } from './models/QuestaoList';
+import { Roteiro } from './models/Roteiro';
+import { RoteiroList } from './models/RoteiroList';
+import { RoteiroAluno } from './models/RoteiroAluno';
+import { RoteiroAlunoList } from './models/RoteiroAlunoList';
+import { RoteiroService } from './models/RoteiroService';
 
 // usado para ler arquivos em POST
 const multer = require('multer');
@@ -26,6 +33,10 @@ app.use(express.json());
 // In-memory storage with file persistence
 const studentSet = new StudentSet();
 const classes = new Classes();
+const questaoList = new QuestaoList();
+const roteiroList = new RoteiroList();
+const roteiroAlunoList = new RoteiroAlunoList();
+const roteiroService = new RoteiroService(roteiroList, roteiroAlunoList, classes);
 const dataFile = path.resolve('./data/app-data.json');
 
 // Persistence functions
@@ -53,7 +64,10 @@ const saveDataToFile = (): void => {
           studentCPF: enrollment.getStudent().getCPF(),
           evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
         }))
-      }))
+      })),
+      questoes: questaoList.getAll().map(questao => questao.toJSON()),
+      roteiros: roteiroList.getAll().map(roteiro => roteiro.toJSON()),
+      roteirosAlunos: roteiroAlunoList.getAll().map(roteiroAluno => roteiroAluno.toJSON())
     };
     
     ensureDataDirectory();
@@ -130,6 +144,42 @@ const loadDataFromFile = (): void => {
           }
         });
       }
+
+
+
+      // Load question bank
+      if (data.questoes && Array.isArray(data.questoes)) {
+        data.questoes.forEach((questaoData: any) => {
+          try {
+            questaoList.add(Questao.fromJSON(questaoData));
+          } catch (error) {
+            console.error(`Error adding question ${questaoData.id}:`, error);
+          }
+        });
+      }
+
+      // Load roteiros
+      if (data.roteiros && Array.isArray(data.roteiros)) {
+        data.roteiros.forEach((roteiroData: any) => {
+          try {
+            roteiroList.add(Roteiro.fromJSON(roteiroData));
+          } catch (error) {
+            console.error(`Error adding roteiro ${roteiroData.id}:`, error);
+          }
+        });
+      }
+
+      // Load students' progress in roteiros
+      if (data.roteirosAlunos && Array.isArray(data.roteirosAlunos)) {
+        data.roteirosAlunos.forEach((roteiroAlunoData: any) => {
+          try {
+            roteiroAlunoList.add(RoteiroAluno.fromJSON(roteiroAlunoData));
+          } catch (error) {
+            console.error(`Error adding progress of ${roteiroAlunoData.cpfAluno} in ${roteiroAlunoData.roteiroId}:`, error);
+          }
+        });
+      }
+
     }
   } catch (error) {
     console.error('Error loading data from file:', error);
@@ -227,6 +277,7 @@ app.delete('/api/students/:cpf', (req: Request, res: Response) => {
   }
 });
 
+//possivel refact: code smell comentarios
 // PUT /api/students/:cpf/evaluation - Update a specific evaluation
 // DEPRECATED: Evaluations are now handled through class enrollments
 /*
@@ -277,6 +328,50 @@ app.get('/api/students/:cpf', (req: Request, res: Response) => {
     }
     
     res.json(student.toJSON());
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// POST /api/students/login - Identifica o aluno pelo CPF e email (área do aluno)
+app.post('/api/students/login', (req: Request, res: Response) => {
+  try {
+    const { cpf, email } = req.body;
+
+    if (!cpf || !email) {
+      return res.status(400).json({ error: 'CPF e email são obrigatórios' });
+    }
+
+    const student = studentSet.findStudentByCPF(cleanCPF(String(cpf)));
+    const emailInformado = String(email).trim().toLowerCase();
+
+    
+    if (!student || student.email.toLowerCase() !== emailInformado) {
+      return res.status(401).json({ error: 'CPF ou email não conferem' });
+    }
+
+    res.json(student.toJSON());
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+// GET /api/students/:cpf/roteiros - Roteiros das turmas do aluno, com a situação de cada um
+app.get('/api/students/:cpf/roteiros', (req: Request, res: Response) => {
+  try {
+    const { cpf } = req.params;
+    const cleanedCPF = cleanCPF(cpf);
+    //possivel refact: diminuir 1 linha
+
+    if (!studentSet.findStudentByCPF(cleanedCPF)) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    const { roteiros, houveAlteracao } = roteiroService.listarRoteirosDoAluno(cleanedCPF, new Date());
+    if (houveAlteracao) {
+      triggerSave(); 
+    }
+    res.json(roteiros);
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
   }
@@ -518,7 +613,7 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
 
 
 // Export the app for testing
-export { app, studentSet, classes };
+export { app, studentSet, classes, questaoList, roteiroList, roteiroAlunoList };
 
 // Only start the server if this file is run directly (not imported for testing)
 if (require.main === module) {
