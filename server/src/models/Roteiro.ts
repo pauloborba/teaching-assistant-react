@@ -1,42 +1,34 @@
-import { Atividade } from './Atividade';
-
-export interface RespostaAluno {
-  alunoNome: string;
-  resposta?: string;
-}
-
 export interface RoteiroProps {
   id?: string;
   titulo: string;
   descricao?: string;
-  turma: string;
-  dataAbertura: string; // ex.: "10/11/2026" ou ISO
-  prazoEntrega: string; // ex.: "17/11/2026" ou ISO
-  atividades?: (Atividade | string)[];
-  respostas?: RespostaAluno[];
+  dataAbertura: string; // ISO 8601 (o RoteiroService converte DD/MM/AAAA)
+  prazoEntrega: string; // ISO 8601 (o RoteiroService converte DD/MM/AAAA)
+  questaoIds?: string[];
+  turmaIds?: string[]; 
 }
 
 export class Roteiro {
   public readonly id: string;
   private _titulo: string;
   private _descricao: string;
-  private _turma: string;
   private _dataAbertura: string;
   private _prazoEntrega: string;
-  private _atividades: Atividade[];
-  private _respostas: RespostaAluno[];
+  private _questaoIds: string[];
+  private _turmaIds: string[];
 
   constructor(props: RoteiroProps) {
     this.id = props.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     this._titulo = (props.titulo ?? '').trim();
     this._descricao = (props.descricao ?? '').trim();
-    this._turma = (props.turma ?? '').trim();
     this._dataAbertura = (props.dataAbertura ?? '').trim();
     this._prazoEntrega = (props.prazoEntrega ?? '').trim();
-    this._atividades = (props.atividades ?? []).map((item) =>
-      item instanceof Atividade ? item : new Atividade(String(item))
-    );
-    this._respostas = props.respostas ? [...props.respostas] : [];
+    this._questaoIds = Roteiro.limparIds(props.questaoIds);
+    this._turmaIds = Roteiro.limparIds(props.turmaIds);
+  }
+
+  public getId(): string {
+    return this.id;
   }
 
   public getTitulo(): string {
@@ -55,14 +47,6 @@ export class Roteiro {
     this._descricao = descricao.trim();
   }
 
-  public getTurma(): string {
-    return this._turma;
-  }
-
-  public setTurma(turma: string): void {
-    this._turma = turma.trim();
-  }
-
   public getDataAbertura(): string {
     return this._dataAbertura;
   }
@@ -79,22 +63,43 @@ export class Roteiro {
     this._prazoEntrega = prazoEntrega.trim();
   }
 
-  public getAtividades(): Atividade[] {
-    return [...this._atividades];
+  public getQuestaoIds(): string[] {
+    return [...this._questaoIds];
   }
 
-  public setAtividades(atividades: (Atividade | string)[]): void {
-    this._atividades = atividades.map((item) =>
-      item instanceof Atividade ? item : new Atividade(String(item))
-    );
+  public setQuestaoIds(questaoIds: string[]): void {
+    this._questaoIds = Roteiro.limparIds(questaoIds);
   }
 
-  public getRespostas(): RespostaAluno[] {
-    return [...this._respostas];
+  public getTotalQuestoes(): number {
+    return this._questaoIds.length;
   }
 
-  public possuiRespostas(): boolean {
-    return this._respostas.length > 0;
+  public getTurmaIds(): string[] {
+    return [...this._turmaIds];
+  }
+
+  public setTurmaIds(turmaIds: string[]): void {
+    this._turmaIds = Roteiro.limparIds(turmaIds);
+  }
+
+  public usadoPelaTurma(turmaId: string): boolean {
+    return this._turmaIds.includes(turmaId.trim());
+  }
+
+  // Datas vazias ou inválidas: o roteiro não é considerado aberto.
+  public aindaNaoAbriu(agora: Date): boolean {
+    const abertura = Date.parse(this._dataAbertura);
+    return Number.isNaN(abertura) || agora.getTime() < abertura;
+  }
+
+  public prazoEncerrado(agora: Date): boolean {
+    const prazo = Date.parse(this._prazoEntrega);
+    return Number.isNaN(prazo) || agora.getTime() > prazo;
+  }
+
+  public aberto(agora: Date): boolean {
+    return !this.aindaNaoAbriu(agora) && !this.prazoEncerrado(agora);
   }
 
   public toJSON() {
@@ -102,11 +107,10 @@ export class Roteiro {
       id: this.id,
       titulo: this._titulo,
       descricao: this._descricao,
-      turma: this._turma,
       dataAbertura: this._dataAbertura,
       prazoEntrega: this._prazoEntrega,
-      atividades: this._atividades.map((a) => a.toJSON()),
-      respostas: this._respostas,
+      questaoIds: [...this._questaoIds],
+      turmaIds: [...this._turmaIds],
     };
   }
 
@@ -115,13 +119,14 @@ export class Roteiro {
       id: data?.id,
       titulo: data?.titulo ?? '',
       descricao: data?.descricao ?? '',
-      turma: data?.turma ?? '',
       dataAbertura: data?.dataAbertura ?? '',
       prazoEntrega: data?.prazoEntrega ?? '',
-      atividades: Array.isArray(data?.atividades)
-        ? data.atividades.map((a: any) => Atividade.fromJSON(a))
-        : [],
-      respostas: Array.isArray(data?.respostas) ? data.respostas : [],
+      questaoIds: Array.isArray(data?.questaoIds) ? data.questaoIds : [],
+      turmaIds: Array.isArray(data?.turmaIds) ? data.turmaIds : [],
     });
+  }
+
+  private static limparIds(ids?: string[]): string[] {
+    return (ids ?? []).map((id) => String(id).trim()).filter((id) => id.length > 0);
   }
 }
