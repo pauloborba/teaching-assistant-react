@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { RoteiroItem } from '../types/Roteiro';
 import { roteiroService } from '../services/RoteiroService';
+import './Roteiros.css';
 
 interface RoteirosProps {
   defaultTurma?: string;
@@ -134,7 +135,12 @@ const Roteiros: React.FC<RoteirosProps> = ({
 
   return (
     <div className="roteiros-section" data-testid="roteiros-page">
-      <h2>Gerenciamento de Roteiros</h2>
+      <div className="roteiros-header">
+        <h2>Gerenciamento de Roteiros</h2>
+        <span className="roteiros-subtitle">
+          {editingId ? 'Editando roteiro existente' : 'Cadastro e acompanhamento'}
+        </span>
+      </div>
 
       {feedbackMessage && (
         <div className="success-message" role="status" data-testid="roteiro-success-message">
@@ -149,7 +155,7 @@ const Roteiros: React.FC<RoteirosProps> = ({
       )}
 
       <form onSubmit={handleSubmit} className="roteiro-form" data-testid="roteiro-form">
-        <div>
+        <div className="roteiro-field">
           <label htmlFor="roteiro-titulo">Título:</label>
           <input
             id="roteiro-titulo"
@@ -161,19 +167,7 @@ const Roteiros: React.FC<RoteirosProps> = ({
           />
         </div>
 
-        <div>
-          <label htmlFor="roteiro-descricao">Descrição:</label>
-          <input
-            id="roteiro-descricao"
-            name="descricao"
-            type="text"
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            data-testid="roteiro-descricao-input"
-          />
-        </div>
-
-        <div>
+        <div className="roteiro-field">
           <label htmlFor="roteiro-turma">Turma:</label>
           <input
             id="roteiro-turma"
@@ -185,7 +179,19 @@ const Roteiros: React.FC<RoteirosProps> = ({
           />
         </div>
 
-        <div>
+        <div className="roteiro-field roteiro-field-full">
+          <label htmlFor="roteiro-descricao">Descrição:</label>
+          <input
+            id="roteiro-descricao"
+            name="descricao"
+            type="text"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            data-testid="roteiro-descricao-input"
+          />
+        </div>
+
+        <div className="roteiro-field">
           <label htmlFor="roteiro-data-abertura">Data de abertura:</label>
           <input
             id="roteiro-data-abertura"
@@ -198,7 +204,7 @@ const Roteiros: React.FC<RoteirosProps> = ({
           />
         </div>
 
-        <div>
+        <div className="roteiro-field">
           <label htmlFor="roteiro-prazo-entrega">Prazo de entrega:</label>
           <input
             id="roteiro-prazo-entrega"
@@ -211,7 +217,7 @@ const Roteiros: React.FC<RoteirosProps> = ({
           />
         </div>
 
-        <div>
+        <div className="roteiro-field roteiro-field-full">
           <label htmlFor="roteiro-atividades">Atividades (separadas por ponto e vírgula):</label>
           <input
             id="roteiro-atividades"
@@ -223,13 +229,18 @@ const Roteiros: React.FC<RoteirosProps> = ({
           />
         </div>
 
-        <div>
-          <button type="submit" data-testid="roteiro-submit-button">
+        <div className="roteiro-form-actions">
+          <button
+            type="submit"
+            className="roteiro-btn-primary"
+            data-testid="roteiro-submit-button"
+          >
             {editingId ? 'Atualizar Roteiro' : 'Salvar Roteiro'}
           </button>
           {editingId && (
             <button
               type="button"
+              className="roteiro-btn-secondary"
               onClick={limparFormulario}
               data-testid="roteiro-cancel-edit-button"
             >
@@ -239,72 +250,85 @@ const Roteiros: React.FC<RoteirosProps> = ({
         </div>
       </form>
 
-      <h3>Roteiros Cadastrados</h3>
+      <div className="roteiros-list-header">
+        <h3>Roteiros Cadastrados</h3>
+      </div>
+
       {loading ? (
-        <p>Carregando roteiros...</p>
+        <p className="roteiros-empty">Carregando roteiros...</p>
       ) : roteiros.length === 0 ? (
-        <p data-testid="roteiros-empty-message">Nenhum roteiro cadastrado.</p>
+        <p className="roteiros-empty" data-testid="roteiros-empty-message">
+          Nenhum roteiro cadastrado.
+        </p>
       ) : (
-        <table data-testid="roteiros-list">
-          <thead>
-            <tr>
-              <th>Título</th>
-              <th>Turma</th>
-              <th>Abertura</th>
-              <th>Prazo</th>
-              <th>Atividades</th>
-              <th>Respostas</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {roteiros.map((roteiro) => (
-              <tr key={roteiro.id} data-testid={`roteiro-row-${roteiro.titulo}`}>
-                <td>{roteiro.titulo}</td>
-                <td>{roteiro.turma}</td>
-                <td>{roteiro.dataAbertura}</td>
-                <td>{roteiro.prazoEntrega}</td>
-                <td>{roteiro.atividades.map((a) => a.descricao).join('; ')}</td>
-                <td>{roteiro.respostas.map((r) => r.alunoNome).join(', ')}</td>
-                <td>
-                  <button
-                    type="button"
-                    onClick={() => handleIniciarEdicao(roteiro)}
-                    data-testid={`edit-roteiro-${roteiro.titulo}`}
-                  >
-                    Editar
-                  </button>
-                  {pendingDeleteId === roteiro.id ? (
-                    <span data-testid="delete-confirmation-box">
-                      <button
-                        type="button"
-                        onClick={() => handleConfirmarExclusao(roteiro.id)}
-                        data-testid="confirm-delete-button"
-                      >
-                        Confirmar Exclusão
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCancelarExclusao}
-                        data-testid="cancel-delete-button"
-                      >
-                        Cancelar
-                      </button>
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => handleSolicitarExclusao(roteiro.id)}
-                      data-testid={`delete-roteiro-${roteiro.titulo}`}
-                    >
-                      Excluir
-                    </button>
-                  )}
-                </td>
+        <div className="roteiros-table-wrapper">
+          <table data-testid="roteiros-list">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Turma</th>
+                <th>Abertura</th>
+                <th>Prazo</th>
+                <th>Atividades</th>
+                <th>Respostas</th>
+                <th>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {roteiros.map((roteiro) => (
+                <tr key={roteiro.id} data-testid={`roteiro-row-${roteiro.titulo}`}>
+                  <td>{roteiro.titulo}</td>
+                  <td>{roteiro.turma}</td>
+                  <td>{roteiro.dataAbertura}</td>
+                  <td>{roteiro.prazoEntrega}</td>
+                  <td>{roteiro.atividades.map((a) => a.descricao).join('; ')}</td>
+                  <td>{roteiro.respostas.map((r) => r.alunoNome).join(', ')}</td>
+                  <td>
+                    <div className="roteiro-actions-cell">
+                      <button
+                        type="button"
+                        className="roteiro-btn-secondary"
+                        onClick={() => handleIniciarEdicao(roteiro)}
+                        data-testid={`edit-roteiro-${roteiro.titulo}`}
+                      >
+                        Editar
+                      </button>
+                      {pendingDeleteId === roteiro.id ? (
+                        <span className="delete-confirmation-box" data-testid="delete-confirmation-box">
+                          <button
+                            type="button"
+                            className="roteiro-btn-danger"
+                            onClick={() => handleConfirmarExclusao(roteiro.id)}
+                            data-testid="confirm-delete-button"
+                          >
+                            Confirmar Exclusão
+                          </button>
+                          <button
+                            type="button"
+                            className="roteiro-btn-secondary"
+                            onClick={handleCancelarExclusao}
+                            data-testid="cancel-delete-button"
+                          >
+                            Cancelar
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="roteiro-btn-danger"
+                          onClick={() => handleSolicitarExclusao(roteiro.id)}
+                          data-testid={`delete-roteiro-${roteiro.titulo}`}
+                        >
+                          Excluir
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
