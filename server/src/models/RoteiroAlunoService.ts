@@ -32,7 +32,7 @@ export interface ResultadoListagem {
 }
 
 
-export class RoteiroService {
+export class RoteiroAlunoService {
   constructor(
     private readonly roteiros: RoteiroList,
     private readonly roteirosAlunos: RoteiroAlunoList,

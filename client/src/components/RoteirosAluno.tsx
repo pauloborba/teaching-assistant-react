@@ -1,5 +1,5 @@
 import React from 'react';
-import { RoteiroDoAluno, SituacaoRoteiro, SITUACAO_LABEL } from '../types/Roteiro';
+import { RoteiroDoAluno, SituacaoRoteiro, SITUACAO_LABEL } from '../types/RoteiroDoAluno';
 
 interface RoteirosAlunoProps {
   roteiros: RoteiroDoAluno[];

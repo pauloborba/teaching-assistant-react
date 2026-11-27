@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Student } from './types/Student';
-import { RoteiroDoAluno } from './types/Roteiro';
-import RoteiroService from './services/RoteiroService';
+import { RoteiroDoAluno } from './types/RoteiroDoAluno';
+import RoteiroAlunoService from './services/RoteiroAlunoService';
 import LoginAluno from './components/LoginAluno';
 import RoteirosAluno from './components/RoteirosAluno';
 import './App.css';
@@ -31,7 +31,7 @@ const AlunoApp: React.FC = () => {
     try {
       setLoading(true);
       setError('');
-      const roteirosData = await RoteiroService.getRoteirosDoAluno(cpf);
+      const roteirosData = await RoteiroAlunoService.getRoteirosDoAluno(cpf);
       setRoteiros(roteirosData);
     } catch (err) {
       setError('Não foi possível carregar os roteiros. Tente novamente.');

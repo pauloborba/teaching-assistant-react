@@ -1,8 +1,8 @@
-import { RoteiroDoAluno } from '../types/Roteiro';
+import { RoteiroDoAluno } from '../types/RoteiroDoAluno';
 
 const API_BASE_URL = 'http://localhost:3005';
 
-class RoteiroService {
+class RoteiroAlunoService {
   
   static async getRoteirosDoAluno(cpf: string): Promise<RoteiroDoAluno[]> {
     try {
@@ -21,4 +21,4 @@ class RoteiroService {
   }
 }
 
-export default RoteiroService;
+export default RoteiroAlunoService;

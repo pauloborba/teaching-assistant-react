@@ -15,7 +15,7 @@ import { Roteiro } from './models/Roteiro';
 import { RoteiroList } from './models/RoteiroList';
 import { RoteiroAluno } from './models/RoteiroAluno';
 import { RoteiroAlunoList } from './models/RoteiroAlunoList';
-import { RoteiroService } from './models/RoteiroService';
+import { RoteiroAlunoService } from './models/RoteiroAlunoService';
 
 // usado para ler arquivos em POST
 const multer = require('multer');
@@ -36,7 +36,7 @@ const classes = new Classes();
 const questaoList = new QuestaoList();
 const roteiroList = new RoteiroList();
 const roteiroAlunoList = new RoteiroAlunoList();
-const roteiroService = new RoteiroService(roteiroList, roteiroAlunoList, classes);
+const roteiroService = new RoteiroAlunoService(roteiroList, roteiroAlunoList, classes);
 const dataFile = path.resolve('./data/app-data.json');
 
 // Persistence functions
